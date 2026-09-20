@@ -28,7 +28,7 @@ export function waitForCssAnimation(
   phase: ToastAnimationPhase,
   signal: AbortSignal,
 ): Promise<void> {
-  if (signal.aborted) return Promise.reject(new win.DOMException('Animation aborted', 'AbortError'));
+  if (signal.aborted) return Promise.reject(new DOMException('Animation aborted', 'AbortError'));
   const total = maxAnimationTime(win.getComputedStyle(element));
   if (total <= 0) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -49,7 +49,7 @@ export function waitForCssAnimation(
       if (settled) return;
       settled = true;
       cleanup();
-      reject(new win.DOMException(`${phase} animation aborted`, 'AbortError'));
+      reject(new DOMException(`${phase} animation aborted`, 'AbortError'));
     };
     const onEnd = (event: AnimationEvent) => { if (event.target === element) finish(); };
     const onCancel = (event: AnimationEvent) => { if (event.target === element) fail(); };

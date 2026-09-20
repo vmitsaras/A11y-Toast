@@ -653,13 +653,13 @@ export class A11yToast implements ToastInstance {
     let task: void | Promise<void>;
     try {
       if (this.options.animation === 'css') task = waitForCssAnimation(this.win, element, phase, controller.signal);
-      else {
+      else if (typeof this.options.animation !== 'string') {
         const callback = this.options.animation[phase];
         const context: ToastAnimationContext = Object.freeze({
           instance: this, root: this.root, element, toast: this.snapshot(record), phase, signal: controller.signal,
         });
         task = callback?.(context);
-      }
+      } else task = undefined;
     } catch (error) {
       this.settleAnimation(active, 'failed', error);
       return true;
