@@ -2,6 +2,9 @@
 
 ## 0.1.0 — Unreleased implementation preview
 
+- Added `showToneLabel` and `data-a11y-toast-show-tone-label` to hide the visible `.a11y-toast__tone` line without changing generated announcement wording.
+- Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.
+
 - TypeScript/ESM core with frozen options, safe text rendering, explicit initialization and duplicate-instance reuse.
 - Separate polite/assertive live-region scheduling and an off mode for shared announcement ownership.
 - Bounded FIFO, safe updates, explicit overflow rejection and atomic clear behavior.
