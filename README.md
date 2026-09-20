@@ -256,7 +256,7 @@ const toast = createToast(root, {
 });
 ```
 
-The factory registers the caller-supplied Flip plugin with the caller-supplied GSAP instance. Re-registering a GSAP plugin is harmless, and explicit registration avoids bundler/tree-shaking problems. citeturn538620search2
+The factory registers the caller-supplied Flip plugin with the caller-supplied GSAP instance. Re-registering a GSAP plugin is harmless, and explicit registration helps avoid bundler/tree-shaking problems.
 
 Scope is deliberately narrow:
 
