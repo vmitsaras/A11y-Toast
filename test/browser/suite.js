@@ -1637,13 +1637,15 @@ export async function runSuite(api, capabilities = { layout: true }) {
     }
   });
 
-  await test('155 abort skips an active element-scoped View Transition and restores state', async () => {
+  await test('155 abort serializes skipped entrance before starting the exit View Transition', async () => {
     const original = HTMLElement.prototype.startViewTransition;
-    let resolveFinished, skips = 0;
+    const resolvers = [];
+    let skips = 0, starts = 0;
     HTMLElement.prototype.startViewTransition = function (callback) {
+      starts++;
       callback?.();
       return {
-        finished: new Promise(resolve => { resolveFinished = resolve; }),
+        finished: new Promise(resolve => { resolvers.push(resolve); }),
         skipTransition() { skips++; },
         transitionRoot: this,
       };
@@ -1653,12 +1655,19 @@ export async function runSuite(api, capabilities = { layout: true }) {
       const id = m.show({ message: 'Abort', persistent: true });
       const element = item(m, id);
       equal(m.getToast(id).animationPhase, 'enter');
+      equal(starts, 1);
       m.dismiss(id);
       equal(skips, 1);
-      resolveFinished();
+      equal(starts, 1);
+      resolvers[0]();
+      await waitMicrotasks();
+      equal(starts, 2);
+      equal(element.getAttribute('data-a11y-toast-view-transition-phase'), 'exit');
+      resolvers[1]();
       await waitMicrotasks();
       equal(element.hasAttribute('style'), false);
       equal(element.hasAttribute('data-a11y-toast-view-transition-phase'), false);
+      equal(element.isConnected, false);
     } finally {
       if (original === undefined) delete HTMLElement.prototype.startViewTransition;
       else HTMLElement.prototype.startViewTransition = original;

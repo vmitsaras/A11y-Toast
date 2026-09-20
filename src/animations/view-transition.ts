@@ -39,7 +39,7 @@ function restoreAttribute(element: HTMLElement, name: string, value: string | nu
   else element.setAttribute(name, value);
 }
 
-function animate(
+function animateNow(
   context: ToastAnimationContext,
   distance: number,
 ): Promise<void> {
@@ -132,10 +132,22 @@ export function createElementViewTransitionDriver(
   options: ElementViewTransitionOptions = {},
 ): ToastAnimationDriver {
   const distance = finiteNumber(options.distance, 4, 'View Transition distance');
+  const tails = new WeakMap<HTMLElement, Promise<void>>();
+
+  const animate = (context: ToastAnimationContext): Promise<void> => {
+    const previous = tails.get(context.element) ?? Promise.resolve();
+    const task = previous.catch(() => {}).then(() => animateNow(context, distance));
+    const tail = task.then(() => undefined, () => undefined);
+    tails.set(context.element, tail);
+    void tail.finally(() => {
+      if (tails.get(context.element) === tail) tails.delete(context.element);
+    });
+    return task;
+  };
 
   return Object.freeze({
     name: 'view-transition',
-    enter: (context: ToastAnimationContext) => animate(context, distance),
-    exit: (context: ToastAnimationContext) => animate(context, distance),
+    enter: animate,
+    exit: animate,
   });
 }
