@@ -22,6 +22,10 @@ Neither restriction was treated as evidence that the package itself failed. Neit
 
 ## GitHub Actions online verification
 
+Latest TOAST-240 ecosystem-adapter run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35517848474  
+Commit: `2c462d4c5cfdc931e439c045a781ef05429c4161`  
+Result: **success** — install/build/type/Vitest/served-browser/package/audit workflow completed. The existing browser contract remains **132 / 132 with 0 uncaught page errors**; Vitest now has **2 files / 7 tests passing**, including **6 dedicated integration tests** against the installed `a11y-menu-button@1.0.1` event contract. Integration coverage verifies source-owned loading, retained-ID error/empty transitions, ready dismissal, source status-text mirroring, source-core destroy cleanup, toast destroy listener cleanup, and foreign-root event rejection.
+
 Latest TOAST-230 DOM-event adapter run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35514748831  
 Commit: `d904362e3b7d610a352a51430f9c07a5a161678c`  
 Result: **success** — build/type/Vitest/served-browser/package/audit workflow completed with **132 / 132 browser scenarios and 0 uncaught page errors**. Scenarios 122–132 verify source-owned priority suppression, toast-owned announcement preservation, correlation update/dismiss tracking, duplicate correlated-show update behavior, unknown-correlation no-ops, mapper error isolation, adapter/toast teardown, queued correlation updates, and fail-before-listener invalid configuration.
@@ -86,7 +90,7 @@ Observed results:
 | Actual local npm archive | Pass | `npm pack --ignore-scripts --pack-destination /mnt/data`; archive entries inspected. |
 | Separate consumer install | Pass | Installed the actual tarball using `npm install --offline --ignore-scripts --no-audit --no-fund`; runtime, metadata, package and CSS entries resolved. |
 | Standard tsdown build | **Pass** | GitHub Actions run #1, tsdown 0.15.12. |
-| Vitest/jsdom command | **Pass** | GitHub Actions run #1: Vitest 3.2.7, 1/1 test passed. |
+| Vitest/jsdom command | **Pass** | Latest TOAST-240 run: 2 test files / 7 tests passed, including 6 real A11y Menu Button async-state integration tests. |
 | Normal served-browser Playwright command | **Pass** | GitHub Actions run #1: Chromium lifecycle suite 77/77, 0 uncaught page errors. |
 | Lockfile generation / dependency security audit | **Partial** | Registry install and audit ran in GitHub Actions. No lockfile is committed. Audit reports two moderate dev-only Vitest/@vitest-mocker findings; the high-severity gate passes. |
 | Modern Web Guidance CLI retrieval | **Blocked** | CLI search was attempted, but npm could not resolve the registry. W3C/MDN references were reviewed separately. |
@@ -104,7 +108,7 @@ The shared lifecycle suite uses a deterministic clock for detailed timer/race co
 
 ## Behavior exercised
 
-The 132 lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, and generic DOM-event adapter coverage in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
+The 132 browser lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, and generic DOM-event adapter coverage. A separate six-test Vitest integration suite now exercises the real A11y Menu Button async-state ecosystem adapter in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
 
 Focus coverage includes preserving focus on show, retaining focused controls during content updates, removing/replacing a focused action, returning to a surviving origin, and showing a focusable empty notification region when no origin remains.
 

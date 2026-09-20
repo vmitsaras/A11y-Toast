@@ -305,6 +305,44 @@ Unknown update/dismiss correlations are safe no-ops. External toast dismissal cl
 
 Correlation keys are adapter-local lifecycle identifiers; they are independent from the optional key-deduplication controller.
 
+## A11y Menu Button async-state adapter
+
+The first concrete ecosystem adapter mirrors the published `a11y-menu-button` async-state add-on into A11y Toast.
+
+It is a separate subpath with an optional peer dependency on `a11y-menu-button@^1.0.1`; the A11y Toast core keeps zero runtime dependencies.
+
+```ts
+import { createToast } from 'a11y-toast';
+import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu-button-async-state';
+import {
+  createMenuButton,
+} from 'a11y-menu-button/core';
+import {
+  enhanceAsyncMenuState,
+} from 'a11y-menu-button/addons/async-menu-state';
+
+const menu = createMenuButton(menuRoot);
+const asyncState = enhanceAsyncMenuState(menuRoot);
+const toast = createToast(toastRoot);
+
+const bridge = createMenuButtonAsyncStateToastAdapter(toast, menuRoot);
+```
+
+The adapter imports the source package's actual `MENU_BUTTON_EVENTS.asyncState` and `MENU_BUTTON_EVENTS.destroy` constants and typed event detail rather than repeating event-name strings.
+
+Announcement ownership is fixed to **source** because A11y Menu Button's async-state add-on already maintains a polite `role="status"` live region. The mirrored toast therefore always uses `priority: 'off'`.
+
+State mapping:
+
+- `loading` → persistent loading-tone visual toast;
+- `error` → same retained toast ID, error tone, persistent;
+- `empty` → same retained toast ID, info tone, persistent;
+- `ready` → dismiss the mirrored toast.
+
+The visible toast message comes from the source event's `stateElement.textContent`, so the adapter mirrors the source-owned user-facing status rather than reading private implementation fields or fabricating a second message. No synthetic “loaded successfully” toast is invented for `ready`.
+
+Destroying the Menu Button core disposes the bridge and dismisses its mirrored toast. Destroying A11y Toast removes both the generic adapter listeners and the wrapper's Menu Button destroy listener. If an application destroys only the async-state add-on while keeping the Menu Button core alive, destroy this bridge alongside that add-on because the async-state add-on itself has no destroy lifecycle event.
+
 ## Add-ons and ecosystem integration
 
 ```ts

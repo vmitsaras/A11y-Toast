@@ -33,6 +33,7 @@ export const docs = {
   ],
   adapters: [
     { name: 'DOM events', export: 'a11y-toast/adapters/dom-events', description: 'Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy.' },
+    { name: 'A11y Menu Button async state', export: 'a11y-toast/adapters/menu-button-async-state', peer: 'a11y-menu-button@^1.0.1', description: 'Mirrors Menu Button loading/error/empty states visually with source-owned announcements and dismisses the mirror on ready.' },
   ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',

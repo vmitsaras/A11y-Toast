@@ -9,7 +9,7 @@ Deliver small application feedback without unexpected focus movement, inaccessib
 
 ## Approved scope
 
-The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Progress, promise orchestration, explicit key deduplication, and the generic DOM-event adapter are now implemented as optional exports. Concrete ecosystem adapters, history, ariaNotify transport, and third-party animation drivers remain deferred.
+The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Progress, promise orchestration, explicit key deduplication, the generic DOM-event adapter, and the first concrete A11y Menu Button async-state adapter are implemented as optional exports. Additional ecosystem adapters, history, ariaNotify transport, and third-party animation drivers remain deferred.
 
 ## Resolved implementation decisions
 
@@ -26,6 +26,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 11. Animation accepts built-in `css`, `none`, or an injected engine-neutral driver. Drivers receive a frozen context and AbortSignal; start/end/error events are typed and separate from semantic show/dismiss events. Reduced-motion and hidden-document state skip/cancel decorative motion. CSS is the only shipped driver in this slice; GSAP/View Transition remain optional adapters.
 12. Optional runtime parameters from the initial brainstorm are intentionally narrowed: no custom API pause reason that could clear a keyboard safeguard; no global Escape; no automatic `error → assertive`; no automatic deduplication from `key`. The separate dedupe controller is opt-in, exact-key based, and never compares message text.
 13. Generic source integration is explicit: a DOM-event adapter receives a concrete EventTarget and synchronous event mappings, retains adapter-local correlation IDs, and requires one announcement owner. Source-owned mappings force toast priority to `off`; adapters do not infer ownership from event names or source markup.
+14. The first concrete ecosystem adapter targets `a11y-menu-button@^1.0.1` async state through its public `MENU_BUTTON_EVENTS` constants/types. The source status region remains the sole announcement owner. Loading/error/empty are visual mirrors on one correlation; ready dismisses rather than fabricating success copy. The peer is optional so importing toast core does not require Menu Button.
 
 ## Acceptance criteria
 
@@ -43,6 +44,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-07C | Promise orchestration retains one toast ID, never renders raw rejection values, can settle while queued, and performs no late update after dismiss/destroy/explicit stop. It does not cancel the underlying operation. | Browser 102–110; promise utility export. |
 | AC-07D | Key deduplication is opt-in and exact-key based. Update preserves ID/queue/timer semantics; drop creates no new lifecycle/announcement; replace waits for visual exit before creating a new ID; same-key operations serialize. | Browser 111–121; dedupe controller export. |
 | AC-07E | Generic DOM-event integration requires an explicit announcement owner, retains correlation IDs, isolates mapper errors, updates duplicate correlated shows instead of leaking records, and removes all source/toast listeners on disposal. Source ownership forces priority off. | Browser 122–132; DOM-event adapter export. |
+| AC-07F | The A11y Menu Button async-state adapter uses real exported source events/types, keeps Menu Button as the only announcement owner, mirrors loading/error/empty on one visual toast, dismisses on ready, and cleans wrapper/generic listeners from either source or toast teardown. | 6 Vitest integration tests against `a11y-menu-button@1.0.1`; package/type checks. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 

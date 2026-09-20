@@ -50,7 +50,7 @@ TOAST-200: **Complete** — visual timeout progress add-on; separate JS/CSS expo
 TOAST-210: **Complete** — promise/loading orchestration utility; one retained toast ID, caller-authored success/error copy, late settlement ignored after dismiss/destroy, queue-safe settlement, pass-through promise and explicit stop control.
 TOAST-220: **Complete** — explicit key-based deduplication controller; opt-in exact-key matching with update-existing/drop-new/replace-existing policies, same-key serialization, animated-replacement waiting, queue/timer preservation, and no message-text dedupe.
 TOAST-230: **Complete** — generic DOM-event adapter; explicit EventTarget/bindings, source-vs-toast announcement ownership, retained correlation IDs, show/update/dismiss commands, duplicate correlated-show update behavior, error isolation, and removable lifecycle cleanup.
-TOAST-240: first real ecosystem adapter selected from an actual use case.
+TOAST-240: **Complete** — first concrete ecosystem adapter for `a11y-menu-button` async state. Uses the package's real exported event constants/types, mirrors loading/error/empty visually with source-owned announcements, dismisses on ready, and cleans up from both Menu Button and toast lifecycles. Optional peer: `a11y-menu-button@^1.0.1`.
 TOAST-250: experimental ariaNotify transport evaluation.
 TOAST-260: optional GSAP and experimental element-scoped View Transition drivers using the frozen TOAST-180 contract.
 
@@ -62,4 +62,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-240 — first real ecosystem adapter. Select one existing source package with a clear lifecycle, import its actual exported event constants, build on the TOAST-230 adapter contract, retain correlation IDs, and verify teardown plus single-owner announcement behavior from both sides.
+TOAST-250 — experimental ariaNotify transport evaluation. Keep the existing live-region transport as default, make ariaNotify explicitly opt-in, never send through both transports for one announcement, and document current browser/Permissions-Policy limitations before deciding whether it is suitable for a shipped experimental subpath.
