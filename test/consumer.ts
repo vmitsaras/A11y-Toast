@@ -10,7 +10,7 @@ import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
 import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
 import { createGsapFlipLayoutAddon } from 'a11y-toast/animations/gsap-flip';
 import { gsap } from 'gsap';
-import { Flip } from 'gsap/Flip';
+import Flip from 'gsap/Flip';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
