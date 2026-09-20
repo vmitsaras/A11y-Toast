@@ -16,15 +16,20 @@ Each task is implementation work plus matching evidence. “Implemented” does 
 | TOAST-090 | Add-on setup/hooks/event subscriptions | 050 | Removable, isolated, reverse cleanup; accidental asynchronous failures caught. Browser tests passed. |
 | TOAST-100 | `src/styles.css` | 050 | Scoped BEM, public/private properties, focus, motion, direction, forced colors. CSS/browser checks passed. |
 | TOAST-110 | `examples/basic/*`, local server | 080,100 | One page uses generated dist; options and state selection, loading/update/retry, non-live log. Local interaction checks and the normal GitHub Actions served-browser lifecycle suite pass. |
+| TOAST-115 | Optional visual tone label | 100,110 | `showToneLabel` + `data-a11y-toast-show-tone-label`; default visible; hiding the visual tone label does not change generated announcement wording. Playground and browser regressions complete. |
 | TOAST-120 | `docs/MANUAL_TESTS.md`, acceptance matrix | 110 | VoiceOver Safari/Chrome and actual zoom evidence required. Partial, not complete. |
 | TOAST-130 | README, docs metadata, roadmap, migration | 120 partial | Reconciled with actual Git tree and CI evidence; generated dist/results are no longer described as committed repository files. Complete for preview. |
 | TOAST-140 | Package build/import/type/pack checks | 130 | GitHub Actions run #1 passed npm install, tsdown, source/public typechecks, Vitest, served Chromium, package exports, pack check, and the configured high-severity audit gate. Partial only because no lockfile is committed and two moderate Vitest/@vitest-mocker findings remain. |
 
 ## Regression additions in this implementation
 
-The shared browser contract has 77 named scenarios in `test/browser/suite.js`. It covers re-entrant construction, queue starvation prevention, clear-with-new-arrivals, every timeout/reset/pause path, pending announcement replacement, async action cancellation/rejection/self-update, setup/cleanup failures, nested manager event filtering, focused-control replacement and no-origin recovery.
+The shared browser contract has 79 named scenarios in `test/browser/suite.js`. It covers re-entrant construction, queue starvation prevention, clear-with-new-arrivals, every timeout/reset/pause path, pending announcement replacement, async action cancellation/rejection/self-update, setup/cleanup failures, nested manager event filtering, focused-control replacement and no-origin recovery.
 
 Further hardening included guards after pause/resume/abort/focus observers destroy a manager; malformed async setup rejection; observer promise failures; and demo focus recovery when the just-used control becomes disabled. Narrow enlarged-text grids were corrected after a failing browser smoke test.
+
+## Acceptance note
+
+The user reported the current plugin tested, working, and verified on 2026-09-20. The exact browser/assistive-technology matrix was not specified, so this records functional acceptance without fabricating named VoiceOver or zoom evidence.
 
 ## Verification tasks still executable by a maintainer
 
