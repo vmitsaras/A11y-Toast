@@ -6,6 +6,7 @@ import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
 import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js';
 import { createGsapAnimationDriver } from '../../dist/animations/gsap.js';
 import { createGsapFlipLayoutAddon } from '../../dist/animations/gsap-flip.js';
+import { createElementViewTransitionDriver } from '../../dist/animations/view-transition.js';
 import { gsap } from '../../node_modules/gsap/index.js';
 import Flip from '../../node_modules/gsap/Flip.js';
 
@@ -110,7 +111,11 @@ function initializeAdapter() {
 function initialize() {
   manager = createToast(root, {
     position: position.value,
-    animation: animation.value === 'gsap' ? createGsapAnimationDriver(gsap) : animation.value,
+    animation: animation.value === 'gsap'
+      ? createGsapAnimationDriver(gsap)
+      : animation.value === 'view-transition'
+        ? createElementViewTransitionDriver()
+        : animation.value,
     announcementTransport: announcementTransport.value === 'aria-notify' ? createAriaNotifyTransport() : 'live-region',
     addons: [
       ...(showProgress.checked ? [createProgressAddon()] : []),

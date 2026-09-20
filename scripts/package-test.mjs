@@ -15,6 +15,7 @@ const { createMenuButtonAsyncStateToastAdapter } = await import('a11y-toast/adap
 const { createAriaNotifyTransport } = await import('a11y-toast/transports/aria-notify');
 const { createGsapAnimationDriver } = await import('a11y-toast/animations/gsap');
 const { createGsapFlipLayoutAddon } = await import('a11y-toast/animations/gsap-flip');
+const { createElementViewTransitionDriver } = await import('a11y-toast/animations/view-transition');
 for (const name of ['A11yToast', 'createToast', 'initToastAll', 'addToastEventListener']) assert.equal(typeof api[name], 'function');
 assert.deepEqual(api.initToastAll(), []);
 assert(Object.isFrozen(api.TOAST_EVENTS));
@@ -27,7 +28,8 @@ assert.equal(typeof createMenuButtonAsyncStateToastAdapter, 'function');
 assert.equal(typeof createAriaNotifyTransport, 'function');
 assert.equal(typeof createGsapAnimationDriver, 'function');
 assert.equal(typeof createGsapFlipLayoutAddon, 'function');
-for (const name of ['index.js', 'index.d.ts', 'docs.js', 'docs.d.ts', 'styles.css', 'addons/progress.js', 'addons/progress.d.ts', 'addons/progress.css', 'addons/promise.js', 'addons/promise.d.ts', 'addons/dedupe.js', 'addons/dedupe.d.ts', 'adapters/dom-events.js', 'adapters/dom-events.d.ts', 'adapters/menu-button-async-state.js', 'adapters/menu-button-async-state.d.ts', 'transports/aria-notify.js', 'transports/aria-notify.d.ts', 'animations/gsap.js', 'animations/gsap.d.ts', 'animations/gsap-flip.js', 'animations/gsap-flip.d.ts']) await access(new URL(`../dist/${name}`, import.meta.url));
+assert.equal(typeof createElementViewTransitionDriver, 'function');
+for (const name of ['index.js', 'index.d.ts', 'docs.js', 'docs.d.ts', 'styles.css', 'addons/progress.js', 'addons/progress.d.ts', 'addons/progress.css', 'addons/promise.js', 'addons/promise.d.ts', 'addons/dedupe.js', 'addons/dedupe.d.ts', 'adapters/dom-events.js', 'adapters/dom-events.d.ts', 'adapters/menu-button-async-state.js', 'adapters/menu-button-async-state.d.ts', 'transports/aria-notify.js', 'transports/aria-notify.d.ts', 'animations/gsap.js', 'animations/gsap.d.ts', 'animations/gsap-flip.js', 'animations/gsap-flip.d.ts', 'animations/view-transition.js', 'animations/view-transition.d.ts', 'animations/view-transition.css']) await access(new URL(`../dist/${name}`, import.meta.url));
 const files = await readdir(new URL('../dist/', import.meta.url));
 let javascript = '';
 for (const name of files.filter(name => name.endsWith('.js') && name !== 'docs.js')) javascript += await readFile(new URL(`../dist/${name}`, import.meta.url), 'utf8');

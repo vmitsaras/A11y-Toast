@@ -9,6 +9,7 @@ import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu
 import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
 import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
 import { createGsapFlipLayoutAddon } from 'a11y-toast/animations/gsap-flip';
+import { createElementViewTransitionDriver } from 'a11y-toast/animations/view-transition';
 import { gsap } from 'gsap';
 import Flip from 'gsap/Flip';
 declare const root: HTMLElement;
@@ -60,3 +61,6 @@ toast.show({ message: 'Invalid', priority: 'loud' });
 // @ts-expect-error Snapshot state cannot be mutated by consumers.
 if (id) toast.getToast(id)!.message = 'Cannot mutate';
 void docs;
+
+const experimentalViewTransition = createElementViewTransitionDriver({ distance: 4 });
+void experimentalViewTransition;

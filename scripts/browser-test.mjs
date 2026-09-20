@@ -20,8 +20,9 @@ try {
     const { createAriaNotifyTransport } = await import('/dist/transports/aria-notify.js');
     const { createGsapAnimationDriver } = await import('/dist/animations/gsap.js');
     const { createGsapFlipLayoutAddon } = await import('/dist/animations/gsap-flip.js');
+    const { createElementViewTransitionDriver } = await import('/dist/animations/view-transition.js');
     const { runSuite } = await import('/test/browser/suite.js');
-    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport, createGsapAnimationDriver, createGsapFlipLayoutAddon });
+    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport, createGsapAnimationDriver, createGsapFlipLayoutAddon, createElementViewTransitionDriver });
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

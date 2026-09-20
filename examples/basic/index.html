@@ -8,6 +8,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../dist/styles.css">
   <link rel="stylesheet" href="../../dist/addons/progress.css">
+  <link rel="stylesheet" href="../../dist/animations/view-transition.css">
   <link rel="stylesheet" href="./demo.css">
   <script type="module" src="./demo.js"></script>
 </head>
@@ -55,8 +56,8 @@
                 <label class="toast-demo__check"><input id="show-progress" name="showProgress" type="checkbox" checked aria-describedby="progress-hint"> Show visual timeout progress</label>
                 <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The indicator is visual, non-live, and hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
                 <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
-                <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="gsap">GSAP — optional</option><option value="none">None</option></select></div>
-                <p class="toast-demo__hint" id="animation-hint">Animation is decorative. GSAP is injected by this development demo and is not a runtime dependency of A11y Toast. Reduced-motion preference skips all drivers. Change this option when no notification surface is active.</p>
+                <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="gsap">GSAP — optional</option><option value="view-transition">View Transition — experimental</option><option value="none">None</option></select></div>
+                <p class="toast-demo__hint" id="animation-hint">Animation is decorative. GSAP is injected by this development demo. Element-scoped View Transition is experimental and falls back to no motion when unsupported; document-scoped transitions are never used. Reduced-motion preference skips all drivers. Change this option when no notification surface is active.</p>
                 <label class="toast-demo__check"><input id="show-flip-layout" name="showFlipLayout" type="checkbox" aria-describedby="flip-layout-hint"> Animate stack reflow with GSAP Flip</label>
                 <p class="toast-demo__hint" id="flip-layout-hint">Optional layout-only motion for surviving notifications. Entrance and exit remain owned by the selected animation engine. Change this option when no notification surface is active.</p>
                 <div class="toast-demo__field"><label for="announcement-transport">Announcement transport</label><select id="announcement-transport" name="announcementTransport" aria-describedby="announcement-transport-hint"><option value="live-region" selected>Live regions — default</option><option value="aria-notify">ariaNotify — experimental</option></select></div>

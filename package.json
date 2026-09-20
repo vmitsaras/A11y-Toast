@@ -51,7 +51,12 @@
     "./animations/gsap-flip": {
       "types": "./dist/animations/gsap-flip.d.ts",
       "import": "./dist/animations/gsap-flip.js"
-    }
+    },
+    "./animations/view-transition": {
+      "types": "./dist/animations/view-transition.d.ts",
+      "import": "./dist/animations/view-transition.js"
+    },
+    "./animations/view-transition.css": "./dist/animations/view-transition.css"
   },
   "files": [
     "dist",
