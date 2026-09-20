@@ -89,8 +89,16 @@ function animateNow(
       settled = true;
       removeAbort();
       restore();
-      if (error !== undefined) reject(error);
-      else resolve();
+      const finalize = (): void => {
+        // Some browsers finalize scoped-transition bookkeeping after finished
+        // callbacks run. Restore once more before exposing driver completion.
+        restore();
+        if (error !== undefined) reject(error);
+        else resolve();
+      };
+      const queue = scope.ownerDocument.defaultView?.queueMicrotask?.bind(scope.ownerDocument.defaultView);
+      if (queue) queue(finalize);
+      else Promise.resolve().then(finalize);
     };
 
     const onAbort = (): void => {
