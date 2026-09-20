@@ -53,6 +53,8 @@ export interface ToastOptions {
   maxQueue?: number;
   position?: ToastPosition;
   priority?: ToastPriority;
+  /** Controls the visible .a11y-toast__tone label only. Announcements are unchanged. Defaults to true. */
+  showToneLabel?: boolean;
   labels?: Partial<Omit<ToastLabels, 'tones'>> & { tones?: Partial<Record<ToastTone, string>> };
   addons?: readonly ToastAddon[];
 }
@@ -62,6 +64,7 @@ export interface ResolvedToastOptions {
   readonly maxQueue: number;
   readonly position: ToastPosition;
   readonly priority: ToastPriority;
+  readonly showToneLabel: boolean;
   readonly labels: Readonly<ToastLabels>;
 }
 export interface ToastSnapshot {
