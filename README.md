@@ -189,7 +189,7 @@ Public variables include:
 
 Private `--_` variables are implementation details, not a supported customization API. Changing colors remains the integrator's contrast responsibility.
 
-The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label, not just an accent color. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
+The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated live-region wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
 
 ## Accessibility and integration limitations
 
