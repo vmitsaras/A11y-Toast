@@ -10,6 +10,11 @@
   --_offset: var(--a11y-toast-offset, 1rem);
   --_width: var(--a11y-toast-width, 23rem);
   --_focus: var(--a11y-toast-focus, #145ba8);
+  --_enter-duration: var(--a11y-toast-enter-duration, 150ms);
+  --_exit-duration: var(--a11y-toast-exit-duration, 120ms);
+  --_enter-ease: var(--a11y-toast-enter-ease, ease-out);
+  --_exit-ease: var(--a11y-toast-exit-ease, ease-in);
+  --_motion-distance: var(--a11y-toast-motion-distance, 0.25rem);
   --_font: var(--a11y-toast-font, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   color: var(--_color);
   font-family: var(--_font);
@@ -31,7 +36,13 @@
 .a11y-toast-region__viewport--bottom-end { inset-block-end: max(var(--_offset), env(safe-area-inset-bottom, 0px)); }
 .a11y-toast-region__viewport--top-start,
 .a11y-toast-region__viewport--top-center,
-.a11y-toast-region__viewport--top-end { inset-block-start: max(var(--_offset), env(safe-area-inset-top, 0px)); }
+.a11y-toast-region__viewport--top-end {
+  inset-block-start: max(var(--_offset), env(safe-area-inset-top, 0px));
+  --_motion-y: calc(var(--_motion-distance) * -1);
+}
+.a11y-toast-region__viewport--bottom-start,
+.a11y-toast-region__viewport--bottom-center,
+.a11y-toast-region__viewport--bottom-end { --_motion-y: var(--_motion-distance); }
 .a11y-toast-region__viewport--top-start,
 .a11y-toast-region__viewport--bottom-start { inset-inline-start: var(--_offset); }
 .a11y-toast-region__viewport--top-end,
@@ -75,7 +86,13 @@
 .a11y-toast--warning { --_accent: var(--a11y-toast-warning-accent, #895300); }
 .a11y-toast--error { --_accent: var(--a11y-toast-error-accent, #a33336); }
 .a11y-toast--loading { --_accent: var(--a11y-toast-loading-accent, #675192); }
-.a11y-toast.is-visible { animation: a11y-toast-enter 150ms ease-out; }
+.a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-entering {
+  animation: a11y-toast-enter var(--_enter-duration) var(--_enter-ease) both;
+}
+.a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-exiting {
+  animation: a11y-toast-exit var(--_exit-duration) var(--_exit-ease) both;
+  pointer-events: none;
+}
 .a11y-toast__content { flex: 1; min-inline-size: 0; }
 .a11y-toast__tone { display: block; color: var(--_accent); font-size: 0.8125rem; font-weight: 650; }
 .a11y-toast__tone--visually-hidden {
@@ -122,9 +139,10 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-@keyframes a11y-toast-enter { from { opacity: 0; translate: 0 0.25rem; } to { opacity: 1; translate: 0 0; } }
+@keyframes a11y-toast-enter { from { opacity: 0; translate: 0 var(--_motion-y); } to { opacity: 1; translate: 0 0; } }
+@keyframes a11y-toast-exit { from { opacity: 1; translate: 0 0; } to { opacity: 0; translate: 0 var(--_motion-y); } }
 @media (prefers-reduced-motion: reduce) {
-  .a11y-toast.is-visible { animation: none; }
+  .a11y-toast.is-entering, .a11y-toast.is-exiting { animation: none; }
   .a11y-toast-region * { scroll-behavior: auto; }
 }
 @media (forced-colors: active) {

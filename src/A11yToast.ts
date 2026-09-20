@@ -2,10 +2,11 @@ import { LiveAnnouncer } from './LiveAnnouncer.js';
 import { addToastEventListener, TOAST_EVENTS } from './events.js';
 import type { ToastEventMap, ToastEventName } from './events.js';
 import { isHTMLElement, normalizeToast, resolveOptions } from './options.js';
+import { prefersReducedMotion, waitForCssAnimation } from './animation.js';
 import type { NormalizedToast } from './options.js';
 import type {
   ResolvedToastOptions, ToastAddon, ToastAddonContext, ToastAddonHookContext,
-  ToastCleanup, ToastDismissReason, ToastId, ToastInput, ToastInstance,
+  ToastAnimationContext, ToastAnimationPhase, ToastAnimationStatus, ToastCleanup, ToastDismissReason, ToastId, ToastInput, ToastInstance,
   ToastOptions, ToastPatch, ToastPauseReason, ToastShorthandOptions, ToastSnapshot, ToastState,
 } from './types.js';
 
@@ -20,12 +21,12 @@ const CLASSES = Object.freeze({
   tone: 'a11y-toast__tone', toneVisuallyHidden: 'a11y-toast__tone--visually-hidden', title: 'a11y-toast__title', message: 'a11y-toast__message',
   actions: 'a11y-toast__actions', action: 'a11y-toast__action', dismiss: 'a11y-toast__dismiss',
   error: 'a11y-toast__action-error', initialized: 'is-initialized', visible: 'is-visible',
-  paused: 'is-paused', pending: 'is-action-pending',
+  entering: 'is-entering', exiting: 'is-exiting', paused: 'is-paused', pending: 'is-action-pending',
 });
 const ATTR = Object.freeze({
   id: 'data-a11y-toast-id', action: 'data-a11y-toast-action', dismiss: 'data-a11y-toast-dismiss',
   role: 'role', label: 'aria-label', describedby: 'aria-describedby', disabled: 'aria-disabled',
-  atomic: 'aria-atomic', tabindex: 'tabindex',
+  atomic: 'aria-atomic', tabindex: 'tabindex', hidden: 'aria-hidden',
 });
 type Hook = 'beforeShow' | 'afterShow' | 'beforeUpdate' | 'afterUpdate' | 'beforeDismiss' | 'afterDismiss';
 interface ToastView {
@@ -47,12 +48,21 @@ interface RecordState {
   actionController: AbortController | null;
   actionPending: boolean;
   actionError: string | null;
+  animationPhase: ToastAnimationPhase | null;
   updating: boolean;
   dismissing: boolean;
 }
 interface RegisteredAddon {
   addon: ToastAddon; context: ToastAddonContext; controller: AbortController;
   cleanup: ToastCleanup | null; removers: Set<ToastCleanup>;
+}
+interface ActiveAnimation {
+  readonly record: RecordState;
+  readonly element: HTMLElement;
+  readonly phase: ToastAnimationPhase;
+  readonly driver: string;
+  readonly controller: AbortController;
+  readonly complete: () => void;
 }
 
 export class A11yToast implements ToastInstance {
@@ -71,6 +81,8 @@ export class A11yToast implements ToastInstance {
   private readonly records = new Map<ToastId, RecordState>();
   private readonly queue: ToastId[] = [];
   private readonly addons = new Map<string, RegisteredAddon>();
+  private readonly activeAnimations = new Map<ToastId, ActiveAnimation>();
+  private readonly exiting = new Map<ToastId, HTMLElement>();
   private readonly addedClasses: string[] = [];
   private sequence = 0;
   private destroyed = false;
@@ -100,6 +112,7 @@ export class A11yToast implements ToastInstance {
     this.instanceId = `a11y-toast-${nonce}`;
     this.viewport = this.element('section', CLASSES.viewport);
     this.viewport.classList.add(`${CLASSES.viewport}--${this.options.position}`);
+    this.viewport.dataset.a11yToastAnimation = typeof this.options.animation === 'string' ? this.options.animation : 'custom';
     this.viewport.setAttribute(ATTR.label, this.options.labels.region);
     this.viewport.setAttribute(ATTR.tabindex, '-1');
     this.list = this.element('ol', CLASSES.list);
@@ -149,6 +162,7 @@ export class A11yToast implements ToastInstance {
     return count;
   }
   public get queuedCount(): number { return this.queue.length; }
+  private get occupiedCount(): number { return this.visibleCount + this.exiting.size; }
   public show(input: ToastInput): ToastId | null {
     this.assertActive();
     this.drain(); // Existing waiters precede re-entrant arrivals from dismissal observers.
@@ -159,15 +173,15 @@ export class A11yToast implements ToastInstance {
       remaining: data.duration, startedAt: null, timer: null, pauses: new Set(), view: null,
       capturedFocus: isHTMLElement(this.doc.activeElement, this.doc) ? this.doc.activeElement : null,
       lastAnnouncement: null, actionController: null, actionPending: false, actionError: null,
-      updating: false, dismissing: false,
+      animationPhase: null, updating: false, dismissing: false,
     };
-    if (this.clearing || (this.visibleCount >= this.options.maxVisible && this.queue.length >= this.options.maxQueue)) {
+    if (this.clearing || (this.occupiedCount >= this.options.maxVisible && this.queue.length >= this.options.maxQueue)) {
       record.state = 'dropped';
       this.emit(TOAST_EVENTS.drop, { toast: this.snapshot(record), reason: this.clearing ? 'clearing' : 'queue-full' });
       return null;
     }
     this.records.set(record.id, record);
-    if (this.visibleCount < this.options.maxVisible && this.queue.length === 0) this.display(record);
+    if (this.occupiedCount < this.options.maxVisible && this.queue.length === 0) this.display(record);
     else {
       this.queue.push(record.id);
       this.emit(TOAST_EVENTS.queue, { toast: this.snapshot(record) });
@@ -201,7 +215,7 @@ export class A11yToast implements ToastInstance {
       if (timingChanged) record.remaining = next.duration;
       if (record.view) this.render(record);
       if (!this.owns(record)) return false;
-      this.startTimer(record);
+      if (record.animationPhase !== 'enter') this.startTimer(record);
       this.emit(TOAST_EVENTS.update, { toast: this.snapshot(record) });
       this.runHooks('afterUpdate', record);
       if (this.owns(record) && record.state === 'visible') this.requestAnnouncement(record);
@@ -215,23 +229,41 @@ export class A11yToast implements ToastInstance {
     record.dismissing = true;
     this.runHooks('beforeDismiss', record);
     if (!this.owns(record)) return false;
-    const focused = record.view?.item.contains(this.doc.activeElement) ?? false;
+    const view = record.view;
+    const focused = view?.item.contains(this.doc.activeElement) ?? false;
     this.stopTimer(record);
     this.announcer.cancel(id);
     this.cancelAction(record);
+    this.cancelAnimation(id, false);
     if (!this.owns(record)) return false;
-    record.view?.item.remove();
-    record.view = null;
+
+    const willExit = Boolean(view && this.canAnimate(record, 'exit'));
+    if (willExit && view) this.exiting.set(id, view.item);
+
     record.state = 'dismissed';
     this.records.delete(id);
-    this.list.tabIndex = this.visibleCount > 0 ? 0 : -1;
     const index = this.queue.indexOf(id);
     if (index >= 0) this.queue.splice(index, 1);
+    this.list.tabIndex = this.visibleCount > 0 ? 0 : -1;
+
     if (focused) this.recoverFocus(record);
+    if (view && willExit) {
+      view.item.inert = true;
+      view.item.setAttribute(ATTR.hidden, 'true');
+    } else {
+      view?.item.remove();
+      record.view = null;
+    }
+
     if (this.destroyed) return true;
     this.emit(TOAST_EVENTS.dismiss, { toast: this.snapshot(record), reason });
     this.runHooks('afterDismiss', record);
-    this.drain();
+    if (this.destroyed) return true;
+
+    if (view && willExit) {
+      const started = this.beginAnimation(record, 'exit', view.item, () => this.finishExit(record, view.item));
+      if (!started) this.finishExit(record, view.item);
+    } else this.drain();
     return true;
   }
   public dismissAll(reason: ToastDismissReason = 'clear'): number {
@@ -319,7 +351,10 @@ export class A11yToast implements ToastInstance {
     this.destroyed = true; // All outstanding timers/promise callbacks stop at this boundary.
     const focused = [...this.records.values()].find(record => record.view?.item.contains(this.doc.activeElement));
     this.announcer.destroy();
+    for (const id of [...this.activeAnimations.keys()]) this.cancelAnimation(id, false);
     for (const record of this.records.values()) { this.stopTimer(record); this.cancelAction(record); }
+    this.activeAnimations.clear();
+    this.exiting.clear();
     this.records.clear();
     this.queue.length = 0;
     this.viewport.removeEventListener('click', this.handleClick);
@@ -361,7 +396,7 @@ export class A11yToast implements ToastInstance {
     const data = record.data;
     return Object.freeze({
       id: record.id, key: data.key, title: data.title, message: data.message, tone: data.tone,
-      priority: data.priority, announcement: data.announcement, state: record.state,
+      priority: data.priority, announcement: data.announcement, state: record.state, animationPhase: record.animationPhase,
       duration: data.duration, persistent: data.persistent, dismissible: data.dismissible,
       remaining: data.persistent ? null : Math.ceil(this.remaining(record)),
       pauseReasons: Object.freeze([...record.pauses]),
@@ -383,16 +418,20 @@ export class A11yToast implements ToastInstance {
     this.list.tabIndex = 0;
     if (this.doc.activeElement === this.list || this.doc.activeElement === this.viewport) record.pauses.add('focus');
     if (this.doc.hidden) record.pauses.add('document-hidden');
-    this.startTimer(record);
     this.emit(TOAST_EVENTS.show, { toast: this.snapshot(record) });
     this.runHooks('afterShow', record);
-    if (this.owns(record)) this.requestAnnouncement(record);
+    if (!this.owns(record)) return;
+    this.requestAnnouncement(record);
+    const started = this.beginAnimation(record, 'enter', record.view.item, () => {
+      if (this.owns(record) && !record.dismissing) this.startTimer(record);
+    });
+    if (!started) this.startTimer(record);
   }
   private drain(): void {
     if (this.destroyed || this.clearing || this.draining) return;
     this.draining = true;
     try {
-      while (!this.destroyed && this.queue.length > 0 && this.visibleCount < this.options.maxVisible) {
+      while (!this.destroyed && this.queue.length > 0 && this.occupiedCount < this.options.maxVisible) {
         const id = this.queue.shift();
         const record = id ? this.records.get(id) : undefined;
         if (record) this.display(record);
@@ -431,6 +470,8 @@ export class A11yToast implements ToastInstance {
     const active = this.doc.activeElement;
     const data = record.data;
     v.item.className = `${CLASSES.item} ${CLASSES.item}--${data.tone} ${CLASSES.visible}`;
+    v.item.classList.toggle(CLASSES.entering, record.animationPhase === 'enter');
+    v.item.classList.toggle(CLASSES.exiting, record.animationPhase === 'exit');
     v.item.classList.toggle(CLASSES.paused, record.pauses.size > 0);
     v.item.classList.toggle(CLASSES.pending, record.actionPending);
     v.tone.textContent = this.options.labels.tones[data.tone];
@@ -451,7 +492,7 @@ export class A11yToast implements ToastInstance {
     }
   }
   private startTimer(record: RecordState): void {
-    if (!this.owns(record) || record.state !== 'visible' || record.data.persistent || record.pauses.size || record.timer !== null) return;
+    if (!this.owns(record) || record.state !== 'visible' || record.animationPhase === 'enter' || record.data.persistent || record.pauses.size || record.timer !== null) return;
     record.startedAt = this.now();
     record.timer = this.win.setTimeout(() => {
       record.timer = null;
@@ -540,6 +581,7 @@ export class A11yToast implements ToastInstance {
     if (this.destroyed) return;
     this.announcer.setPaused(this.doc.hidden);
     for (const record of [...this.records.values()]) this.setPause(record, 'document-hidden', this.doc.hidden);
+    if (this.doc.hidden) for (const id of [...this.activeAnimations.keys()]) this.cancelAnimation(id, true);
   }
   private onClick(event: MouseEvent): void {
     if (!(event.target instanceof this.win.Element)) return;
@@ -586,6 +628,86 @@ export class A11yToast implements ToastInstance {
       else settle();
     } catch (error) { settle(error, true); }
   }
+  private animationDriverName(): string {
+    return typeof this.options.animation === 'string' ? this.options.animation : this.options.animation.name;
+  }
+  private canAnimate(record: RecordState, phase: ToastAnimationPhase): boolean {
+    if (this.destroyed || this.doc.hidden || prefersReducedMotion(this.win)) return false;
+    if (this.options.animation === 'none') return false;
+    if (this.options.animation === 'css') return true;
+    return typeof this.options.animation[phase] === 'function';
+  }
+  private beginAnimation(record: RecordState, phase: ToastAnimationPhase, element: HTMLElement, complete: () => void): boolean {
+    if (!this.canAnimate(record, phase)) return false;
+    this.cancelAnimation(record.id, false);
+    const controller = new this.win.AbortController();
+    const driver = this.animationDriverName();
+    const active: ActiveAnimation = { record, element, phase, driver, controller, complete };
+    this.activeAnimations.set(record.id, active);
+    record.animationPhase = phase;
+    element.classList.toggle(CLASSES.entering, phase === 'enter');
+    element.classList.toggle(CLASSES.exiting, phase === 'exit');
+    this.emit(TOAST_EVENTS.animationStart, { toast: this.snapshot(record), phase, driver });
+    if (this.activeAnimations.get(record.id) !== active || this.destroyed) return true;
+
+    let task: void | Promise<void>;
+    try {
+      if (this.options.animation === 'css') task = waitForCssAnimation(this.win, element, phase, controller.signal);
+      else {
+        const callback = this.options.animation[phase];
+        const context: ToastAnimationContext = Object.freeze({
+          instance: this, root: this.root, element, toast: this.snapshot(record), phase, signal: controller.signal,
+        });
+        task = callback?.(context);
+      }
+    } catch (error) {
+      this.settleAnimation(active, 'failed', error);
+      return true;
+    }
+    Promise.resolve(task).then(
+      () => this.settleAnimation(active, 'completed'),
+      error => {
+        if (controller.signal.aborted) return;
+        this.settleAnimation(active, 'failed', error);
+      },
+    );
+    return true;
+  }
+  private settleAnimation(active: ActiveAnimation, status: ToastAnimationStatus, error?: unknown): void {
+    if (this.activeAnimations.get(active.record.id) !== active) return;
+    this.activeAnimations.delete(active.record.id);
+    active.record.animationPhase = null;
+    active.element.classList.remove(CLASSES.entering, CLASSES.exiting);
+    if (status === 'failed') this.emit(TOAST_EVENTS.animationError, {
+      toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, error,
+    });
+    this.emit(TOAST_EVENTS.animationEnd, {
+      toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, status,
+    });
+    active.complete();
+  }
+  private cancelAnimation(id: ToastId, finalize: boolean): boolean {
+    const active = this.activeAnimations.get(id);
+    if (!active) return false;
+    this.activeAnimations.delete(id);
+    active.controller.abort();
+    active.record.animationPhase = null;
+    active.element.classList.remove(CLASSES.entering, CLASSES.exiting);
+    this.emit(TOAST_EVENTS.animationEnd, {
+      toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, status: 'cancelled',
+    });
+    if (finalize) active.complete();
+    return true;
+  }
+  private finishExit(record: RecordState, element: HTMLElement): void {
+    if (this.exiting.get(record.id) !== element) return;
+    this.exiting.delete(record.id);
+    element.remove();
+    record.view = null;
+    record.animationPhase = null;
+    if (!this.destroyed) this.drain();
+  }
+
   private cancelAction(record: RecordState): void {
     const controller = record.actionController;
     record.actionController = null;

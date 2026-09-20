@@ -1,4 +1,4 @@
-import type { ToastDismissReason, ToastInstance, ToastPauseReason, ToastPriority, ToastSnapshot } from './types.js';
+import type { ToastAnimationPhase, ToastAnimationStatus, ToastDismissReason, ToastInstance, ToastPauseReason, ToastPriority, ToastSnapshot } from './types.js';
 
 export const TOAST_EVENTS = Object.freeze({
   init: 'a11y-toast:init', ready: 'a11y-toast:ready',
@@ -6,6 +6,8 @@ export const TOAST_EVENTS = Object.freeze({
   announce: 'a11y-toast:announce', action: 'a11y-toast:action',
   actionError: 'a11y-toast:action-error', pause: 'a11y-toast:pause', resume: 'a11y-toast:resume',
   dismiss: 'a11y-toast:dismiss', drop: 'a11y-toast:drop',
+  animationStart: 'a11y-toast:animation-start', animationEnd: 'a11y-toast:animation-end',
+  animationError: 'a11y-toast:animation-error',
   addonError: 'a11y-toast:addon-error', destroy: 'a11y-toast:destroy',
 } as const);
 export interface ToastEventDetail {
@@ -30,6 +32,9 @@ export interface ToastEventMap {
   'a11y-toast:resume': ToastItemEventDetail & { readonly reason: ToastPauseReason };
   'a11y-toast:dismiss': ToastItemEventDetail & { readonly reason: ToastDismissReason };
   'a11y-toast:drop': ToastItemEventDetail & { readonly reason: 'queue-full' | 'clearing' };
+  'a11y-toast:animation-start': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string };
+  'a11y-toast:animation-end': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly status: ToastAnimationStatus };
+  'a11y-toast:animation-error': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly error: unknown };
   'a11y-toast:addon-error': ToastEventDetail & { readonly addon: string; readonly phase: string; readonly error: unknown };
   'a11y-toast:destroy': ToastEventDetail;
 }

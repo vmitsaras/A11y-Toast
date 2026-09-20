@@ -7,7 +7,25 @@ export type ToastPosition = 'top-start' | 'top-center' | 'top-end' | 'bottom-sta
 export type ToastState = 'queued' | 'visible' | 'dismissed' | 'dropped';
 export type ToastPauseReason = 'hover' | 'focus' | 'document-hidden' | 'api' | 'action';
 export type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' | 'clear';
+export type ToastAnimationPhase = 'enter' | 'exit';
+export type ToastAnimationStatus = 'completed' | 'cancelled' | 'failed';
+export type ToastAnimationMode = 'css' | 'none';
 export type ToastCleanup = () => void;
+
+export interface ToastAnimationContext {
+  readonly instance: ToastInstance;
+  readonly root: HTMLElement;
+  readonly element: HTMLElement;
+  readonly toast: ToastSnapshot;
+  readonly phase: ToastAnimationPhase;
+  readonly signal: AbortSignal;
+}
+export interface ToastAnimationDriver {
+  readonly name: string;
+  enter?: (context: ToastAnimationContext) => void | Promise<void>;
+  exit?: (context: ToastAnimationContext) => void | Promise<void>;
+}
+export type ToastAnimationOption = ToastAnimationMode | ToastAnimationDriver;
 
 export interface ToastActionContext {
   readonly instance: ToastInstance;
@@ -53,6 +71,8 @@ export interface ToastOptions {
   maxQueue?: number;
   position?: ToastPosition;
   priority?: ToastPriority;
+  /** Built-in CSS, no motion, or an injected engine-neutral animation driver. Defaults to css. */
+  animation?: ToastAnimationOption;
   /** Controls whether the tone label is visually displayed. The text stays available to assistive technology and live announcements. Defaults to true. */
   showToneLabel?: boolean;
   labels?: Partial<Omit<ToastLabels, 'tones'>> & { tones?: Partial<Record<ToastTone, string>> };
@@ -64,6 +84,7 @@ export interface ResolvedToastOptions {
   readonly maxQueue: number;
   readonly position: ToastPosition;
   readonly priority: ToastPriority;
+  readonly animation: ToastAnimationMode | Readonly<ToastAnimationDriver>;
   readonly showToneLabel: boolean;
   readonly labels: Readonly<ToastLabels>;
 }
@@ -76,6 +97,7 @@ export interface ToastSnapshot {
   readonly priority: ToastPriority;
   readonly announcement: string;
   readonly state: ToastState;
+  readonly animationPhase: ToastAnimationPhase | null;
   readonly duration: number;
   readonly persistent: boolean;
   readonly dismissible: boolean;

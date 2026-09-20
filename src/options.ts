@@ -1,14 +1,15 @@
-import type { ResolvedToastOptions, ToastAction, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
+import type { ResolvedToastOptions, ToastAction, ToastAnimationDriver, ToastAnimationMode, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
 
 export const TONES = Object.freeze(['neutral', 'info', 'success', 'warning', 'error', 'loading'] as const);
 export const POSITIONS = Object.freeze(['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end'] as const);
 export const PRIORITIES = Object.freeze(['off', 'polite', 'assertive'] as const);
+export const ANIMATIONS = Object.freeze(['css', 'none'] as const);
 export const DEFAULT_LABELS: Readonly<ToastLabels> = Object.freeze({
   region: 'Notifications', dismiss: 'Close notification', actionFailed: 'The action failed. Try again.', empty: 'No notifications.',
   tones: Object.freeze({ neutral: 'Notification', info: 'Information', success: 'Success', warning: 'Warning', error: 'Error', loading: 'In progress' }),
 });
 export const DEFAULT_OPTIONS: ResolvedToastOptions = Object.freeze({
-  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', showToneLabel: true, labels: DEFAULT_LABELS,
+  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', animation: 'css', showToneLabel: true, labels: DEFAULT_LABELS,
 });
 export function parseBoolean(value: unknown, fallback: boolean): boolean {
   if (value === true || value === 'true') return true;
@@ -31,6 +32,17 @@ function text(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value.trim() : fallback;
 }
 function label(value: unknown, fallback: string): string { return text(value) || fallback; }
+function resolveAnimation(value: unknown): ResolvedToastOptions['animation'] {
+  if (typeof value === 'string') return member<ToastAnimationMode>(value, ANIMATIONS, DEFAULT_OPTIONS.animation as ToastAnimationMode);
+  if (!value || typeof value !== 'object') return DEFAULT_OPTIONS.animation;
+  const driver = value as ToastAnimationDriver;
+  const name = text(driver.name);
+  if (!name) throw new TypeError('Toast animation driver requires a non-empty name.');
+  if (driver.enter !== undefined && typeof driver.enter !== 'function') throw new TypeError('Toast animation driver enter must be a function.');
+  if (driver.exit !== undefined && typeof driver.exit !== 'function') throw new TypeError('Toast animation driver exit must be a function.');
+  if (!driver.enter && !driver.exit) throw new TypeError('Toast animation driver requires an enter or exit function.');
+  return Object.freeze({ name, enter: driver.enter, exit: driver.exit });
+}
 
 export function resolveOptions(root: HTMLElement, options: ToastOptions): ResolvedToastOptions {
   const d = root.dataset;
@@ -42,6 +54,7 @@ export function resolveOptions(root: HTMLElement, options: ToastOptions): Resolv
     maxQueue: parseInteger(options.maxQueue ?? d.a11yToastMaxQueue, DEFAULT_OPTIONS.maxQueue, 0, 100),
     position: member<ToastPosition>(options.position ?? d.a11yToastPosition, POSITIONS, DEFAULT_OPTIONS.position),
     priority: member<ToastPriority>(options.priority ?? d.a11yToastPriority, PRIORITIES, DEFAULT_OPTIONS.priority),
+    animation: resolveAnimation(options.animation ?? d.a11yToastAnimation),
     showToneLabel: parseBoolean(options.showToneLabel ?? d.a11yToastShowToneLabel, DEFAULT_OPTIONS.showToneLabel),
     labels: Object.freeze({
       region: label(labels?.region, DEFAULT_LABELS.region), dismiss: label(labels?.dismiss, DEFAULT_LABELS.dismiss),
