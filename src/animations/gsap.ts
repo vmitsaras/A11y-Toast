@@ -86,6 +86,7 @@ function animate(
   const { element, phase, signal } = context;
   if (signal.aborted) return Promise.reject(new DOMException('GSAP animation aborted.', 'AbortError'));
 
+  const initialStyle = element.getAttribute('style');
   const travel = direction(context, options.distance);
 
   return new Promise<void>((resolve, reject) => {
@@ -99,7 +100,11 @@ function animate(
       if (!animation) return;
       reverting = true;
       try { animation.revert(); }
-      finally { reverting = false; }
+      finally {
+        if (initialStyle === null) element.removeAttribute('style');
+        else element.setAttribute('style', initialStyle);
+        reverting = false;
+      }
     };
 
     const complete = (): void => {
