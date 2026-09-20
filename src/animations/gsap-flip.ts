@@ -45,6 +45,7 @@ interface ActiveLayout {
   readonly targets: readonly HTMLElement[];
   readonly finalStyles: ReadonlyMap<HTMLElement, string | null>;
   readonly flipIds: ReadonlyMap<HTMLElement, string | null>;
+  settling: boolean;
 }
 
 interface ManagerState {
@@ -204,10 +205,17 @@ export function createGsapFlipLayoutAddon(
         targets,
         finalStyles,
         flipIds: pending.flipIds,
+        settling: false,
       };
       state.active = active;
 
-      const settle = (): void => settleActive(active);
+      const settle = (): void => {
+        if (active.settling) return;
+        active.settling = true;
+        // Flip's own clearProps/finalization runs after onComplete/onInterrupt.
+        // Restore authored inline state on the next microtask so our exact state wins.
+        win.queueMicrotask(() => settleActive(active));
+      };
       try {
         Flip.from(pending.state, {
           targets,
@@ -219,7 +227,7 @@ export function createGsapFlipLayoutAddon(
           onInterrupt: settle,
         });
       } catch (error) {
-        settle();
+        settleActive(active);
         report(error);
       }
     };
