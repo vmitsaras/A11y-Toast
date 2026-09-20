@@ -222,6 +222,10 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(hiddenTone.hidden, false);
     equal(hiddenTone.getAttribute('aria-hidden'), null);
     equal(hiddenTone.classList.contains('a11y-toast__tone--visually-hidden'), true);
+    if (capabilities.layout) {
+      const rect = hiddenTone.getBoundingClientRect();
+      ok(rect.width <= 1.1 && rect.height <= 1.1, 'Visually hidden tone text must not occupy visible layout space');
+    }
     equal(hiddenManager.getToast(hiddenId).announcement, 'Success. Saved');
   });
 

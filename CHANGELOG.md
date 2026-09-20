@@ -2,7 +2,7 @@
 
 ## 0.1.0 — Unreleased implementation preview
 
-- Added `showToneLabel` and `data-a11y-toast-show-tone-label` to hide the visible `.a11y-toast__tone` line without changing generated announcement wording.
+- Added `showToneLabel` and `data-a11y-toast-show-tone-label`; hardening now visually hides `.a11y-toast__tone` without removing its text from assistive technology or changing generated announcement wording.
 - Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.
 
 - TypeScript/ESM core with frozen options, safe text rendering, explicit initialization and duplicate-instance reuse.
