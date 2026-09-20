@@ -42,6 +42,7 @@ export const docs = {
   animations: [
     { name: 'CSS', value: 'css', status: 'default', description: 'Built-in restrained enter/exit motion.' },
     { name: 'GSAP', export: 'a11y-toast/animations/gsap', peer: 'gsap >=3.11 <4', status: 'optional', description: 'Caller-injected GSAP driver with exact inline-style restoration and shared TOAST-180 lifecycle semantics.' },
+    { name: 'GSAP Flip layout', export: 'a11y-toast/animations/gsap-flip', peer: 'gsap >=3.11 <4', status: 'optional', description: 'Add-on that animates only surviving toast stack reflow/queue promotion while enter/exit remains owned elsewhere.' },
   ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.',

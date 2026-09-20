@@ -234,6 +234,44 @@ The driver intentionally exposes only duration/ease/distance rather than arbitra
 
 GSAP Flip is **not** required by this driver. Layout/reflow animation remains a separate optional TOAST-260B concern.
 
+## Optional GSAP Flip stack reflow
+
+GSAP Flip is a separate layout add-on rather than part of the basic GSAP enter/exit driver:
+
+```ts
+import gsap from 'gsap';
+import Flip from 'gsap/Flip';
+import { createToast } from 'a11y-toast';
+import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
+import { createGsapFlipLayoutAddon } from 'a11y-toast/animations/gsap-flip';
+
+const toast = createToast(root, {
+  animation: createGsapAnimationDriver(gsap),
+  addons: [
+    createGsapFlipLayoutAddon(gsap, Flip, {
+      duration: 0.2,
+      ease: 'power1.inOut',
+    }),
+  ],
+});
+```
+
+The factory registers the caller-supplied Flip plugin with the caller-supplied GSAP instance. Re-registering a GSAP plugin is harmless, and explicit registration avoids bundler/tree-shaking problems. citeturn538620search2
+
+Scope is deliberately narrow:
+
+- existing surviving notifications are measured before show/update/dismiss mutations;
+- entering and leaving toast elements are **not** animated by Flip, so CSS/GSAP enter/exit keeps sole ownership;
+- updating a toast excludes that toast itself and moves only siblings displaced by the reflow;
+- an animated dismissal waits until its exit completes and queued promotion has happened before survivors Flip to their final positions;
+- synchronous stack changes are coalesced into one Flip pass;
+- `prefers-reduced-motion: reduce` skips `Flip.getState()` and `Flip.from()` entirely;
+- unregister/destroy cleans pending and active Flip state without changing toast lifecycle.
+
+The add-on preserves authored DOM state despite Flip's own measurement/animation side effects. It snapshots `data-flip-id` and inline styles before measurement, distinguishes Flip-created style changes from application-authored changes, and restores the correct final authored state after Flip finalization.
+
+No `onEnter`/`onLeave` Flip animation is used. Queue promotion still gets its normal toast entrance animation, and dismissed items keep their normal exit animation.
+
 ## Visual timeout progress add-on
 
 The optional progress add-on adds a decorative remaining-time indicator to visible timed notifications without creating another timer or accessibility announcement.
