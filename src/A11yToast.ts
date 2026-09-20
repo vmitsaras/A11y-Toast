@@ -434,6 +434,7 @@ export class A11yToast implements ToastInstance {
     v.item.classList.toggle(CLASSES.paused, record.pauses.size > 0);
     v.item.classList.toggle(CLASSES.pending, record.actionPending);
     v.tone.textContent = this.options.labels.tones[data.tone];
+    v.tone.hidden = !this.options.showToneLabel;
     v.title.textContent = data.title;
     v.title.hidden = !data.title;
     v.message.textContent = data.message;
