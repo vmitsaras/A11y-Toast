@@ -43,11 +43,12 @@ export const docs = {
     { name: 'CSS', value: 'css', status: 'default', description: 'Built-in restrained enter/exit motion.' },
     { name: 'GSAP', export: 'a11y-toast/animations/gsap', peer: 'gsap >=3.11 <4', status: 'optional', description: 'Caller-injected GSAP driver with exact inline-style restoration and shared TOAST-180 lifecycle semantics.' },
     { name: 'GSAP Flip layout', export: 'a11y-toast/animations/gsap-flip', peer: 'gsap >=3.11 <4', status: 'optional', description: 'Add-on that animates only surviving toast stack reflow/queue promotion while enter/exit remains owned elsewhere.' },
+    { name: 'Element View Transition', export: 'a11y-toast/animations/view-transition', stylesheet: 'a11y-toast/animations/view-transition.css', status: 'experimental', description: 'Per-toast Element.startViewTransition() driver; unsupported browsers use no motion and document-scoped transitions are never used.' },
   ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',
-    motion: 'CSS motion is decorative, reduced-motion skips it, announcements do not wait for it, and timed lifetime begins after entrance settles.',
+    motion: 'CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after entrance settles.',
     limitations: 'An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
   },
 } as const;

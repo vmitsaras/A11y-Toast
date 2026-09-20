@@ -195,7 +195,7 @@ The built-in default is `animation: 'css'`; use `'none'` for no decorative motio
 
 Drivers are not add-ons: they participate in generated DOM lifetime. They must treat abort as cleanup, must not own announcement priority, and should leave the element reusable after interruption. Core skips animation for `prefers-reduced-motion: reduce` and when the document is hidden. Destroy aborts active drivers synchronously.
 
-The package now ships an optional injected GSAP driver. GSAP Flip/layout motion and the experimental element-scoped View Transition driver remain separate TOAST-260 follow-up slices.
+The package now ships optional GSAP enter/exit, GSAP Flip stack-reflow, and an experimental element-scoped View Transition driver. All use the same TOAST-180 lifecycle contract; View Transition remains progressive enhancement rather than a default.
 
 ## Optional GSAP animation driver
 
@@ -271,6 +271,57 @@ Scope is deliberately narrow:
 The add-on preserves authored DOM state despite Flip's own measurement/animation side effects. It snapshots `data-flip-id` and inline styles before measurement, distinguishes Flip-created style changes from application-authored changes, and restores the correct final authored state after Flip finalization.
 
 No `onEnter`/`onLeave` Flip animation is used. Queue promotion still gets its normal toast entrance animation, and dismissed items keep their normal exit animation.
+
+## Experimental element-scoped View Transition driver
+
+The experimental View Transition driver uses the element-scoped API on each toast element:
+
+```ts
+import { createToast } from 'a11y-toast';
+import { createElementViewTransitionDriver } from 'a11y-toast/animations/view-transition';
+import 'a11y-toast/styles.css';
+import 'a11y-toast/animations/view-transition.css';
+
+const toast = createToast(root, {
+  animation: createElementViewTransitionDriver(),
+});
+```
+
+This is intentionally **element-scoped only**. The driver never calls `document.startViewTransition()` as a fallback.
+
+Why that boundary matters:
+
+- each toast owns its own transition scope;
+- unrelated page interaction is not deliberately wrapped in a document-wide transition;
+- multiple toast elements can use independent scoped transitions where the browser supports them;
+- unsupported browsers settle the driver immediately with no decorative motion and no toast lifecycle error.
+
+The driver keeps TOAST-180 semantics intact:
+
+- `show()` still commits the toast immediately;
+- announcements do not wait for motion;
+- the timer starts after entrance settles or is skipped;
+- an exiting toast remains inert/aria-hidden and retains its visual slot until the scoped transition finishes;
+- `prefers-reduced-motion: reduce` causes core to skip the driver before `startViewTransition()` is called;
+- abort/destroy calls `skipTransition()` when a scoped transition is active.
+
+Overlapping phases on the **same toast element** are serialized. If an entrance is aborted because the toast is dismissed, the skipped entrance's `finished` promise settles before the exit transition starts. Different toast elements remain independent.
+
+Motion state is expressed with temporary data attributes and the optional stylesheet rather than inline opacity/translate writes. The driver restores any authored values after browser transition finalization:
+
+- `data-a11y-toast-view-transition-phase`
+- `data-a11y-toast-view-transition-state`
+- `data-a11y-toast-view-transition-direction`
+
+Public CSS variables:
+
+- `--a11y-toast-view-transition-distance`
+- `--a11y-toast-view-transition-enter-duration`
+- `--a11y-toast-view-transition-exit-duration`
+- `--a11y-toast-view-transition-enter-ease`
+- `--a11y-toast-view-transition-exit-ease`
+
+Element-scoped View Transitions are still an experimental/limited-availability web-platform feature, so this subpath should be treated as progressive enhancement and tested in the actual supported browser matrix.
 
 ## Visual timeout progress add-on
 

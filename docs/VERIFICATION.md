@@ -22,6 +22,10 @@ Neither restriction was treated as evidence that the package itself failed. Neit
 
 ## GitHub Actions online verification
 
+Latest TOAST-260C element-View-Transition run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35529049640  
+Commit: `e938ecf1758fc1b2117bc7446b41709b395243bc`  
+Result: **success** — install/build/type/Vitest/served-browser/package/audit workflow completed with **158 / 158 browser scenarios and 0 uncaught page errors**. Vitest has **6 files / 23 tests passing**, including **4 dedicated element-scoped View Transition tests**. Scenarios 152–158 verify per-toast element scoping with no document fallback, exact temporary-state restoration, unsupported-browser no-motion behavior, aborted entrance→serialized exit, exit queue-slot retention, reduced-motion API bypass, and a real-browser native-or-clean-fallback probe. Iteration also exposed and fixed same-element phase overlap and browser transition finalization/style-residue issues; the final design uses temporary data attributes/CSS rather than inline motion styles.
+
 Latest TOAST-260B GSAP-Flip run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35525369768  
 Commit: `ee404019d1a3b58a7eb0aa92350ee86319463e7f`  
 Result: **success** — install/build/type/Vitest/served-browser/package/audit workflow completed with **151 / 151 browser scenarios and 0 uncaught page errors**. Vitest has **5 files / 19 tests passing**, including **3 real GSAP Flip integration tests**. Scenarios 145–151 verify explicit plugin injection/no globals, capture-before-insert survivor targeting, sibling-only update reflow, exit/queue-promotion deferral, synchronous coalescing, reduced-motion measurement skip, and teardown cleanup. Verification found and fixed three integration issues: Flip's class-valued plugin shape, the npm default import shape, and Flip measurement/finalization side effects that could otherwise leave an empty inline-style attribute.
@@ -93,7 +97,7 @@ Observed results:
 | Portable ESM/declaration/source-map/CSS build | Pass | `npm run build:portable`, using the actual TypeScript compiler. |
 | Strict runtime-source typecheck | Pass | `npm run typecheck`. |
 | Public declaration-consumer typecheck | Pass | Strict `tsc` check of `test/consumer.ts`, including expected errors for invalid priority and snapshot mutation. |
-| Runtime lifecycle contract | **151 / 151 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
+| Runtime lifecycle contract | **158 / 158 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
 | Demo/UI/real-timer checks | **20 / 20 historical local pass** | Earlier local synthetic-document checks exercised actual demo markup/styles/runtime, but their generated JSON/screenshots are intentionally not committed. Manual zoom/AT evidence is still required. |
 | Uncaught browser page errors | **0** | GitHub Actions served-browser lifecycle suite. |
 | Package exports and DOM-free imports | Pass | `npm run test:package`. |
@@ -102,7 +106,7 @@ Observed results:
 | Actual local npm archive | Pass | `npm pack --ignore-scripts --pack-destination /mnt/data`; archive entries inspected. |
 | Separate consumer install | Pass | Installed the actual tarball using `npm install --offline --ignore-scripts --no-audit --no-fund`; runtime, metadata, package and CSS entries resolved. |
 | Standard tsdown build | **Pass** | GitHub Actions run #1, tsdown 0.15.12. |
-| Vitest/jsdom command | **Pass** | Latest TOAST-260B run: 5 test files / 19 tests passed, including 6 A11y Menu Button integration tests, 4 ariaNotify transport tests, 5 real-GSAP driver tests, and 3 real-Flip layout tests. |
+| Vitest/jsdom command | **Pass** | Latest TOAST-260C run: 6 test files / 23 tests passed, including 6 A11y Menu Button integration tests, 4 ariaNotify transport tests, 5 real-GSAP driver tests, 3 real-Flip layout tests, and 4 dedicated element-scoped View Transition tests. |
 | Normal served-browser Playwright command | **Pass** | GitHub Actions run #1: Chromium lifecycle suite 77/77, 0 uncaught page errors. |
 | Lockfile generation / dependency security audit | **Partial** | Registry install and audit ran in GitHub Actions. No lockfile is committed. Audit reports two moderate dev-only Vitest/@vitest-mocker findings; the high-severity gate passes. |
 | Modern Web Guidance CLI retrieval | **Blocked** | CLI search was attempted, but npm could not resolve the registry. W3C/MDN references were reviewed separately. |
@@ -120,7 +124,7 @@ The shared lifecycle suite uses a deterministic clock for detailed timer/race co
 
 ## Behavior exercised
 
-The 151 browser lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS/GSAP exit, GSAP Flip stack reflow, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, generic DOM-event adapter, and announcement-transport coverage. A separate six-test Vitest integration suite now exercises the real A11y Menu Button async-state ecosystem adapter in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
+The 158 browser lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS/GSAP/element-scoped View Transition exit behavior, GSAP Flip stack reflow, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, generic DOM-event adapter, and announcement-transport coverage. A separate six-test Vitest integration suite now exercises the real A11y Menu Button async-state ecosystem adapter in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
 
 Focus coverage includes preserving focus on show, retaining focused controls during content updates, removing/replacing a focused action, returning to a surviving origin, and showing a focusable empty notification region when no origin remains.
 

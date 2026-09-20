@@ -54,7 +54,7 @@ TOAST-240: **Complete** — first concrete ecosystem adapter for `a11y-menu-butt
 TOAST-250: **Complete — experimental only** — engine-neutral announcement transport boundary plus `a11y-toast/transports/aria-notify`. Live regions remain the default; ariaNotify is explicit opt-in, maps polite→normal/assertive→high, falls back to live regions when unsupported, never dual-sends, and reports actual transport/fallback in lifecycle events. Permissions-Policy suppression remains platform-silent and manual AT verification is still required.
 TOAST-260A: **Complete** — injected GSAP animation driver using the frozen TOAST-180 contract. No `window.gsap` discovery and no required runtime dependency; the caller supplies GSAP. Enter/exit use restrained opacity + logical vertical motion, core still owns reduced motion, and completion/abort/interruption restore the exact pre-animation style attribute.
 TOAST-260B: **Complete** — optional GSAP Flip layout/reflow add-on. It captures surviving toast geometry before show/update/dismiss mutations, coalesces synchronous stack changes, waits through animated exit completion before queue-promotion reflow, excludes entering/leaving toasts, respects reduced motion, and restores temporary Flip/style attributes. Uses the existing optional GSAP peer; no additional runtime dependency.
-TOAST-260C: experimental element-scoped View Transition driver — not started.
+TOAST-260C: **Complete — experimental only** — separate element-scoped View Transition driver and CSS export. Each toast element owns its own scoped transition; document-scoped transitions are never used. Unsupported browsers settle immediately with no motion, reduced motion skips the API, abort calls `skipTransition()`, overlapping enter→exit phases serialize per toast, queue slots remain reserved through exit, and motion uses temporary data attributes/CSS rather than inline styles.
 
 A history/notification-center capability is also out of the initial scope. Unimplemented items above are not credited from the old prototype.
 
@@ -64,4 +64,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-260C — experimental element-scoped View Transition driver. Prefer `Element.startViewTransition()` on the toast viewport, fall back cleanly when unavailable, avoid document-scoped transitions by default, and keep entrance/exit/announcement/timer semantics consistent with the frozen TOAST-180 contract.
+TOAST-270 — optional in-memory notification history. Observe immutable toast lifecycle snapshots without replaying announcements or actions, cap retained entries, keep persistence out of the first slice, and expose read/clear access without turning history into a second toast manager.
