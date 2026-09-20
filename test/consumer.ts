@@ -8,7 +8,9 @@ import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
 import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu-button-async-state';
 import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
 import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
+import { createGsapFlipLayoutAddon } from 'a11y-toast/animations/gsap-flip';
 import { gsap } from 'gsap';
+import { Flip } from 'gsap/Flip';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -21,7 +23,11 @@ const animation: ToastAnimationDriver = createGsapAnimationDriver(gsap, {
   exitDuration: 0.12,
 });
 const experimentalTransport = createAriaNotifyTransport();
-const toast = createToast(root, { addons: [logger, createProgressAddon()], animation, announcementTransport: experimentalTransport });
+const toast = createToast(root, {
+  addons: [logger, createProgressAddon(), createGsapFlipLayoutAddon(gsap, Flip)],
+  animation,
+  announcementTransport: experimentalTransport,
+});
 const input: ToastInput = { message: 'Saved', priority: 'polite', action: { label: 'Undo', onClick: async ({ signal }) => { if (signal.aborted) return; } } };
 const id = toast.show(input);
 if (id !== null) toast.update(id, { message: 'Updated' });

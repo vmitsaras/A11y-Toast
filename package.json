@@ -47,6 +47,10 @@
     "./animations/gsap": {
       "types": "./dist/animations/gsap.d.ts",
       "import": "./dist/animations/gsap.js"
+    },
+    "./animations/gsap-flip": {
+      "types": "./dist/animations/gsap-flip.d.ts",
+      "import": "./dist/animations/gsap-flip.js"
     }
   },
   "files": [

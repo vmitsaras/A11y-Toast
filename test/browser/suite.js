@@ -1409,5 +1409,169 @@ export async function runSuite(api, capabilities = { layout: true }) {
     }
   });
 
+  await test('145 Flip layout add-on registers the injected plugin and never looks for globals', () => {
+    const calls = [];
+    const fakeGsap = { registerPlugin(plugin) { calls.push(plugin); } };
+    const fakeFlip = {
+      getState() { return {}; },
+      from() { return {}; },
+      killFlipsOf() {},
+    };
+    const addon = api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip);
+    equal(addon.name, 'gsap-flip-layout');
+    equal(calls, [fakeFlip]);
+    ok(!('Flip' in window));
+  });
+
+  await test('146 Flip layout captures before insertion and animates only pre-existing survivors', async () => {
+    const captures = [];
+    const flips = [];
+    const fakeGsap = { registerPlugin() {} };
+    const fakeFlip = {
+      getState(targets, vars) {
+        captures.push({ targets: [...targets], vars });
+        for (const [index, target] of targets.entries()) target.setAttribute('data-flip-id', `auto-${index}`);
+        return { marker: captures.length };
+      },
+      from(state, vars) {
+        flips.push({ state, vars, targets: [...vars.targets] });
+        vars.onComplete();
+        return {};
+      },
+      killFlipsOf() {},
+    };
+    const m = create({ animation: 'none', addons: [api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip)] });
+    const first = m.show({ message: 'A', persistent: true });
+    const firstElement = item(m, first);
+    m.show({ message: 'B', persistent: true });
+    await waitMicrotasks();
+    equal(captures.length, 1);
+    equal(captures[0].targets, [firstElement]);
+    equal(flips.length, 1);
+    equal(flips[0].targets, [firstElement]);
+    equal(firstElement.hasAttribute('data-flip-id'), false);
+  });
+
+  await test('147 Flip layout excludes updated toast and animates only siblings shifted by reflow', async () => {
+    const captures = [];
+    const fakeGsap = { registerPlugin() {} };
+    const fakeFlip = {
+      getState(targets) { captures.push([...targets]); return {}; },
+      from(_state, vars) { vars.onComplete(); return {}; },
+      killFlipsOf() {},
+    };
+    const m = create({ animation: 'none', addons: [api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip)] });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    await waitMicrotasks();
+    captures.length = 0;
+    m.update(a, { message: 'A with substantially longer content for reflow' });
+    await waitMicrotasks();
+    equal(captures.length, 1);
+    equal(captures[0], [item(m, b)]);
+  });
+
+  await test('148 Flip layout waits for exit completion and queue promotion before animating survivors', async () => {
+    let resolveExit;
+    const captures = [];
+    const flips = [];
+    const fakeGsap = { registerPlugin() {} };
+    const fakeFlip = {
+      getState(targets) { captures.push([...targets]); return {}; },
+      from(_state, vars) { flips.push([...vars.targets]); vars.onComplete(); return {}; },
+      killFlipsOf() {},
+    };
+    const m = create({
+      maxVisible: 2,
+      animation: { name: 'controlled-exit', exit() { return new Promise(resolve => { resolveExit = resolve; }); } },
+      addons: [api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip)],
+    });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    const c = m.show({ message: 'C', persistent: true });
+    await waitMicrotasks();
+    captures.length = 0;
+    flips.length = 0;
+    m.dismiss(a);
+    await waitMicrotasks();
+    equal(flips.length, 0);
+    equal(m.getToast(c).state, 'queued');
+    resolveExit();
+    await waitMicrotasks();
+    equal(m.getToast(c).state, 'visible');
+    equal(flips.length, 1);
+    equal(flips[0], [item(m, b)]);
+  });
+
+  await test('149 synchronous stack mutations coalesce into one Flip pass', async () => {
+    let states = 0, flips = 0;
+    const fakeGsap = { registerPlugin() {} };
+    const fakeFlip = {
+      getState() { states++; return {}; },
+      from(_state, vars) { flips++; vars.onComplete(); return {}; },
+      killFlipsOf() {},
+    };
+    const m = create({ animation: 'none', addons: [api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip)] });
+    m.show({ message: 'A', persistent: true });
+    m.show({ message: 'B', persistent: true });
+    m.show({ message: 'C', persistent: true });
+    await waitMicrotasks();
+    equal(states, 1);
+    equal(flips, 1);
+  });
+
+  await test('150 reduced motion skips Flip getState/from entirely', () => {
+    const oldMatchMedia = window.matchMedia;
+    window.matchMedia = query => ({
+      matches: query === '(prefers-reduced-motion: reduce)', media: query, onchange: null,
+      addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; },
+    });
+    try {
+      let calls = 0;
+      const fakeGsap = { registerPlugin() {} };
+      const fakeFlip = {
+        getState() { calls++; return {}; },
+        from() { calls++; return {}; },
+        killFlipsOf() {},
+      };
+      const m = create({ animation: 'none', addons: [api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip)] });
+      m.show({ message: 'A', persistent: true });
+      m.show({ message: 'B', persistent: true });
+      equal(calls, 0);
+    } finally {
+      window.matchMedia = oldMatchMedia;
+    }
+  });
+
+  await test('151 unregistering Flip layout restores pending/active temporary attributes and leaves core state intact', async () => {
+    let complete;
+    const fakeGsap = { registerPlugin() {} };
+    const fakeFlip = {
+      getState(targets) {
+        for (const target of targets) target.setAttribute('data-flip-id', 'temporary');
+        return {};
+      },
+      from(_state, vars) {
+        complete = vars.onComplete;
+        for (const target of vars.targets) target.setAttribute('style', 'transform: translate3d(0, 10px, 0);');
+        return {};
+      },
+      killFlipsOf() {},
+    };
+    const m = create({ animation: 'none' });
+    const a = m.show({ message: 'A', persistent: true });
+    const element = item(m, a);
+    element.setAttribute('style', 'outline-width: 2px;');
+    m.registerAddon(api.createGsapFlipLayoutAddon(fakeGsap, fakeFlip));
+    m.show({ message: 'B', persistent: true });
+    await waitMicrotasks();
+    equal(element.getAttribute('data-flip-id'), 'temporary');
+    equal(m.unregisterAddon('gsap-flip-layout'), true);
+    equal(element.hasAttribute('data-flip-id'), false);
+    equal(element.getAttribute('style'), 'outline-width: 2px;');
+    ok(m.getToast(a));
+    complete?.();
+  });
+
   return results;
 }

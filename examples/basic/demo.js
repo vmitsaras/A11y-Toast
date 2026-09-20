@@ -5,7 +5,9 @@ import { createDedupeController } from '../../dist/addons/dedupe.js';
 import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
 import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js';
 import { createGsapAnimationDriver } from '../../dist/animations/gsap.js';
+import { createGsapFlipLayoutAddon } from '../../dist/animations/gsap-flip.js';
 import { gsap } from '../../node_modules/gsap/index.js';
+import { Flip } from '../../node_modules/gsap/Flip.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
@@ -14,6 +16,7 @@ const position = form.elements.position;
 const animation = form.elements.animation;
 const announcementTransport = form.elements.announcementTransport;
 const showProgress = form.elements.showProgress;
+const showFlipLayout = form.elements.showFlipLayout;
 const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
@@ -54,6 +57,7 @@ function sync(source) {
   animation.disabled = surfaceActive;
   announcementTransport.disabled = surfaceActive;
   showProgress.disabled = surfaceActive;
+  showFlipLayout.disabled = surfaceActive;
   showToneLabel.disabled = surfaceActive;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
   if (loadingId && !source.getToast(loadingId)) loadingId = null;
@@ -108,7 +112,10 @@ function initialize() {
     position: position.value,
     animation: animation.value === 'gsap' ? createGsapAnimationDriver(gsap) : animation.value,
     announcementTransport: announcementTransport.value === 'aria-notify' ? createAriaNotifyTransport() : 'live-region',
-    addons: showProgress.checked ? [createProgressAddon()] : [],
+    addons: [
+      ...(showProgress.checked ? [createProgressAddon()] : []),
+      ...(showFlipLayout.checked ? [createGsapFlipLayoutAddon(gsap, Flip)] : []),
+    ],
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
   });
@@ -157,6 +164,7 @@ position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
 announcementTransport.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
+showFlipLayout.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
 adapterOwner.addEventListener('change', () => safely(initializeAdapter));
 function dispatchSourceStatus(action, message = '') {
