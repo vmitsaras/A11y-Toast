@@ -27,6 +27,10 @@
     "./addons/promise": {
       "types": "./dist/addons/promise.d.ts",
       "import": "./dist/addons/promise.js"
+    },
+    "./addons/dedupe": {
+      "types": "./dist/addons/dedupe.d.ts",
+      "import": "./dist/addons/dedupe.js"
     }
   },
   "files": [

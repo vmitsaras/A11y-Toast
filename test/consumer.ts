@@ -3,6 +3,7 @@ import type { ToastInput, ToastAddon, ToastAnimationDriver } from 'a11y-toast';
 import { docs } from 'a11y-toast/docs';
 import { createProgressAddon } from 'a11y-toast/addons/progress';
 import { trackToastPromise } from 'a11y-toast/addons/promise';
+import { createDedupeController } from 'a11y-toast/addons/dedupe';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -24,6 +25,8 @@ const tracked = trackToastPromise(toast, Promise.resolve('ok'), {
   error: { message: 'Could not save. Try again.', persistent: true },
 });
 void tracked.promise;
+const dedupe = createDedupeController(toast);
+void dedupe.show({ key: 'save-status', message: 'Saved' });
 addToastEventListener(root, TOAST_EVENTS.drop, event => { const reason: 'queue-full' | 'clearing' = event.detail.reason; void reason; });
 // @ts-expect-error Unsupported ARIA politeness is rejected by the public declaration contract.
 toast.show({ message: 'Invalid', priority: 'loud' });

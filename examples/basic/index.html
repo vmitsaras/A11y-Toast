@@ -89,6 +89,17 @@
             <button class="toast-demo__button" type="button" data-promise-error disabled>Promise failure</button>
           </div>
           <div class="toast-demo__field toast-demo__target"><label for="target">Current notification</label><select id="target" disabled><option value="">No notifications</option></select></div>
+          <details class="toast-demo__details">
+            <summary>Try keyed deduplication</summary>
+            <div class="toast-demo__detail-body">
+              <div class="toast-demo__row">
+                <div class="toast-demo__field"><label for="dedupe-key">Key</label><input id="dedupe-key" value="network-status" maxlength="80"></div>
+                <div class="toast-demo__field"><label for="dedupe-policy">Policy</label><select id="dedupe-policy"><option value="update-existing">Update existing</option><option value="drop-new">Drop new</option><option value="replace-existing">Replace existing</option></select></div>
+              </div>
+              <button class="toast-demo__button" type="button" data-dedupe disabled>Show keyed example</button>
+              <p class="toast-demo__hint">Key matching is exact and case-sensitive. Repeated clicks demonstrate the selected policy without message-text deduplication.</p>
+            </div>
+          </details>
           <div class="toast-demo__button-grid">
             <button class="toast-demo__button" type="button" data-update disabled>Update selected</button>
             <button class="toast-demo__button" type="button" data-dismiss disabled>Dismiss selected</button>

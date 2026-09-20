@@ -1,6 +1,7 @@
 import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/index.js';
 import { createProgressAddon } from '../../dist/addons/progress.js';
 import { trackToastPromise } from '../../dist/addons/promise.js';
+import { createDedupeController } from '../../dist/addons/dedupe.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
@@ -12,6 +13,8 @@ const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
 let manager;
+let dedupe;
+let dedupeSequence = 0;
 let loadingId = null;
 const removers = [];
 
@@ -80,6 +83,7 @@ function initialize() {
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
   });
+  dedupe = createDedupeController(manager);
   sync(manager);
 }
 function valid() {
@@ -117,7 +121,7 @@ form.addEventListener('submit', event => {
 form.elements.message.addEventListener('input', () => form.elements.message.setCustomValidity(''));
 form.elements.hasAction.addEventListener('change', () => { form.elements.actionLabel.disabled = !form.elements.hasAction.checked; });
 function reinitializeManager() {
-  safely(() => { manager.destroy(); initialize(); });
+  safely(() => { dedupe?.destroy(); manager.destroy(); initialize(); });
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
@@ -163,6 +167,20 @@ document.querySelector('[data-retry]').addEventListener('click', event => safely
     } },
   });
 }));
+document.querySelector('[data-dedupe]').addEventListener('click', () => safely(() => {
+  const key = document.querySelector('#dedupe-key').value.trim();
+  const policy = document.querySelector('#dedupe-policy').value;
+  dedupeSequence += 1;
+  void dedupe.show({
+    key,
+    message: `Keyed update ${dedupeSequence}`,
+    tone: 'info',
+    duration: 7000,
+  }, policy).catch(error => {
+    feedback.textContent = error instanceof Error ? error.message : 'The keyed example failed.';
+    feedback.hidden = false;
+  });
+}));
 document.querySelector('[data-update]').addEventListener('click', event => {
   if (!valid()) return;
   safely(() => manager.update(target.value, { ...input(event.currentTarget), persistent: form.elements.persistence.value === 'auto' ? undefined : form.elements.persistence.value === 'persistent' }));
@@ -173,10 +191,11 @@ document.querySelector('[data-clear-log]').addEventListener('click', () => log.r
 
 initialize();
 document.querySelector('[data-controls]').disabled = false;
-for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
+for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
 document.querySelector('[data-boot]').hidden = true;
 window.addEventListener('pagehide', event => {
   if (event.persisted) return; // BFCache resumes the same live manager; visibility handles its timers.
+  dedupe?.destroy();
   manager.destroy();
   for (const remove of removers) remove();
 }, { once: false });

@@ -756,5 +756,171 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(m.getToasts().length, 1);
   });
 
+  await test('111 update-existing keeps one ID and avoids a second show event', async () => {
+    const m = create();
+    const controller = api.createDedupeController(m);
+    const first = await controller.show({ key: 'save', message: 'Saving', persistent: true });
+    const shows = events(m, api.TOAST_EVENTS.show);
+    const updates = events(m, api.TOAST_EVENTS.update);
+    const second = await controller.show({ key: 'save', message: 'Saved', duration: 5000 });
+    equal(first.status, 'shown');
+    equal(second.status, 'updated');
+    equal(second.id, first.id);
+    equal(m.getToasts().length, 1);
+    equal(m.getToast(first.id).message, 'Saved');
+    equal(shows.length, 0);
+    equal(updates.length, 1);
+  });
+
+  await test('112 update-existing preserves queued position while updating keyed content', async () => {
+    const m = create({ maxVisible: 1 });
+    const controller = api.createDedupeController(m);
+    const blocker = m.show({ message: 'Blocker', persistent: true });
+    const keyed = await controller.show({ key: 'job', message: 'Queued A', persistent: true });
+    const other = m.show({ message: 'Other', persistent: true });
+    const updated = await controller.show({ key: 'job', message: 'Queued B', persistent: true });
+    equal(updated.id, keyed.id);
+    equal(m.getToasts().map(row => row.message), ['Blocker', 'Queued B', 'Other']);
+    m.dismiss(blocker);
+    equal(m.getToast(keyed.id).state, 'visible');
+    equal(m.getToast(other).state, 'queued');
+  });
+
+  await test('113 drop-new keeps existing keyed toast unchanged without update or announcement', async () => {
+    const c = fakeClock();
+    const m = create();
+    const controller = api.createDedupeController(m, { policy: 'drop-new' });
+    const first = await controller.show({ key: 'sync', message: 'First', persistent: true });
+    c.tick(100);
+    const updates = events(m, api.TOAST_EVENTS.update);
+    const announcements = events(m, api.TOAST_EVENTS.announce);
+    const second = await controller.show({ key: 'sync', message: 'Second', persistent: true });
+    c.tick(2000);
+    equal(second.status, 'kept-existing');
+    equal(second.id, first.id);
+    equal(m.getToast(first.id).message, 'First');
+    equal(updates.length, 0);
+    equal(announcements.length, 0);
+  });
+
+  await test('114 replace-existing waits for visual exit before showing the replacement', async () => {
+    let resolveExit;
+    const m = create({
+      animation: { name: 'dedupe-exit', exit() { return new Promise(resolve => { resolveExit = resolve; }); } },
+    });
+    const controller = api.createDedupeController(m, { policy: 'replace-existing' });
+    const first = await controller.show({ key: 'notice', message: 'Old', persistent: true });
+    const shows = events(m, api.TOAST_EVENTS.show);
+    const pending = controller.show({ key: 'notice', message: 'New', persistent: true });
+    await waitMicrotasks();
+    equal(m.getToast(first.id), undefined);
+    equal(m.root.querySelectorAll('[data-a11y-toast-id]').length, 1);
+    equal(shows.length, 0);
+    resolveExit();
+    const replacement = await pending;
+    equal(replacement.status, 'replaced');
+    ok(replacement.id !== first.id);
+    equal(replacement.previousId, first.id);
+    equal(m.getToast(replacement.id).message, 'New');
+    equal(shows.length, 1);
+  });
+
+  await test('115 replacing a queued keyed toast gives the replacement a new queue position', async () => {
+    const m = create({ maxVisible: 1, animation: 'none' });
+    const controller = api.createDedupeController(m, { policy: 'replace-existing' });
+    m.show({ message: 'Blocker', persistent: true });
+    const old = await controller.show({ key: 'queued', message: 'Old', persistent: true });
+    const other = m.show({ message: 'Other', persistent: true });
+    const replacement = await controller.show({ key: 'queued', message: 'New', persistent: true });
+    ok(replacement.id !== old.id);
+    equal(m.getToasts().map(row => row.message), ['Blocker', 'Other', 'New']);
+    equal(m.getToast(other).state, 'queued');
+    equal(m.getToast(replacement.id).state, 'queued');
+  });
+
+  await test('116 dedupe requires a non-empty trimmed key and matching is exact case-sensitive', async () => {
+    const m = create();
+    const controller = api.createDedupeController(m);
+    throws(() => controller.show({ message: 'No key' }));
+    throws(() => controller.show({ key: '   ', message: 'Blank key' }));
+    const first = await controller.show({ key: ' Save ', message: 'Upper', persistent: true });
+    equal(m.getToast(first.id).key, 'Save');
+    const second = await controller.show({ key: 'save', message: 'Lower', persistent: true });
+    ok(second.id !== first.id);
+    equal(m.getToasts().length, 2);
+    throws(() => controller.show({ key: 'Save', message: 'Invalid policy' }, 'merge'));
+  });
+
+  await test('117 same-key operations serialize across a pending replacement', async () => {
+    let resolveExit;
+    const m = create({
+      animation: { name: 'serialized-exit', exit() { return new Promise(resolve => { resolveExit = resolve; }); } },
+    });
+    const controller = api.createDedupeController(m, { policy: 'replace-existing' });
+    const first = await controller.show({ key: 'serial', message: 'First', persistent: true });
+    const replacing = controller.show({ key: 'serial', message: 'Second', persistent: true });
+    const updating = controller.show({ key: 'serial', message: 'Third', persistent: true }, 'update-existing');
+    await waitMicrotasks();
+    equal(m.root.querySelectorAll('[data-a11y-toast-id]').length, 1);
+    resolveExit();
+    const replaced = await replacing;
+    const updated = await updating;
+    equal(updated.id, replaced.id);
+    equal(updated.status, 'updated');
+    equal(m.getToast(updated.id).message, 'Third');
+    equal(m.getToasts().length, 1);
+    ok(updated.id !== first.id);
+  });
+
+  await test('118 controller destroy stops future keyed operations without changing existing toast state', async () => {
+    const m = create();
+    const controller = api.createDedupeController(m);
+    const first = await controller.show({ key: 'stop', message: 'Existing', persistent: true });
+    controller.destroy();
+    equal(controller.isDestroyed, true);
+    const result = await controller.show({ key: 'stop', message: 'Ignored', persistent: true });
+    equal(result.status, 'stopped');
+    equal(result.id, null);
+    equal(m.getToast(first.id).message, 'Existing');
+  });
+
+  await test('119 new keyed show reports queue rejection without mutating unrelated records', async () => {
+    const m = create({ maxVisible: 1, maxQueue: 0 });
+    m.show({ message: 'Blocker', persistent: true });
+    const controller = api.createDedupeController(m);
+    const result = await controller.show({ key: 'new', message: 'Rejected', persistent: true });
+    equal(result.status, 'rejected');
+    equal(result.id, null);
+    equal(m.getToasts().map(row => row.message), ['Blocker']);
+  });
+
+  await test('120 update-existing uses normal timer semantics instead of resetting implicitly', async () => {
+    const c = fakeClock();
+    const m = create();
+    const controller = api.createDedupeController(m);
+    const first = await controller.show({ key: 'timer', message: 'A', duration: 1000 });
+    c.tick(400);
+    const updated = await controller.show({ key: 'timer', message: 'B' });
+    equal(updated.id, first.id);
+    equal(m.getToast(first.id).remaining, 600);
+    c.tick(600);
+    equal(m.getToast(first.id), undefined);
+  });
+
+  await test('121 replace-existing adopts a same-key toast created by an external dismissal observer', async () => {
+    const m = create({ animation: 'none' });
+    const controller = api.createDedupeController(m, { policy: 'replace-existing' });
+    const first = await controller.show({ key: 'shared', message: 'Old', persistent: true });
+    let externalId = null;
+    m.root.addEventListener(api.TOAST_EVENTS.dismiss, event => {
+      if (event.detail.toast.id === first.id) externalId = m.show({ key: 'shared', message: 'External', persistent: true });
+    }, { once: true });
+    const result = await controller.show({ key: 'shared', message: 'Replacement', persistent: true });
+    equal(result.status, 'updated');
+    equal(result.id, externalId);
+    equal(m.getToasts().length, 1);
+    equal(m.getToast(externalId).message, 'Replacement');
+  });
+
   return results;
 }
