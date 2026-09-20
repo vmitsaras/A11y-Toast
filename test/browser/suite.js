@@ -372,5 +372,167 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(m.getToast(b).state, 'visible');
   }, true);
 
+  await test('87 dismissing re-entrantly from animation-start cancels entrance without a stale timer', async () => {
+    const c = fakeClock(); let enterCalls = 0;
+    const m = create({ animation: { name: 'start-reentry', enter() { enterCalls++; } } });
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    let id;
+    m.root.addEventListener(api.TOAST_EVENTS.animationStart, event => {
+      if (event.detail.phase === 'enter') m.dismiss(event.detail.toast.id);
+    });
+    id = m.show({ message: 'A', duration: 1000 });
+    await waitMicrotasks();
+    equal(enterCalls, 0);
+    equal(m.getToast(id), undefined);
+    equal(item(m, id), null);
+    equal(ends.map(row => [row.phase, row.status]), [['enter', 'cancelled']]);
+    c.tick(5000);
+    equal(m.getToasts().length, 0);
+  });
+
+  await test('88 destroying from animation-error prevents stale animation-end and completion work', async () => {
+    const m = create({ animation: { name: 'fail-reentry', enter() { return Promise.reject(new Error('Expected failure')); } } });
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    const errors = events(m, api.TOAST_EVENTS.animationError);
+    m.root.addEventListener(api.TOAST_EVENTS.animationError, () => m.destroy(), { once: true });
+    m.show({ message: 'A', duration: 1000 });
+    await waitMicrotasks();
+    equal(errors.length, 1);
+    equal(ends.length, 0);
+    equal(m.isDestroyed, true);
+    equal(m.root.children.length, 0);
+  });
+
+  await test('89 re-entrant show from exit animation-end stays behind an existing waiter', async () => {
+    let resolveExit;
+    const m = create({
+      maxVisible: 1,
+      animation: { name: 'queue-order', exit() { return new Promise(resolve => { resolveExit = resolve; }); } },
+    });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    let cId = null;
+    m.root.addEventListener(api.TOAST_EVENTS.animationEnd, event => {
+      if (event.detail.phase === 'exit') cId = m.show({ message: 'C', persistent: true });
+    }, { once: true });
+    m.dismiss(a);
+    resolveExit();
+    await waitMicrotasks();
+    equal(m.getToast(b).state, 'visible');
+    equal(m.getToast(cId).state, 'queued');
+    equal(m.getToasts().map(row => row.message), ['B', 'C']);
+  });
+
+  await test('90 dismissAll clears visible and queued records atomically while multiple exits finish independently', async () => {
+    const resolvers = new Map();
+    const m = create({
+      maxVisible: 2,
+      animation: {
+        name: 'batch-exit',
+        exit(context) { return new Promise(resolve => resolvers.set(context.toast.id, resolve)); },
+      },
+    });
+    const ids = ['A', 'B', 'C', 'D'].map(message => m.show({ message, persistent: true }));
+    const dropped = events(m, api.TOAST_EVENTS.drop);
+    const reentrant = [];
+    m.root.addEventListener(api.TOAST_EVENTS.dismiss, () => reentrant.push(m.show({ message: 'During clear', persistent: true })));
+    equal(m.dismissAll(), 4);
+    equal(m.getToasts().length, 0);
+    equal(reentrant, [null, null, null, null]);
+    equal(dropped.map(row => row.reason), ['clearing', 'clearing', 'clearing', 'clearing']);
+    equal(ids.slice(0, 2).every(id => item(m, id)?.getAttribute('aria-hidden') === 'true'), true);
+    equal(ids.slice(2).every(id => item(m, id) === null), true);
+    equal(resolvers.size, 2);
+    for (const resolve of resolvers.values()) resolve();
+    await waitMicrotasks();
+    equal(m.root.querySelectorAll('[data-a11y-toast-id]').length, 0);
+  });
+
+  await test('91 hiding the document cancels entrance, preserves full time, and resumes timing when visible', async () => {
+    const c = fakeClock(); let signal;
+    const m = create({
+      animation: { name: 'hidden-enter', enter(context) { signal = context.signal; return new Promise(() => {}); } },
+    });
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    const id = m.show({ message: 'A', duration: 1000 });
+    equal(m.getToast(id).animationPhase, 'enter');
+    hidden(true);
+    equal(signal.aborted, true);
+    equal(m.getToast(id).animationPhase, null);
+    equal(m.getToast(id).remaining, 1000);
+    equal(ends.map(row => [row.phase, row.status]), [['enter', 'cancelled']]);
+    c.tick(5000);
+    ok(m.getToast(id));
+    hidden(false);
+    c.tick(999); ok(m.getToast(id));
+    c.tick(1); equal(m.getToast(id), undefined);
+  });
+
+  await test('92 hiding the document cancels exit and releases its slot without reviving the dismissed record', async () => {
+    let signal;
+    const m = create({
+      maxVisible: 1,
+      animation: { name: 'hidden-exit', exit(context) { signal = context.signal; return new Promise(() => {}); } },
+    });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    const element = item(m, a);
+    m.dismiss(a);
+    equal(element.isConnected, true);
+    hidden(true);
+    equal(signal.aborted, true);
+    equal(element.isConnected, false);
+    equal(m.getToast(a), undefined);
+    equal(m.getToast(b).state, 'visible');
+    equal(m.getToast(b).pauseReasons.includes('document-hidden'), true);
+    hidden(false);
+  });
+
+  await test('93 destroy from animation-end suppresses stale completion and queued promotion', async () => {
+    let resolveExit;
+    const m = create({
+      maxVisible: 1,
+      animation: { name: 'end-destroy', exit() { return new Promise(resolve => { resolveExit = resolve; }); } },
+    });
+    const a = m.show({ message: 'A', persistent: true });
+    m.show({ message: 'B', persistent: true });
+    m.root.addEventListener(api.TOAST_EVENTS.animationEnd, event => {
+      if (event.detail.phase === 'exit') m.destroy();
+    }, { once: true });
+    m.dismiss(a);
+    resolveExit();
+    await waitMicrotasks();
+    equal(m.isDestroyed, true);
+    equal(m.getToasts().length, 0);
+    equal(m.root.children.length, 0);
+  });
+
+  await test('94 two controlled exits release exactly one queued slot each', async () => {
+    const resolvers = new Map();
+    const m = create({
+      maxVisible: 2,
+      animation: {
+        name: 'slot-stress',
+        exit(context) { return new Promise(resolve => resolvers.set(context.toast.id, resolve)); },
+      },
+    });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    const cId = m.show({ message: 'C', persistent: true });
+    const d = m.show({ message: 'D', persistent: true });
+    m.dismiss(a);
+    m.dismiss(b);
+    equal(m.getToast(cId).state, 'queued');
+    equal(m.getToast(d).state, 'queued');
+    resolvers.get(b)();
+    await waitMicrotasks();
+    equal(m.getToast(cId).state, 'visible');
+    equal(m.getToast(d).state, 'queued');
+    resolvers.get(a)();
+    await waitMicrotasks();
+    equal(m.getToast(d).state, 'visible');
+    equal(m.visibleCount, 2);
+  });
+
   return results;
 }

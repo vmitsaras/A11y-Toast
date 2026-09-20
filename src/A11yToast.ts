@@ -678,12 +678,16 @@ export class A11yToast implements ToastInstance {
     this.activeAnimations.delete(active.record.id);
     active.record.animationPhase = null;
     active.element.classList.remove(CLASSES.entering, CLASSES.exiting);
-    if (status === 'failed') this.emit(TOAST_EVENTS.animationError, {
-      toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, error,
-    });
+    if (status === 'failed') {
+      this.emit(TOAST_EVENTS.animationError, {
+        toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, error,
+      });
+      if (this.destroyed) return;
+    }
     this.emit(TOAST_EVENTS.animationEnd, {
       toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, status,
     });
+    if (this.destroyed) return;
     active.complete();
   }
   private cancelAnimation(id: ToastId, finalize: boolean): boolean {
@@ -696,7 +700,7 @@ export class A11yToast implements ToastInstance {
     this.emit(TOAST_EVENTS.animationEnd, {
       toast: this.snapshot(active.record), phase: active.phase, driver: active.driver, status: 'cancelled',
     });
-    if (finalize) active.complete();
+    if (finalize && !this.destroyed) active.complete();
     return true;
   }
   private finishExit(record: RecordState, element: HTMLElement): void {
