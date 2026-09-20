@@ -1245,5 +1245,17 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(calls, 0);
   });
 
+  await test('138 experimental ariaNotify transport uses native API when available and otherwise reports live fallback', () => {
+    const c = fakeClock();
+    const m = create({ announcementTransport: api.createAriaNotifyTransport() });
+    const announced = events(m, api.TOAST_EVENTS.announce);
+    m.show({ message: 'Experimental transport probe', priority: 'polite', persistent: true });
+    c.tick(100);
+    equal(announced.length, 1);
+    const supported = typeof document.ariaNotify === 'function';
+    equal(announced[0].transport, supported ? 'aria-notify' : 'live-region');
+    equal(announced[0].fallback, !supported);
+  });
+
   return results;
 }
