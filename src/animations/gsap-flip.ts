@@ -39,6 +39,8 @@ interface PendingLayout {
   readonly state: unknown;
   readonly elements: readonly HTMLElement[];
   readonly flipIds: ReadonlyMap<HTMLElement, string | null>;
+  readonly initialStyles: ReadonlyMap<HTMLElement, string | null>;
+  readonly measuredStyles: ReadonlyMap<HTMLElement, string | null>;
 }
 
 interface ActiveLayout {
@@ -158,8 +160,22 @@ export function createGsapFlipLayoutAddon(
       && !prefersReducedMotion(win)
     );
 
+    const resolvedStyles = (
+      pending: PendingLayout,
+      elements: readonly HTMLElement[],
+    ): ReadonlyMap<HTMLElement, string | null> => new Map(elements.map(element => {
+      const current = element.getAttribute('style');
+      const measured = pending.measuredStyles.get(element) ?? null;
+      const initial = pending.initialStyles.get(element) ?? null;
+      // If the style still matches Flip's measurement side effect, no application
+      // code changed it during the layout mutation, so restore the true authored value.
+      return [element, current === measured ? initial : current] as const;
+    }));
+
     const restorePending = (pending: PendingLayout | null): void => {
-      if (pending) restoreAttribute(pending.flipIds, FLIP_ID_ATTRIBUTE);
+      if (!pending) return;
+      restoreAttribute(resolvedStyles(pending, pending.elements), 'style');
+      restoreAttribute(pending.flipIds, FLIP_ID_ATTRIBUTE);
     };
 
     const settleActive = (active: ActiveLayout | null): void => {
@@ -200,7 +216,7 @@ export function createGsapFlipLayoutAddon(
         return;
       }
 
-      const finalStyles = new Map(targets.map(element => [element, element.getAttribute('style')] as const));
+      const finalStyles = resolvedStyles(pending, targets);
       const active: ActiveLayout = {
         targets,
         finalStyles,
@@ -253,14 +269,19 @@ export function createGsapFlipLayoutAddon(
         if (elements.length === 0) return;
 
         const flipIds = new Map(elements.map(element => [element, element.getAttribute(FLIP_ID_ATTRIBUTE)] as const));
+        const initialStyles = new Map(elements.map(element => [element, element.getAttribute('style')] as const));
         try {
           const captured = Flip.getState(elements, { simple: true });
+          const measuredStyles = new Map(elements.map(element => [element, element.getAttribute('style')] as const));
           state.pending = Object.freeze({
             state: captured,
             elements: Object.freeze([...elements]),
             flipIds,
+            initialStyles,
+            measuredStyles,
           });
         } catch (error) {
+          restoreAttribute(initialStyles, 'style');
           restoreAttribute(flipIds, FLIP_ID_ATTRIBUTE);
           report(error);
         }
