@@ -23,7 +23,7 @@ function installFakeStartViewTransition(
   });
   return () => {
     if (descriptor) Object.defineProperty(HTMLElement.prototype, 'startViewTransition', descriptor);
-    else delete (HTMLElement.prototype as HTMLElement & { startViewTransition?: unknown }).startViewTransition;
+    else delete (Element.prototype as Element & { startViewTransition?: unknown }).startViewTransition;
   };
 }
 
@@ -66,7 +66,7 @@ describe('experimental element-scoped View Transition driver', () => {
 
   it('settles immediately when Element.startViewTransition is unavailable', async () => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'startViewTransition');
-    delete (HTMLElement.prototype as HTMLElement & { startViewTransition?: unknown }).startViewTransition;
+    delete (Element.prototype as Element & { startViewTransition?: unknown }).startViewTransition;
     cleanups.push(() => {
       if (descriptor) Object.defineProperty(HTMLElement.prototype, 'startViewTransition', descriptor);
     });
@@ -133,7 +133,7 @@ describe('experimental element-scoped View Transition driver', () => {
 
   it('never calls document.startViewTransition as an unsupported fallback', async () => {
     const descriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'startViewTransition');
-    delete (HTMLElement.prototype as HTMLElement & { startViewTransition?: unknown }).startViewTransition;
+    delete (Element.prototype as Element & { startViewTransition?: unknown }).startViewTransition;
     const documentTransition = (document as Document & { startViewTransition?: unknown }).startViewTransition;
     const marker = () => { throw new Error('document-scoped transition must not run'); };
     Object.defineProperty(document, 'startViewTransition', { configurable: true, value: marker });
