@@ -7,7 +7,7 @@ import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js'
 import { createGsapAnimationDriver } from '../../dist/animations/gsap.js';
 import { createGsapFlipLayoutAddon } from '../../dist/animations/gsap-flip.js';
 import { gsap } from '../../node_modules/gsap/index.js';
-import { Flip } from '../../node_modules/gsap/Flip.js';
+import Flip from '../../node_modules/gsap/Flip.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
