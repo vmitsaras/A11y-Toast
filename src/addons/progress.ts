@@ -1,5 +1,5 @@
 import { TOAST_EVENTS } from '../events.js';
-import type { ToastAddon, ToastSnapshot } from '../types.js';
+import type { ToastAddon, ToastAddonContext, ToastSnapshot } from '../types.js';
 
 const SELECTOR = '[data-a11y-toast-id]';
 const TRACK_ATTRIBUTE = 'data-a11y-toast-progress';
@@ -23,7 +23,7 @@ export function createProgressAddon(options: ToastProgressAddonOptions = {}): To
   const name = typeof options.name === 'string' && options.name.trim() ? options.name.trim() : 'progress';
   return Object.freeze({
     name,
-    setup(context) {
+    setup(context: ToastAddonContext) {
       const doc = context.root.ownerDocument;
       const win = doc.defaultView;
       if (!win) return;
