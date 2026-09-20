@@ -22,6 +22,10 @@ Neither restriction was treated as evidence that the package itself failed. Neit
 
 ## GitHub Actions online verification
 
+Latest feature run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35506878112  
+Commit: `c46aec739d01c02e701d35247c99255476c47b82`  
+Result: **success** — build/type/Vitest/served-browser/package/audit workflow completed, with **79 / 79 browser scenarios and 0 uncaught page errors**. Scenarios 78–79 cover default/hidden tone-label rendering, unchanged announcement wording, strict data-attribute parsing, and explicit-option precedence.
+
 Run #1: https://github.com/vmitsaras/A11y-Toast/actions/runs/35505043448  
 Commit: `793063f03002e6b490a989a07d6e9512373fc16f`  
 Runner: Ubuntu 24.04 / Node 22.23.2 / npm 10.9.8.
@@ -45,7 +49,7 @@ Observed results:
 | Portable ESM/declaration/source-map/CSS build | Pass | `npm run build:portable`, using the actual TypeScript compiler. |
 | Strict runtime-source typecheck | Pass | `npm run typecheck`. |
 | Public declaration-consumer typecheck | Pass | Strict `tsc` check of `test/consumer.ts`, including expected errors for invalid priority and snapshot mutation. |
-| Runtime lifecycle contract | **77 / 77 pass** | Confirmed again by GitHub Actions run #1 using the normal served-browser Playwright path. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
+| Runtime lifecycle contract | **79 / 79 pass** | Latest feature run confirms the normal served-browser Playwright path, including the new tone-label option. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
 | Demo/UI/real-timer checks | **20 / 20 historical local pass** | Earlier local synthetic-document checks exercised actual demo markup/styles/runtime, but their generated JSON/screenshots are intentionally not committed. Manual zoom/AT evidence is still required. |
 | Uncaught browser page errors | **0** | GitHub Actions served-browser lifecycle suite. |
 | Package exports and DOM-free imports | Pass | `npm run test:package`. |
@@ -123,6 +127,10 @@ npm run test:package
 The npm archive contains `dist`, README, changelog, license, and `package.json`. It has no runtime dependencies and contains no development dependency tree, credentials, demo fixtures, or publication action. The source ZIP additionally includes source, tests, the one-page example, scripts, roadmap, contract, migration notes and this evidence.
 
 The standard `prepack` script invokes tsdown. For this restricted environment, the already-built portable distribution was packed explicitly with `--ignore-scripts`. The actual resulting archive was installed offline in a separate consumer and checked. This verifies that specific archive, not the unrun tsdown/prepack pipeline.
+
+## User acceptance
+
+The user reported the plugin tested, working, and verified on 2026-09-20. The exact manual browser/assistive-technology matrix was not specified, so this is recorded as functional acceptance and does not replace the named VoiceOver/zoom rows below.
 
 ## Open acceptance gates
 
