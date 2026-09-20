@@ -82,7 +82,7 @@ function validateGsap(value: unknown): asserts value is GsapPluginRegistrarLike 
 }
 
 function validateFlip(value: unknown): asserts value is GsapFlipLike {
-  if (!value || typeof value !== 'object') {
+  if (!value || (typeof value !== 'object' && typeof value !== 'function')) {
     throw new TypeError('createGsapFlipLayoutAddon requires the GSAP Flip plugin.');
   }
   const candidate = value as Partial<GsapFlipLike>;
