@@ -1574,9 +1574,9 @@ export async function runSuite(api, capabilities = { layout: true }) {
   });
 
   await test('152 View Transition driver scopes to each toast element and never needs document transitions', async () => {
-    const original = HTMLElement.prototype.startViewTransition;
+    const original = Element.prototype.startViewTransition;
     const calls = [];
-    HTMLElement.prototype.startViewTransition = function (callback) {
+    Element.prototype.startViewTransition = function (callback) {
       calls.push(this);
       callback?.();
       return { finished: Promise.resolve(), skipTransition() {}, transitionRoot: this };
@@ -1591,16 +1591,16 @@ export async function runSuite(api, capabilities = { layout: true }) {
       equal(calls.length, 2);
       ok(calls.every(element => element.matches('[data-a11y-toast-id]')));
     } finally {
-      if (original === undefined) delete HTMLElement.prototype.startViewTransition;
-      else HTMLElement.prototype.startViewTransition = original;
+      if (original === undefined) delete Element.prototype.startViewTransition;
+      else Element.prototype.startViewTransition = original;
       if (originalDocumentTransition === undefined) delete document.startViewTransition;
       else document.startViewTransition = originalDocumentTransition;
     }
   });
 
   await test('153 View Transition driver restores exact style/phase state after enter and exit', async () => {
-    const original = HTMLElement.prototype.startViewTransition;
-    HTMLElement.prototype.startViewTransition = function (callback) {
+    const original = Element.prototype.startViewTransition;
+    Element.prototype.startViewTransition = function (callback) {
       callback?.();
       return { finished: Promise.resolve(), skipTransition() {}, transitionRoot: this };
     };
@@ -1615,14 +1615,14 @@ export async function runSuite(api, capabilities = { layout: true }) {
       await waitMicrotasks();
       equal(element.isConnected, false);
     } finally {
-      if (original === undefined) delete HTMLElement.prototype.startViewTransition;
-      else HTMLElement.prototype.startViewTransition = original;
+      if (original === undefined) delete Element.prototype.startViewTransition;
+      else Element.prototype.startViewTransition = original;
     }
   });
 
   await test('154 unsupported element-scoped View Transitions degrade to no motion without error', async () => {
-    const original = HTMLElement.prototype.startViewTransition;
-    delete HTMLElement.prototype.startViewTransition;
+    const original = Element.prototype.startViewTransition;
+    delete Element.prototype.startViewTransition;
     try {
       const errors = [];
       const m = create({ animation: api.createElementViewTransitionDriver() });
@@ -1633,15 +1633,15 @@ export async function runSuite(api, capabilities = { layout: true }) {
       equal(m.getToast(id).animationPhase, null);
       equal(errors.length, 0);
     } finally {
-      if (original !== undefined) HTMLElement.prototype.startViewTransition = original;
+      if (original !== undefined) Element.prototype.startViewTransition = original;
     }
   });
 
   await test('155 abort serializes skipped entrance before starting the exit View Transition', async () => {
-    const original = HTMLElement.prototype.startViewTransition;
+    const original = Element.prototype.startViewTransition;
     const resolvers = [];
     let skips = 0, starts = 0;
-    HTMLElement.prototype.startViewTransition = function (callback) {
+    Element.prototype.startViewTransition = function (callback) {
       starts++;
       callback?.();
       return {
@@ -1669,15 +1669,15 @@ export async function runSuite(api, capabilities = { layout: true }) {
       equal(element.hasAttribute('data-a11y-toast-view-transition-phase'), false);
       equal(element.isConnected, false);
     } finally {
-      if (original === undefined) delete HTMLElement.prototype.startViewTransition;
-      else HTMLElement.prototype.startViewTransition = original;
+      if (original === undefined) delete Element.prototype.startViewTransition;
+      else Element.prototype.startViewTransition = original;
     }
   });
 
   await test('156 View Transition exit still reserves queue slot until finished', async () => {
-    const original = HTMLElement.prototype.startViewTransition;
+    const original = Element.prototype.startViewTransition;
     let call = 0, resolveExit;
-    HTMLElement.prototype.startViewTransition = function (callback) {
+    Element.prototype.startViewTransition = function (callback) {
       call++;
       callback?.();
       if (call === 1) return { finished: Promise.resolve(), skipTransition() {}, transitionRoot: this };
@@ -1698,20 +1698,20 @@ export async function runSuite(api, capabilities = { layout: true }) {
       await waitMicrotasks();
       equal(m.getToast(b).state, 'visible');
     } finally {
-      if (original === undefined) delete HTMLElement.prototype.startViewTransition;
-      else HTMLElement.prototype.startViewTransition = original;
+      if (original === undefined) delete Element.prototype.startViewTransition;
+      else Element.prototype.startViewTransition = original;
     }
   });
 
   await test('157 reduced motion skips Element.startViewTransition entirely', () => {
     const oldMatchMedia = window.matchMedia;
-    const original = HTMLElement.prototype.startViewTransition;
+    const original = Element.prototype.startViewTransition;
     let calls = 0;
     window.matchMedia = query => ({
       matches: query === '(prefers-reduced-motion: reduce)', media: query, onchange: null,
       addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; },
     });
-    HTMLElement.prototype.startViewTransition = function () {
+    Element.prototype.startViewTransition = function () {
       calls++;
       return { finished: Promise.resolve(), skipTransition() {}, transitionRoot: this };
     };
@@ -1721,13 +1721,13 @@ export async function runSuite(api, capabilities = { layout: true }) {
       equal(calls, 0);
     } finally {
       window.matchMedia = oldMatchMedia;
-      if (original === undefined) delete HTMLElement.prototype.startViewTransition;
-      else HTMLElement.prototype.startViewTransition = original;
+      if (original === undefined) delete Element.prototype.startViewTransition;
+      else Element.prototype.startViewTransition = original;
     }
   });
 
   await test('158 real browser element-scoped View Transition path or clean fallback is observable', async () => {
-    const supported = typeof HTMLElement.prototype.startViewTransition === 'function';
+    const supported = typeof Element.prototype.startViewTransition === 'function';
     const m = create({ animation: api.createElementViewTransitionDriver() });
     const starts = events(m, api.TOAST_EVENTS.animationStart);
     const ends = events(m, api.TOAST_EVENTS.animationEnd);
