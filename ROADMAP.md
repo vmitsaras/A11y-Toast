@@ -1,7 +1,7 @@
 # A11y Toast roadmap
 
 Version: 0.1.0 implementation preview
-Status: Core implemented; local and GitHub Actions package checks pass; manual accessibility and dependency-lock follow-up remain open.
+Status: Core implemented; user functional acceptance reported; local and GitHub Actions package checks pass. Named VoiceOver/zoom coverage and dependency-lock follow-up remain open.
 
 ## Foundation
 
@@ -24,6 +24,7 @@ Status: Core implemented; local and GitHub Actions package checks pass; manual a
 | TOAST-090 Add-on lifecycle | Complete | Setup/subscriptions/hooks/cleanup/failure isolation tested. |
 | TOAST-100 Default CSS | Complete | BEM/tokens, logical placement, reduced motion and forced-colors emulation checked. |
 | TOAST-110 One-page playground | Complete | Real compiled runtime used; content/options/queue/loading/retry/log workflows checked, and the normal served-browser lifecycle suite passes in GitHub Actions. |
+| TOAST-115 Optional visual tone label | Complete | `showToneLabel` defaults to true; false hides only `.a11y-toast__tone`. Data-attribute support and playground control added; generated announcement wording remains unchanged. CI passes 79/79 scenarios. |
 
 ## Verification and release readiness
 
