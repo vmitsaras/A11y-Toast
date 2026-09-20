@@ -39,6 +39,10 @@ export const docs = {
     { name: 'Live regions', value: 'live-region', status: 'default', description: 'Stable polite/assertive DOM announcement transport.' },
     { name: 'ariaNotify', export: 'a11y-toast/transports/aria-notify', status: 'experimental', description: 'Uses Document.ariaNotify when available and falls back to the scheduled live region only when the API is absent.' },
   ],
+  animations: [
+    { name: 'CSS', value: 'css', status: 'default', description: 'Built-in restrained enter/exit motion.' },
+    { name: 'GSAP', export: 'a11y-toast/animations/gsap', peer: 'gsap >=3.11 <4', status: 'optional', description: 'Caller-injected GSAP driver with exact inline-style restoration and shared TOAST-180 lifecycle semantics.' },
+  ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',

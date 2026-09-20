@@ -155,7 +155,7 @@ const stop = addToastEventListener(root, TOAST_EVENTS.dismiss, event => {
 
 Details include `instance`, `root`, `instanceId`, `timestamp`, visible/queued counts, and an event-specific frozen `toast` snapshot where relevant. `pause`/`resume` report effective paused/running boundaries, not every internal reason-set edit.
 
-**`announce` records a live-region DOM write, not evidence that a screen reader spoke or finished speaking.** Pending writes are serialized independently for polite/assertive channels, coalesced per toast, and canceled on dismissal/destruction. Already delivered speech cannot be recalled. Multiple independent managers do not share a document-global speech coordinator.
+**`announce` records an announcement-transport commit attempt, not evidence that a screen reader spoke or finished speaking.** Pending commits are serialized independently for polite/assertive channels, coalesced per toast, and canceled on dismissal/destruction. Already delivered speech cannot be recalled. Multiple independent managers do not share a document-global speech coordinator.
 
 Animation is orthogonal to semantic toast state. `show` still reports display commitment immediately. `dismiss` reports logical removal immediately; if an exit animation is active, the generated item becomes inert and `aria-hidden` until the visual exit finishes. The slot is released only then. `animation-start`, `animation-end`, and `animation-error` report decorative motion; animation failures cannot strand the toast lifecycle.
 
@@ -195,7 +195,44 @@ The built-in default is `animation: 'css'`; use `'none'` for no decorative motio
 
 Drivers are not add-ons: they participate in generated DOM lifetime. They must treat abort as cleanup, must not own announcement priority, and should leave the element reusable after interruption. Core skips animation for `prefers-reduced-motion: reduce` and when the document is hidden. Destroy aborts active drivers synchronously.
 
-The package does not yet ship GSAP or View Transition drivers; those remain TOAST-260 follow-up work against this contract.
+The package now ships an optional injected GSAP driver. GSAP Flip/layout motion and the experimental element-scoped View Transition driver remain separate TOAST-260 follow-up slices.
+
+## Optional GSAP animation driver
+
+The optional GSAP driver plugs into the same TOAST-180 lifecycle as the built-in CSS driver.
+
+```ts
+import { gsap } from 'gsap';
+import { createToast } from 'a11y-toast';
+import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
+
+const toast = createToast(root, {
+  animation: createGsapAnimationDriver(gsap, {
+    enterDuration: 0.15,
+    exitDuration: 0.12,
+    enterEase: 'power1.out',
+    exitEase: 'power1.in',
+    distance: 4,
+  }),
+});
+```
+
+The application supplies the GSAP instance explicitly. A11y Toast never reads `window.gsap` and the core package does not import GSAP. GSAP is declared as an optional peer for this subpath; the repository verifies the driver against GSAP 3.15.0.
+
+Driver behavior:
+
+- entrance animates opacity plus a small logical vertical offset toward the settled position;
+- exit reverses that treatment;
+- top placements use negative vertical travel and bottom placements use positive travel;
+- core skips the driver entirely when `prefers-reduced-motion: reduce` is active or the document is hidden;
+- timer/queue/focus semantics remain owned by core;
+- abort or destroy reverts the active tween immediately;
+- external GSAP interruption/overwrite rejects the driver promise, producing `animation-error`, but core still completes the toast lifecycle;
+- every completion, abort, or interruption restores the exact pre-animation `style` attribute after GSAP `revert()`, so animation-owned inline opacity/transform state cannot leak into later styling.
+
+The driver intentionally exposes only duration/ease/distance rather than arbitrary GSAP vars, preventing application configuration from replacing the lifecycle callbacks that core depends on.
+
+GSAP Flip is **not** required by this driver. Layout/reflow animation remains a separate optional TOAST-260B concern.
 
 ## Visual timeout progress add-on
 

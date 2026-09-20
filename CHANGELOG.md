@@ -12,6 +12,7 @@
 - Added TOAST-230 generic DOM-event adapter with explicit toast/source announcement ownership, correlated show/update/dismiss commands, duplicate correlated-show updates, mapper error isolation, and lifecycle-safe listener cleanup.
 - Added TOAST-240 A11y Menu Button async-state adapter using the source package's real exported events/types. Menu Button remains the sole announcement owner; loading/error/empty are mirrored visually on one toast, ready dismisses it, and both source/toast lifecycle cleanup paths are covered. The ecosystem package is an optional peer dependency.
 - Added TOAST-250 experimental announcement transports with live regions remaining the default. The ariaNotify subpath maps polite/assertive priorities, falls back only when unsupported, never dual-sends, reports actual transport/fallback, and isolates synchronous transport failures; actual AT delivery remains a manual gate.
+- Added TOAST-260A injected GSAP animation driver as a separate optional export. It uses caller-supplied GSAP, logical opacity/vertical enter/exit motion, core-owned reduced-motion/queue semantics, interruption isolation, and exact pre-animation style restoration after GSAP revert.
 
 - Added `showToneLabel` and `data-a11y-toast-show-tone-label`; hardening now visually hides `.a11y-toast__tone` without removing its text from assistive technology or changing generated announcement wording.
 - Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.
