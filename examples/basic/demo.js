@@ -4,6 +4,7 @@ const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
 const target = document.querySelector('#target');
 const position = form.elements.position;
+const animation = form.elements.animation;
 const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
@@ -33,8 +34,10 @@ function sync(source) {
   if (records.some(record => record.id === selected)) target.value = selected;
   else if (records.length) target.value = records.at(-1).id;
   target.disabled = !records.length;
-  position.disabled = records.length > 0;
-  showToneLabel.disabled = records.length > 0;
+  const surfaceActive = Boolean(root.querySelector('[data-a11y-toast-id]'));
+  position.disabled = surfaceActive;
+  animation.disabled = surfaceActive;
+  showToneLabel.disabled = surfaceActive;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
   if (loadingId && !source.getToast(loadingId)) loadingId = null;
   document.querySelector('[data-finish-loading]').disabled = !loadingId;
@@ -47,7 +50,7 @@ function sync(source) {
   }
 }
 function observe(event) {
-  const { instance, toast, reason, phase } = event.detail;
+  const { instance, toast, reason, phase, driver, status } = event.detail;
   const li = document.createElement('li');
   const time = document.createElement('time');
   const now = new Date(event.detail.timestamp);
@@ -56,17 +59,19 @@ function observe(event) {
   const name = document.createElement('span');
   name.textContent = event.type.replace('a11y-toast:', '');
   const detail = document.createElement('small');
-  detail.textContent = [toast?.message, reason, phase].filter(Boolean).join(' · ') || 'Manager lifecycle';
+  detail.textContent = [toast?.message, reason, phase, driver, status].filter(Boolean).join(' · ') || 'Manager lifecycle';
   li.append(time, name, detail);
   log.prepend(li);
   while (log.children.length > 40) log.lastElementChild.remove();
   sync(instance);
+  if (event.type === TOAST_EVENTS.animationEnd) queueMicrotask(() => sync(instance));
 }
 for (const name of Object.values(TOAST_EVENTS)) removers.push(addToastEventListener(root, name, observe));
 
 function initialize() {
   manager = createToast(root, {
     position: position.value,
+    animation: animation.value,
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
   });
@@ -110,6 +115,7 @@ function reinitializeManager() {
   safely(() => { manager.destroy(); initialize(); });
 }
 position.addEventListener('change', reinitializeManager);
+animation.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
 document.querySelector('[data-burst]').addEventListener('click', event => safely(() => {
   for (let i = 1; i <= 5; i++) manager.show({ message: `Queue example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });

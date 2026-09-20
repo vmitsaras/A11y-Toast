@@ -26,6 +26,14 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 | TOAST-110 One-page playground | Complete | Real compiled runtime used; content/options/queue/loading/retry/log workflows checked, and the normal served-browser lifecycle suite passes in GitHub Actions. |
 | TOAST-115 Optional visual tone label | Complete + hardened | `showToneLabel` defaults to true. False visually hides `.a11y-toast__tone` without removing it from the accessibility tree; invalid data tokens fall back safely, generated announcement wording is unchanged, and the playground explains the state constraint. Final CI: 79/79 browser scenarios, 0 uncaught page errors. |
 
+## Animation foundation
+
+| Task | Status | Verification |
+| --- | --- | --- |
+| TOAST-180 Animation lifecycle/driver contract | **Complete** | `css`, `none`, or injected driver; animation phase snapshot; typed start/end/error events; AbortSignal interruption; reduced-motion/hidden-document safety; timer starts after entrance. |
+| TOAST-185 Built-in CSS entrance + exit | **Complete** | Logical dismissal remains immediate; exiting surfaces are inert + aria-hidden and reserve their slot until exit completion. Public duration/ease/distance CSS variables added. Browser contract passes 86/86. |
+| TOAST-190 Animation interruption/batch hardening | Not started | Expand re-entrant/dismissAll/visibility stress tests and demo acceptance before third-party drivers. |
+
 ## Verification and release readiness
 
 | Task | Status | Next action |
@@ -44,7 +52,7 @@ TOAST-220: explicit key-based deduplication policy.
 TOAST-230: generic DOM-event adapter with explicit announcement ownership.
 TOAST-240: first real ecosystem adapter selected from an actual use case.
 TOAST-250: experimental ariaNotify transport evaluation.
-TOAST-260: optional View Transition / injected GSAP animation adapters.
+TOAST-260: optional GSAP and experimental element-scoped View Transition drivers using the frozen TOAST-180 contract.
 
 A history/notification-center capability is also out of the initial scope. None of the above should be marked implemented because the old prototype had something similar.
 

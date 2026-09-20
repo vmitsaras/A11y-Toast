@@ -17,7 +17,7 @@ export const docs = {
     { name: 'show(input)', type: '(ToastInput) => string | null', description: 'Display or enqueue a toast. null means the bounded queue rejected it.' },
     { name: 'info / success / warning / error / loading', type: '(string, ToastShorthandOptions?) => string | null', description: 'Tone convenience methods. Error does not imply assertive priority.' },
     { name: 'update(id, patch)', type: '(string, ToastPatch) => boolean', description: 'Patch an existing visible/queued record. Content-only updates preserve remaining time.' },
-    { name: 'dismiss(id, reason)', type: '(string, ToastDismissReason?) => boolean', description: 'Remove one record synchronously and drain the queue.' },
+    { name: 'dismiss(id, reason)', type: '(string, ToastDismissReason?) => boolean', description: 'Logically dismiss one record immediately; an optional inert visual exit may finish before its queue slot is released.' },
     { name: 'dismissAll(reason)', type: '(ToastDismissReason?) => number', description: 'Remove visible and queued records without showing intermediate queued items.' },
     { name: 'pause(id) / resume(id)', type: '(string) => boolean', description: 'Manage the caller-owned API pause without overriding keyboard/hover/visibility safeguards.' },
     { name: 'getToast(id) / getToasts()', type: 'Readonly snapshot accessors', description: 'Inspect state without receiving callbacks, origin nodes or mutable collections.' },
@@ -25,10 +25,11 @@ export const docs = {
     { name: 'destroy()', type: '() => void', description: 'Idempotent teardown; cancel timers, scheduled announcements and action signals; preserve authored DOM.' },
     { name: 'addToastEventListener(target, type, listener, options)', type: 'Typed DOM-event helper returning cleanup', description: 'Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.' },
   ],
-  examples: [{ name: 'Playground', description: 'One page with content/timing controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  examples: [{ name: 'Playground', description: 'One page with content/timing/animation controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',
+    motion: 'CSS motion is decorative, reduced-motion skips it, announcements do not wait for it, and timed lifetime begins after entrance settles.',
     limitations: 'An announce event records a DOM write, not proof of speech. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
   },
 } as const;

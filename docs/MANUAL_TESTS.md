@@ -21,6 +21,8 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-15 | Enable reduced motion and OS contrast/appearance settings. | No required movement; visible text, borders and focus remain intelligible. | Pending |
 | M-16 | Put a host in the application's real modal/route scope; dispose/recreate its view. | No inaccessible out-of-scope action, stale speech or leaked callback; surrounding app explicitly owns navigation focus. | Pending / integration-specific |
 | M-17 | Turn off “Show tone label visually”, then create success/warning/error examples and navigate back through them with assistive technology. | No visible tone line is shown, but the tone text remains discoverable to assistive technology and live-announcement wording remains appropriate. | Pending |
+| M-18 | With CSS animation enabled, focus a toast control and dismiss it while another notification is queued. | Focus recovers immediately; the exiting surface is not interactive/announced; the queued toast appears only after exit completes. | Pending |
+| M-19 | Enable reduced motion, then show/dismiss timed and persistent notifications. | No decorative entrance/exit delay is required; announcement, focus, timing, queue and dismissal semantics remain intact. | Pending |
 
 ### Stop conditions
 

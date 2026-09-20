@@ -17,13 +17,14 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 2. Queue policy is bounded FIFO, rejecting the incoming notification with a nullable result and `drop` event. `dismissAll` freezes its target set and prevents intermediate queue promotion. Re-entrant additions during clear are explicitly rejected.
 3. Public timer pause/resume controls only the API-owned reason. Other reasons are hover, focus, hidden document and pending action. Snapshots expose the full reason set.
 4. Ordinary content updates preserve remaining time. Explicit duration patches restart it. Loading always persists; actions/assertive notifications persist absent explicit timing overrides.
-5. Semantic state is `queued → visible → dismissed`, or `dropped` on rejection. CSS entry is progressive enhancement; removal is synchronous. There is no asynchronous `dismissing` state or animation promise to leak during teardown.
-6. `show` reports display commitment, not animation completion. `announce` reports a live-region write, not speech. Announcement channels serialize writes at a fixed 100ms write boundary with a 1,000ms inter-write gap. Updates coalesce per toast; separate toasts are not content-deduplicated. Hidden documents pause pending writes.
+5. Semantic state remains `queued → visible → dismissed`, or `dropped` on rejection. Animation is orthogonal through `animationPhase` (`enter` / `exit` / null). `dismiss()` performs logical removal synchronously; an animated exit may keep generated DOM briefly rendered as inert + aria-hidden while its visual slot remains reserved. Destroy never waits for animation.
+6. `show` reports display commitment, not animation completion. Announcements do not wait for decorative motion. Timed lifetime starts after entrance completes or is skipped. `announce` reports a live-region write, not speech. Announcement channels serialize writes at a fixed 100ms write boundary with a 1,000ms inter-write gap. Updates coalesce per toast; separate toasts are not content-deduplicated. Hidden documents pause pending writes.
 7. Snapshot getters supplement events for demos/adapters without exposing mutation rights. There is no configure/global singleton/alias collection.
 8. The single action may be event-only or have a callback. Callback promises are caught and cancellation signals are supplied. This does not introduce the deferred general promise orchestration API.
 9. Add-on setup/cleanup and six selected before/after observer hooks are supported. Hooks cannot cancel or mutate the supplied snapshot; they are not awaited. Errors are isolated.
 10. When the final focused toast loses all valid return targets, an owned visible empty-state focus anchor is shown until focus leaves. Disposing an entire surrounding view still needs application focus coordination.
-11. Optional runtime parameters from the initial brainstorm are intentionally narrowed: no custom API pause reason that could clear a keyboard safeguard; no global Escape; no automatic `error → assertive`; no automatic deduplication from `key`.
+11. Animation accepts built-in `css`, `none`, or an injected engine-neutral driver. Drivers receive a frozen context and AbortSignal; start/end/error events are typed and separate from semantic show/dismiss events. Reduced-motion and hidden-document state skip/cancel decorative motion. CSS is the only shipped driver in this slice; GSAP/View Transition remain optional adapters.
+12. Optional runtime parameters from the initial brainstorm are intentionally narrowed: no custom API pause reason that could clear a keyboard safeguard; no global Escape; no automatic `error → assertive`; no automatic deduplication from `key`.
 
 ## Acceptance criteria
 
@@ -36,6 +37,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-05 | Showing never steals focus; actions/dismissal/update have safe ownership and recovery. | Browser 09, 40–48, 59–60, 65–75; demo checks. |
 | AC-06 | Lifecycle snapshots, subscriptions, add-ons and cleanup are isolated and removable. | Browser 03, 10, 49–64, 72, 76–77. |
 | AC-07 | BEM styling and one real-build demo support narrow layouts, motion preference and forced colors. | UI checks, screenshots, stylesheet. |
+| AC-07A | Animation is interruptible and cannot change announcement semantics, consume timed lifetime during entrance, leave exiting controls interactive, or promote the queue before exit completion. | Browser 80–86; CSS stylesheet/driver contract. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 

@@ -60,11 +60,12 @@ The runtime never auto-initializes on import. `A11yToast`, `createToast`, and `i
 | `maxQueue` | `10` | Integer from 0 to 100; 0 disables waiting. |
 | `position` | `bottom-end` | `top-start`, `top-center`, `top-end`, `bottom-start`, `bottom-center`, `bottom-end`. |
 | `priority` | `polite` | `off`, `polite`, or `assertive`; independent of visual tone. |
+| `animation` | `css` | `css`, `none`, or an injected `ToastAnimationDriver`. Motion is decorative and reduced-motion skips it. |
 | `showToneLabel` | `true` | Show the `.a11y-toast__tone` label visually. Set `false` to visually hide it while keeping the tone text available to assistive technology and generated live-region wording. |
 | `labels` | English strings | Partial overrides for `region`, `dismiss`, `actionFailed`, `empty`, and `tones`. |
 | `addons` | none | Explicit instance-local add-ons; no auto-discovery. |
 
-HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, `data-a11y-toast-priority`, and `data-a11y-toast-show-tone-label`. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
+HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, `data-a11y-toast-priority`, `data-a11y-toast-animation` (`css` or `none`), and `data-a11y-toast-show-tone-label`. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
 
 Options, labels, and exposed snapshots are frozen. No configure/set-options API is included in this release.
 
@@ -82,6 +83,8 @@ Messages, labels, and titles are rendered as text. HTML strings are not interpre
 
 Ordinary notifications inherit the manager duration. Loading is always persistent. Actions and assertive messages are persistent unless the caller explicitly supplies a positive per-toast duration or `persistent: false`. A manager's default duration alone does not opt actionable/urgent content into timing. `duration: 0` remains persistent.
 
+With animation enabled, a timed toast begins consuming its lifetime after entrance animation completes or is skipped. Announcements do not wait for decorative motion.
+
 Timers pause for hover, focus within the toast, focus on the scrollable notification list, a hidden document, a pending action, or the public API pause. Clearing one pause reason cannot clear another. `pause(id)` and `resume(id)` manage only the caller-owned `api` reason.
 
 A content-only update preserves remaining time. An explicit `duration` patch restarts that duration, including when the number is unchanged. Changing between persistent and timed state restarts the effective duration. Loading-to-success naturally becomes timed unless the caller had explicitly set persistence. An explicitly persistent message stays persistent until changed.
@@ -95,8 +98,8 @@ Queued items have no running timeout and do not announce before becoming visible
 | `show(input)` | Toast ID or `null` when rejected. |
 | `info`, `success`, `warning`, `error`, `loading` | `(message, options?)`; same ID/null result. |
 | `update(id, patch)` | Boolean; works for queued and visible items. |
-| `dismiss(id, reason?)` | Boolean; synchronous removal, then FIFO drain. |
-| `dismissAll(reason?)` | Number removed; clears visible and queued items without showing intermediate items. |
+| `dismiss(id, reason?)` | Boolean; logical dismissal is immediate. An animated exit may keep an inert, aria-hidden surface briefly rendered before FIFO drain. |
+| `dismissAll(reason?)` | Number logically removed; clears visible and queued records without showing intermediate queued items. Any active visual exits finish independently. |
 | `pause(id)`, `resume(id)` | Whether the API-owned pause changed. |
 | `getToast(id)`, `getToasts()` | Frozen snapshots; no action callbacks, origin elements, or private collections. |
 | `registerAddon(addon)` | Explicit registration; duplicate names are rejected. |
@@ -137,7 +140,7 @@ Rejected/thrown callbacks retain a visible, persistent retry message and emit `a
 
 Exported `TOAST_EVENTS` includes:
 
-`init`, `ready`, `show`, `queue`, `update`, `announce`, `action`, `actionError`, `pause`, `resume`, `dismiss`, `drop`, `addonError`, `destroy`.
+`init`, `ready`, `show`, `queue`, `update`, `announce`, `action`, `actionError`, `pause`, `resume`, `dismiss`, `drop`, `animationStart`, `animationEnd`, `animationError`, `addonError`, `destroy`.
 
 Their DOM names use `a11y-toast:*` (for example, `a11y-toast:action-error`). Events bubble, are not cancelable, and use `composed: false`. There is no hidden global event bus or cross-shadow-root forwarding.
 
@@ -153,7 +156,15 @@ Details include `instance`, `root`, `instanceId`, `timestamp`, visible/queued co
 
 **`announce` records a live-region DOM write, not evidence that a screen reader spoke or finished speaking.** Pending writes are serialized independently for polite/assertive channels, coalesced per toast, and canceled on dismissal/destruction. Already delivered speech cannot be recalled. Multiple independent managers do not share a document-global speech coordinator.
 
-Removal is synchronous. CSS provides a subtle entry animation; an asynchronous exit-animation lifecycle is deliberately not included.
+Animation is orthogonal to semantic toast state. `show` still reports display commitment immediately. `dismiss` reports logical removal immediately; if an exit animation is active, the generated item becomes inert and `aria-hidden` until the visual exit finishes. The slot is released only then. `animation-start`, `animation-end`, and `animation-error` report decorative motion; animation failures cannot strand the toast lifecycle.
+
+## Animation contract
+
+The built-in default is `animation: 'css'`; use `'none'` for no decorative motion. A custom engine can be injected as a `ToastAnimationDriver` with a non-empty `name` and optional `enter(context)` / `exit(context)` functions. Driver callbacks receive the generated toast element, a frozen toast snapshot, phase, instance/root references, and an `AbortSignal`.
+
+Drivers are not add-ons: they participate in generated DOM lifetime. They must treat abort as cleanup, must not own announcement priority, and should leave the element reusable after interruption. Core skips animation for `prefers-reduced-motion: reduce` and when the document is hidden. Destroy aborts active drivers synchronously.
+
+The package does not yet ship GSAP or View Transition drivers; those remain TOAST-260 follow-up work against this contract.
 
 ## Add-ons and ecosystem integration
 
@@ -185,6 +196,7 @@ Public variables include:
 
 - Surface/layout: `--a11y-toast-background`, `--a11y-toast-color`, `--a11y-toast-muted`, `--a11y-toast-border`, `--a11y-toast-radius`, `--a11y-toast-shadow`, `--a11y-toast-gap`, `--a11y-toast-offset`, `--a11y-toast-width`, `--a11y-toast-max-height`, `--a11y-toast-z-index`, `--a11y-toast-font`.
 - Interaction: `--a11y-toast-focus`, `--a11y-toast-hover-background`.
+- Motion: `--a11y-toast-enter-duration`, `--a11y-toast-exit-duration`, `--a11y-toast-enter-ease`, `--a11y-toast-exit-ease`, `--a11y-toast-motion-distance`.
 - Tone accents: `--a11y-toast-neutral-accent`, `--a11y-toast-info-accent`, `--a11y-toast-success-accent`, `--a11y-toast-warning-accent`, `--a11y-toast-error-accent`, `--a11y-toast-loading-accent`.
 
 Private `--_` variables are implementation details, not a supported customization API. Changing colors remains the integrator's contrast responsibility.
