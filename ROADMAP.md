@@ -47,7 +47,7 @@ Windows NVDA/JAWS and mobile AT are not claimed verified. Record actual environm
 ## Optional enhancements
 
 TOAST-200: **Complete** — visual timeout progress add-on; separate JS/CSS exports, no polling loop, pause/resume/update/loading lifecycle synchronization, non-semantic visual output, reduced-motion suppression.
-TOAST-210: promise/loading orchestration add-on.
+TOAST-210: **Complete** — promise/loading orchestration utility; one retained toast ID, caller-authored success/error copy, late settlement ignored after dismiss/destroy, queue-safe settlement, pass-through promise and explicit stop control.
 TOAST-220: explicit key-based deduplication policy.
 TOAST-230: generic DOM-event adapter with explicit announcement ownership.
 TOAST-240: first real ecosystem adapter selected from an actual use case.
@@ -62,4 +62,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-210 — promise/loading orchestration add-on. Keep orchestration outside core, retain one toast ID across loading → success/error, require caller-supplied user-facing error copy, and ignore late promise settlement after dismissal/destroy.
+TOAST-220 — explicit key-based deduplication policy. Keep dedupe opt-in and key-based; do not dedupe by message text. Define deterministic update-existing/drop-new/replace-existing behavior without allowing duplicate render/announcement flashes.

@@ -28,6 +28,7 @@ export const docs = {
   examples: [{ name: 'Playground', description: 'One page with content/timing/animation/progress controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   addons: [
     { name: 'Progress', export: 'a11y-toast/addons/progress', stylesheet: 'a11y-toast/addons/progress.css', description: 'Visual-only timeout progress synchronized from core lifecycle snapshots; no live or progressbar semantics.' },
+    { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.' },
   ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',

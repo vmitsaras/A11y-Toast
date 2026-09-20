@@ -195,6 +195,37 @@ Public styling variables:
 
 Unregistering the add-on removes its generated DOM without changing the toast timer or lifecycle.
 
+## Promise/loading orchestration
+
+The optional promise utility keeps asynchronous feedback on one toast ID instead of creating separate loading/success/error notifications.
+
+```ts
+import { trackToastPromise } from 'a11y-toast/addons/promise';
+
+const handle = trackToastPromise(toast, saveChanges(), {
+  loading: 'Saving changes…',
+  success: { message: 'Changes saved.', duration: 5000 },
+  error: { message: 'Changes could not be saved. Try again.', persistent: true },
+});
+
+await handle.promise;
+```
+
+The loading state always uses the loading tone and therefore remains persistent while work is pending. Success defaults to the success tone and error defaults to the error tone unless the supplied outcome state explicitly chooses another tone.
+
+The error state is required application-authored copy. Rejection objects, exception messages, stack traces, HTTP bodies, and other raw failure values are never rendered automatically.
+
+The utility:
+
+- retains one toast ID across loading → success/error;
+- can settle while the toast is queued; the latest state is shown when promoted;
+- stops updating if the toast is dismissed or the manager is destroyed;
+- returns the underlying normalized promise unchanged in meaning;
+- exposes `stop()` to detach toast orchestration without dismissing the toast or cancelling the underlying operation;
+- returns `id: null` if the loading toast is rejected by queue capacity while still passing the promise through.
+
+`trackToastPromise` does not cancel the operation. If the operation itself needs cancellation, own that separately with the application's normal AbortController/domain API.
+
 ## Add-ons and ecosystem integration
 
 ```ts

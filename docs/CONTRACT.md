@@ -39,6 +39,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-07 | BEM styling and one real-build demo support narrow layouts, motion preference and forced colors. | UI checks, screenshots, stylesheet. |
 | AC-07A | Animation is interruptible and cannot change announcement semantics, consume timed lifetime during entrance, leave exiting controls interactive, promote the queue before exit completion, or continue stale settlement after a re-entrant destroy. Multi-exit and hidden-document cancellation preserve queue ordering. | Browser 80–94; CSS stylesheet/driver contract. |
 | AC-07B | Optional timeout progress observes authoritative timer snapshots without becoming a second timer, live region, or progressbar; it appears only for visible timed notifications and cleans up independently. | Browser 95–101; progress add-on/CSS exports. |
+| AC-07C | Promise orchestration retains one toast ID, never renders raw rejection values, can settle while queued, and performs no late update after dismiss/destroy/explicit stop. It does not cancel the underlying operation. | Browser 102–110; promise utility export. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 
