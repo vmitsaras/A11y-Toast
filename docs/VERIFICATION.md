@@ -22,6 +22,10 @@ Neither restriction was treated as evidence that the package itself failed. Neit
 
 ## GitHub Actions online verification
 
+Latest TOAST-250 experimental transport run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35518826673  
+Commit: `bed4b5ebf9f59c351ea62446ad30c8aa0d0cc4df`  
+Result: **success** — install/build/type/Vitest/served-browser/package/audit workflow completed with **138 / 138 browser scenarios and 0 uncaught page errors**. Vitest has **3 files / 11 tests passing**, including **4 dedicated ariaNotify transport tests**. Scenarios 133–138 verify custom transport routing without live-region double write, assertive priority preservation, transport-error isolation, scheduler coalescing, priority-off bypass, and a real-browser ariaNotify/native-or-fallback probe.
+
 Latest TOAST-240 ecosystem-adapter run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35517848474  
 Commit: `2c462d4c5cfdc931e439c045a781ef05429c4161`  
 Result: **success** — install/build/type/Vitest/served-browser/package/audit workflow completed. The existing browser contract remains **132 / 132 with 0 uncaught page errors**; Vitest now has **2 files / 7 tests passing**, including **6 dedicated integration tests** against the installed `a11y-menu-button@1.0.1` event contract. Integration coverage verifies source-owned loading, retained-ID error/empty transitions, ready dismissal, source status-text mirroring, source-core destroy cleanup, toast destroy listener cleanup, and foreign-root event rejection.
@@ -81,7 +85,7 @@ Observed results:
 | Portable ESM/declaration/source-map/CSS build | Pass | `npm run build:portable`, using the actual TypeScript compiler. |
 | Strict runtime-source typecheck | Pass | `npm run typecheck`. |
 | Public declaration-consumer typecheck | Pass | Strict `tsc` check of `test/consumer.ts`, including expected errors for invalid priority and snapshot mutation. |
-| Runtime lifecycle contract | **132 / 132 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
+| Runtime lifecycle contract | **138 / 138 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
 | Demo/UI/real-timer checks | **20 / 20 historical local pass** | Earlier local synthetic-document checks exercised actual demo markup/styles/runtime, but their generated JSON/screenshots are intentionally not committed. Manual zoom/AT evidence is still required. |
 | Uncaught browser page errors | **0** | GitHub Actions served-browser lifecycle suite. |
 | Package exports and DOM-free imports | Pass | `npm run test:package`. |
@@ -90,11 +94,11 @@ Observed results:
 | Actual local npm archive | Pass | `npm pack --ignore-scripts --pack-destination /mnt/data`; archive entries inspected. |
 | Separate consumer install | Pass | Installed the actual tarball using `npm install --offline --ignore-scripts --no-audit --no-fund`; runtime, metadata, package and CSS entries resolved. |
 | Standard tsdown build | **Pass** | GitHub Actions run #1, tsdown 0.15.12. |
-| Vitest/jsdom command | **Pass** | Latest TOAST-240 run: 2 test files / 7 tests passed, including 6 real A11y Menu Button async-state integration tests. |
+| Vitest/jsdom command | **Pass** | Latest TOAST-250 run: 3 test files / 11 tests passed, including 6 real A11y Menu Button integration tests and 4 dedicated ariaNotify transport tests. |
 | Normal served-browser Playwright command | **Pass** | GitHub Actions run #1: Chromium lifecycle suite 77/77, 0 uncaught page errors. |
 | Lockfile generation / dependency security audit | **Partial** | Registry install and audit ran in GitHub Actions. No lockfile is committed. Audit reports two moderate dev-only Vitest/@vitest-mocker findings; the high-severity gate passes. |
 | Modern Web Guidance CLI retrieval | **Blocked** | CLI search was attempted, but npm could not resolve the registry. W3C/MDN references were reviewed separately. |
-| VoiceOver Safari / VoiceOver Chrome | **Pending** | No macOS screen-reader environment. A live-region DOM write is not speech verification. |
+| VoiceOver Safari / VoiceOver Chrome | **Pending** | No macOS screen-reader environment. Neither a live-region write nor an ariaNotify call/event is speech verification. |
 | Actual browser 200% / 400% zoom | **Pending** | Narrow-viewport and enlarged-root-text checks passed, but do not prove browser zoom behavior. |
 | NVDA/JAWS / mobile screen readers | **Pending** | No corresponding environment used. |
 
@@ -108,7 +112,7 @@ The shared lifecycle suite uses a deterministic clock for detailed timer/race co
 
 ## Behavior exercised
 
-The 132 browser lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, and generic DOM-event adapter coverage. A separate six-test Vitest integration suite now exercises the real A11y Menu Button async-state ecosystem adapter in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
+The 138 browser lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, key deduplication, generic DOM-event adapter, and announcement-transport coverage. A separate six-test Vitest integration suite now exercises the real A11y Menu Button async-state ecosystem adapter in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
 
 Focus coverage includes preserving focus on show, retaining focused controls during content updates, removing/replacing a focused action, returning to a surviving origin, and showing a focusable empty notification region when no origin remains.
 

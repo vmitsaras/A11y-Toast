@@ -61,11 +61,12 @@ The runtime never auto-initializes on import. `A11yToast`, `createToast`, and `i
 | `position` | `bottom-end` | `top-start`, `top-center`, `top-end`, `bottom-start`, `bottom-center`, `bottom-end`. |
 | `priority` | `polite` | `off`, `polite`, or `assertive`; independent of visual tone. |
 | `animation` | `css` | `css`, `none`, or an injected `ToastAnimationDriver`. Motion is decorative and reduced-motion skips it. |
-| `showToneLabel` | `true` | Show the `.a11y-toast__tone` label visually. Set `false` to visually hide it while keeping the tone text available to assistive technology and generated live-region wording. |
+| `announcementTransport` | `live-region` | Default live-region transport or an explicitly injected transport driver. The experimental ariaNotify driver is a separate opt-in subpath. |
+| `showToneLabel` | `true` | Show the `.a11y-toast__tone` label visually. Set `false` to visually hide it while keeping the tone text available to assistive technology and generated announcement wording. |
 | `labels` | English strings | Partial overrides for `region`, `dismiss`, `actionFailed`, `empty`, and `tones`. |
 | `addons` | none | Explicit instance-local add-ons; no auto-discovery. |
 
-HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, `data-a11y-toast-priority`, `data-a11y-toast-animation` (`css` or `none`), and `data-a11y-toast-show-tone-label`. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
+HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, `data-a11y-toast-priority`, `data-a11y-toast-animation` (`css` or `none`), and `data-a11y-toast-show-tone-label`. Announcement transports are JavaScript-only so experimental delivery behavior cannot be enabled accidentally through markup. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
 
 Options, labels, and exposed snapshots are frozen. No configure/set-options API is included in this release.
 
@@ -140,7 +141,7 @@ Rejected/thrown callbacks retain a visible, persistent retry message and emit `a
 
 Exported `TOAST_EVENTS` includes:
 
-`init`, `ready`, `show`, `queue`, `update`, `announce`, `action`, `actionError`, `pause`, `resume`, `dismiss`, `drop`, `animationStart`, `animationEnd`, `animationError`, `addonError`, `destroy`.
+`init`, `ready`, `show`, `queue`, `update`, `announce`, `announcementError`, `action`, `actionError`, `pause`, `resume`, `dismiss`, `drop`, `animationStart`, `animationEnd`, `animationError`, `addonError`, `destroy`.
 
 Their DOM names use `a11y-toast:*` (for example, `a11y-toast:action-error`). Events bubble, are not cancelable, and use `composed: false`. There is no hidden global event bus or cross-shadow-root forwarding.
 
@@ -157,6 +158,36 @@ Details include `instance`, `root`, `instanceId`, `timestamp`, visible/queued co
 **`announce` records a live-region DOM write, not evidence that a screen reader spoke or finished speaking.** Pending writes are serialized independently for polite/assertive channels, coalesced per toast, and canceled on dismissal/destruction. Already delivered speech cannot be recalled. Multiple independent managers do not share a document-global speech coordinator.
 
 Animation is orthogonal to semantic toast state. `show` still reports display commitment immediately. `dismiss` reports logical removal immediately; if an exit animation is active, the generated item becomes inert and `aria-hidden` until the visual exit finishes. The slot is released only then. `animation-start`, `animation-end`, and `animation-error` report decorative motion; animation failures cannot strand the toast lifecycle.
+
+## Experimental ariaNotify transport
+
+The stable default remains the package's separate polite/assertive live regions. An experimental transport is available from a dedicated subpath:
+
+```ts
+import { createToast } from 'a11y-toast';
+import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
+
+const toast = createToast(root, {
+  announcementTransport: createAriaNotifyTransport(),
+});
+```
+
+This transport is intentionally opt-in because `Document.ariaNotify()` is not yet Baseline across widely used browsers.
+
+Behavior:
+
+- polite toast priority maps to ariaNotify `normal`;
+- assertive maps to `high`;
+- `off` bypasses announcement transports entirely;
+- when `Document.ariaNotify` is unavailable, the already-scheduled matching live region is used as fallback;
+- when ariaNotify is available, the live-region channel is cleared but not written, so one toast announcement is never sent through both mechanisms;
+- the same scheduler still owns coalescing, cancellation, hidden-document pausing and channel spacing.
+
+`a11y-toast:announce` reports the actual committed transport plus a `fallback` boolean. It still does **not** prove that a screen reader spoke or finished speaking the message. `a11y-toast:announcement-error` reports only synchronous transport failures.
+
+Important platform limitation: the `aria-notify` Permissions Policy can block `ariaNotify()` silently. Web content cannot detect that suppression or determine whether assistive technology consumed the announcement. API support therefore does not equal delivery proof.
+
+The experimental transport should be tested with each supported browser/screen-reader combination before product use. Keep the default live-region transport when that verification is unavailable.
 
 ## Animation contract
 
@@ -378,7 +409,7 @@ Public variables include:
 
 Private `--_` variables are implementation details, not a supported customization API. Changing colors remains the integrator's contrast responsibility.
 
-The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated live-region wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
+The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated announcement wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
 
 ## Accessibility and integration limitations
 

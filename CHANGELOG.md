@@ -11,12 +11,13 @@
 - Added TOAST-220 explicit key-based deduplication as a separate controller export. It supports update-existing/drop-new/replace-existing policies, serializes same-key work, waits for visual exit before replacement, preserves normal update timer/queue semantics, and never deduplicates by message text.
 - Added TOAST-230 generic DOM-event adapter with explicit toast/source announcement ownership, correlated show/update/dismiss commands, duplicate correlated-show updates, mapper error isolation, and lifecycle-safe listener cleanup.
 - Added TOAST-240 A11y Menu Button async-state adapter using the source package's real exported events/types. Menu Button remains the sole announcement owner; loading/error/empty are mirrored visually on one toast, ready dismisses it, and both source/toast lifecycle cleanup paths are covered. The ecosystem package is an optional peer dependency.
+- Added TOAST-250 experimental announcement transports with live regions remaining the default. The ariaNotify subpath maps polite/assertive priorities, falls back only when unsupported, never dual-sends, reports actual transport/fallback, and isolates synchronous transport failures; actual AT delivery remains a manual gate.
 
 - Added `showToneLabel` and `data-a11y-toast-show-tone-label`; hardening now visually hides `.a11y-toast__tone` without removing its text from assistive technology or changing generated announcement wording.
 - Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.
 
 - TypeScript/ESM core with frozen options, safe text rendering, explicit initialization and duplicate-instance reuse.
-- Separate polite/assertive live-region scheduling and an off mode for shared announcement ownership.
+- Separate polite/assertive announcement scheduling with live regions as the default transport and an off mode for shared announcement ownership.
 - Bounded FIFO, safe updates, explicit overflow rejection and atomic clear behavior.
 - Overlapping timer pauses, action cancellation/retry safety, focus recovery and idempotent teardown.
 - Typed lifecycle events, readonly snapshots and optional add-on setup/hooks/cleanup.

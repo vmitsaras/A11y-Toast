@@ -51,7 +51,7 @@ TOAST-210: **Complete** — promise/loading orchestration utility; one retained 
 TOAST-220: **Complete** — explicit key-based deduplication controller; opt-in exact-key matching with update-existing/drop-new/replace-existing policies, same-key serialization, animated-replacement waiting, queue/timer preservation, and no message-text dedupe.
 TOAST-230: **Complete** — generic DOM-event adapter; explicit EventTarget/bindings, source-vs-toast announcement ownership, retained correlation IDs, show/update/dismiss commands, duplicate correlated-show update behavior, error isolation, and removable lifecycle cleanup.
 TOAST-240: **Complete** — first concrete ecosystem adapter for `a11y-menu-button` async state. Uses the package's real exported event constants/types, mirrors loading/error/empty visually with source-owned announcements, dismisses on ready, and cleans up from both Menu Button and toast lifecycles. Optional peer: `a11y-menu-button@^1.0.1`.
-TOAST-250: experimental ariaNotify transport evaluation.
+TOAST-250: **Complete — experimental only** — engine-neutral announcement transport boundary plus `a11y-toast/transports/aria-notify`. Live regions remain the default; ariaNotify is explicit opt-in, maps polite→normal/assertive→high, falls back to live regions when unsupported, never dual-sends, and reports actual transport/fallback in lifecycle events. Permissions-Policy suppression remains platform-silent and manual AT verification is still required.
 TOAST-260: optional GSAP and experimental element-scoped View Transition drivers using the frozen TOAST-180 contract.
 
 A history/notification-center capability is also out of the initial scope. Unimplemented items above are not credited from the old prototype.
@@ -62,4 +62,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-250 — experimental ariaNotify transport evaluation. Keep the existing live-region transport as default, make ariaNotify explicitly opt-in, never send through both transports for one announcement, and document current browser/Permissions-Policy limitations before deciding whether it is suitable for a shipped experimental subpath.
+TOAST-260A — GSAP animation driver. Use the frozen TOAST-180 driver contract, inject the application's GSAP instance instead of adding a runtime dependency or global lookup, clean inline animation state on abort/destroy, and keep reduced-motion policy owned by core. Defer Flip/layout motion to a later 260B slice.

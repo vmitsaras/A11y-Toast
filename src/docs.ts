@@ -25,7 +25,7 @@ export const docs = {
     { name: 'destroy()', type: '() => void', description: 'Idempotent teardown; cancel timers, scheduled announcements and action signals; preserve authored DOM.' },
     { name: 'addToastEventListener(target, type, listener, options)', type: 'Typed DOM-event helper returning cleanup', description: 'Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.' },
   ],
-  examples: [{ name: 'Playground', description: 'One page with content/timing/animation/progress/dedupe controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  examples: [{ name: 'Playground', description: 'One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   addons: [
     { name: 'Progress', export: 'a11y-toast/addons/progress', stylesheet: 'a11y-toast/addons/progress.css', description: 'Visual-only timeout progress synchronized from core lifecycle snapshots; no live or progressbar semantics.' },
     { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.' },
@@ -35,10 +35,14 @@ export const docs = {
     { name: 'DOM events', export: 'a11y-toast/adapters/dom-events', description: 'Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy.' },
     { name: 'A11y Menu Button async state', export: 'a11y-toast/adapters/menu-button-async-state', peer: 'a11y-menu-button@^1.0.1', description: 'Mirrors Menu Button loading/error/empty states visually with source-owned announcements and dismisses the mirror on ready.' },
   ],
+  transports: [
+    { name: 'Live regions', value: 'live-region', status: 'default', description: 'Stable polite/assertive DOM announcement transport.' },
+    { name: 'ariaNotify', export: 'a11y-toast/transports/aria-notify', status: 'experimental', description: 'Uses Document.ariaNotify when available and falls back to the scheduled live region only when the API is absent.' },
+  ],
   accessibility: {
-    focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
+    focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',
     motion: 'CSS motion is decorative, reduced-motion skips it, announcements do not wait for it, and timed lifetime begins after entrance settles.',
-    limitations: 'An announce event records a DOM write, not proof of speech. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
+    limitations: 'An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
   },
 } as const;
