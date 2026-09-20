@@ -209,5 +209,32 @@ export async function runSuite(api, capabilities = { layout: true }) {
   await test('75 destruction from a resume observer prevents stale action errors', async () => {const m=create();let reject;const p=new Promise((_,r)=>{reject=r;});const id=m.show({message:'A',action:{label:'Run',onClick(){return p;}}});item(m,id).querySelector('[data-a11y-toast-action]').click();const seen=events(m,api.TOAST_EVENTS.actionError);m.root.addEventListener(api.TOAST_EVENTS.resume,()=>m.destroy());reject(new Error('Expected'));await waitMicrotasks();equal(m.isDestroyed,true);equal(seen.length,0);});
   await test('76 malformed async add-on setup is rejected without unhandled rejection', async () => {const m=create();const seen=events(m,api.TOAST_EVENTS.addonError);m.registerAddon({name:'async-invalid',async setup(){throw new Error('Invalid async setup');}});await waitMicrotasks();equal(m.getAddon('async-invalid'),undefined);equal(seen.length,1);});
   await test('77 accidental async observer failures are isolated', async () => {const m=create();const seen=events(m,api.TOAST_EVENTS.addonError);m.registerAddon({name:'async-observer',async afterShow(){throw new Error('Observer');}});const id=m.show({message:'A'});await waitMicrotasks();ok(m.getToast(id));equal(seen.length,1);});
+  await test('78 tone label is visible by default and can be hidden without changing announcement wording', () => {
+    const visible = create();
+    const visibleId = visible.success('Saved', { persistent: true });
+    const visibleTone = item(visible, visibleId).querySelector('.a11y-toast__tone');
+    equal(visibleTone.hidden, false);
+
+    const hiddenManager = create({ showToneLabel: false });
+    const hiddenId = hiddenManager.success('Saved', { persistent: true });
+    const hiddenTone = item(hiddenManager, hiddenId).querySelector('.a11y-toast__tone');
+    equal(hiddenManager.options.showToneLabel, false);
+    equal(hiddenTone.hidden, true);
+    equal(hiddenManager.getToast(hiddenId).announcement, 'Success. Saved');
+  });
+
+  await test('79 tone-label dataset option is strict and explicit option wins', () => {
+    const root = host();
+    root.dataset.a11yToastShowToneLabel = 'false';
+    const hiddenManager = create({}, root);
+    equal(hiddenManager.options.showToneLabel, false);
+    hiddenManager.destroy();
+
+    const shownManager = create({ showToneLabel: true }, root);
+    equal(shownManager.options.showToneLabel, true);
+    const id = shownManager.info('Visible label', { persistent: true });
+    equal(item(shownManager, id).querySelector('.a11y-toast__tone').hidden, false);
+  });
+
   return results;
 }
