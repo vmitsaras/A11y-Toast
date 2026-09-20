@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   MENU_BUTTON_EVENTS,
   createMenuButton,
@@ -92,10 +92,16 @@ describe('A11y Menu Button async-state toast adapter', () => {
     expect(toast.getToasts()).toEqual([]);
   });
 
-  it('toast destruction disposes the underlying DOM adapter and ignores later source states', () => {
-    const { toast, adapter, asyncState } = setup();
+  it('toast destruction removes wrapper/source listeners and ignores later source states', () => {
+    const { menuRoot, toast, adapter, asyncState } = setup();
+    const removeSpy = vi.spyOn(menuRoot, 'removeEventListener');
     toast.destroy();
     expect(adapter.isDestroyed).toBe(true);
+    expect(removeSpy).toHaveBeenCalledWith(
+      MENU_BUTTON_EVENTS.destroy,
+      expect.any(Function),
+      undefined,
+    );
     asyncState.setError({ message: 'Late source state.' });
     expect(toast.getToasts()).toEqual([]);
   });

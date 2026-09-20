@@ -4,6 +4,7 @@ import {
   type AsyncMenuStateEventDetail,
   type MenuButtonCustomEvent,
 } from 'a11y-menu-button/core';
+import { addToastEventListener, TOAST_EVENTS } from '../events.js';
 import { createDomEventAdapter } from './dom-events.js';
 import type { DomEventAdapter } from './dom-events.js';
 import type { ToastInstance } from '../types.js';
@@ -76,10 +77,28 @@ export function createMenuButtonAsyncStateToastAdapter(
     }],
   });
 
-  const removeSourceDestroy = addMenuButtonEventListener(
+  let removeSourceDestroy: () => void = () => {};
+  let removeToastDestroy: () => void = () => {};
+
+  const destroy = (): void => {
+    if (destroyed) return;
+    destroyed = true;
+    removeSourceDestroy();
+    removeToastDestroy();
+    domAdapter.destroy();
+  };
+
+  removeSourceDestroy = addMenuButtonEventListener(
     sourceRoot,
     MENU_BUTTON_EVENTS.destroy,
-    () => adapter.destroy(),
+    destroy,
+  );
+  removeToastDestroy = addToastEventListener(
+    instance.root,
+    TOAST_EVENTS.destroy,
+    event => {
+      if (event.detail.instance === instance) destroy();
+    },
   );
 
   const adapter: MenuButtonAsyncStateToastAdapter = {
@@ -87,12 +106,7 @@ export function createMenuButtonAsyncStateToastAdapter(
     sourceRoot,
     announcementOwner: 'source',
     get isDestroyed() { return destroyed || domAdapter.isDestroyed; },
-    destroy(): void {
-      if (destroyed) return;
-      destroyed = true;
-      removeSourceDestroy();
-      domAdapter.destroy();
-    },
+    destroy,
   };
 
   return Object.freeze(adapter);
