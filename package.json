@@ -35,6 +35,10 @@
     "./adapters/dom-events": {
       "types": "./dist/adapters/dom-events.d.ts",
       "import": "./dist/adapters/dom-events.js"
+    },
+    "./adapters/menu-button-async-state": {
+      "types": "./dist/adapters/menu-button-async-state.d.ts",
+      "import": "./dist/adapters/menu-button-async-state.js"
     }
   },
   "files": [
@@ -69,7 +73,8 @@
     "playwright": "^1.51.1",
     "tsdown": "^0.15.0",
     "typescript": "~5.8.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "a11y-menu-button": "^1.0.1"
   },
   "keywords": [
     "accessibility",
@@ -77,5 +82,13 @@
     "typescript",
     "live-region",
     "vanilla-js"
-  ]
+  ],
+  "peerDependencies": {
+    "a11y-menu-button": "^1.0.1"
+  },
+  "peerDependenciesMeta": {
+    "a11y-menu-button": {
+      "optional": true
+    }
+  }
 }

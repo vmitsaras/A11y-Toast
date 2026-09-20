@@ -5,6 +5,7 @@ import { createProgressAddon } from 'a11y-toast/addons/progress';
 import { trackToastPromise } from 'a11y-toast/addons/promise';
 import { createDedupeController } from 'a11y-toast/addons/dedupe';
 import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
+import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu-button-async-state';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -40,6 +41,9 @@ const adapter = createDomEventAdapter(toast, {
   }],
 });
 adapter.destroy();
+declare const menuRoot: HTMLElement;
+const menuAdapter = createMenuButtonAsyncStateToastAdapter(toast, menuRoot);
+menuAdapter.destroy();
 addToastEventListener(root, TOAST_EVENTS.drop, event => { const reason: 'queue-full' | 'clearing' = event.detail.reason; void reason; });
 // @ts-expect-error Unsupported ARIA politeness is rejected by the public declaration contract.
 toast.show({ message: 'Invalid', priority: 'loud' });
