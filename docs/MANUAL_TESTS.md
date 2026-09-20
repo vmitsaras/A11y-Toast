@@ -25,6 +25,7 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-19 | Enable reduced motion, then show/dismiss timed and persistent notifications. | No decorative entrance/exit delay is required; announcement, focus, timing, queue and dismissal semantics remain intact. | Pending |
 | M-20 | Enable “Show visual timeout progress”. Test timed, paused, persistent, loading and loading→success notifications. | Indicator appears only for visible timed notifications, freezes on pause, disappears for persistent/loading states, is never announced, and is hidden with reduced motion. | Pending |
 | M-21 | Use the Promise success/failure demo controls, then repeat while dismissing the loading toast before settlement. | One notification ID updates from loading to success/friendly error; raw failure detail is never exposed or announced; dismissing loading prevents a late result from recreating/updating it. | Pending |
+| M-22 | Use the keyed dedupe demo with the same key under Update existing, Drop new, and Replace existing policies, including while the keyed toast is queued. | Update keeps one ID/position, Drop leaves the existing notification untouched without duplicate speech, Replace waits for visual exit before the new toast appears, and different-case keys remain distinct. | Pending |
 
 ### Stop conditions
 

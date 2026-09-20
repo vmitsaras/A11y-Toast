@@ -9,7 +9,7 @@ Deliver small application feedback without unexpected focus movement, inaccessib
 
 ## Approved scope
 
-The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Optional promise/progress/dedupe/history/animation/source adapters remain deferred.
+The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Progress, promise orchestration, and explicit key deduplication are now implemented as optional exports. History, source adapters, ariaNotify transport, and third-party animation drivers remain deferred.
 
 ## Resolved implementation decisions
 
@@ -24,7 +24,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 9. Add-on setup/cleanup and six selected before/after observer hooks are supported. Hooks cannot cancel or mutate the supplied snapshot; they are not awaited. Errors are isolated.
 10. When the final focused toast loses all valid return targets, an owned visible empty-state focus anchor is shown until focus leaves. Disposing an entire surrounding view still needs application focus coordination.
 11. Animation accepts built-in `css`, `none`, or an injected engine-neutral driver. Drivers receive a frozen context and AbortSignal; start/end/error events are typed and separate from semantic show/dismiss events. Reduced-motion and hidden-document state skip/cancel decorative motion. CSS is the only shipped driver in this slice; GSAP/View Transition remain optional adapters.
-12. Optional runtime parameters from the initial brainstorm are intentionally narrowed: no custom API pause reason that could clear a keyboard safeguard; no global Escape; no automatic `error → assertive`; no automatic deduplication from `key`.
+12. Optional runtime parameters from the initial brainstorm are intentionally narrowed: no custom API pause reason that could clear a keyboard safeguard; no global Escape; no automatic `error → assertive`; no automatic deduplication from `key`. The separate dedupe controller is opt-in, exact-key based, and never compares message text.
 
 ## Acceptance criteria
 
@@ -40,6 +40,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-07A | Animation is interruptible and cannot change announcement semantics, consume timed lifetime during entrance, leave exiting controls interactive, promote the queue before exit completion, or continue stale settlement after a re-entrant destroy. Multi-exit and hidden-document cancellation preserve queue ordering. | Browser 80–94; CSS stylesheet/driver contract. |
 | AC-07B | Optional timeout progress observes authoritative timer snapshots without becoming a second timer, live region, or progressbar; it appears only for visible timed notifications and cleans up independently. | Browser 95–101; progress add-on/CSS exports. |
 | AC-07C | Promise orchestration retains one toast ID, never renders raw rejection values, can settle while queued, and performs no late update after dismiss/destroy/explicit stop. It does not cancel the underlying operation. | Browser 102–110; promise utility export. |
+| AC-07D | Key deduplication is opt-in and exact-key based. Update preserves ID/queue/timer semantics; drop creates no new lifecycle/announcement; replace waits for visual exit before creating a new ID; same-key operations serialize. | Browser 111–121; dedupe controller export. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 

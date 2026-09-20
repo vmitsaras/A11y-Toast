@@ -22,6 +22,10 @@ Neither restriction was treated as evidence that the package itself failed. Neit
 
 ## GitHub Actions online verification
 
+Latest TOAST-220 dedupe run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35514207055  
+Commit: `82b9d7df79afdfa6129429ff0d3ce74e12174f37`  
+Result: **success** — build/type/Vitest/served-browser/package/audit workflow completed with **121 / 121 browser scenarios and 0 uncaught page errors**. Scenarios 111–121 verify update-existing ID/queue/timer preservation, drop-new silence, animated replace waiting, queued replacement ordering, exact trimmed/case-sensitive keys, strict policy validation, same-key serialization, controller stop behavior, queue rejection, and external same-key re-entry adoption.
+
 Latest TOAST-210 promise run: https://github.com/vmitsaras/A11y-Toast/actions/runs/35512717706  
 Commit: `d3c1677a2aba475c622096db3266b4f83d58f5f1`  
 Result: **success** — build/type/Vitest/served-browser/package/audit workflow completed with **110 / 110 browser scenarios and 0 uncaught page errors**. Scenarios 102–110 verify retained-ID loading→success, safe rejection copy, dismiss/destroy late-settlement guards, queued settlement, progress composition, explicit stop semantics, pre-show option validation, and full-queue null-ID pass-through.
@@ -69,7 +73,7 @@ Observed results:
 | Portable ESM/declaration/source-map/CSS build | Pass | `npm run build:portable`, using the actual TypeScript compiler. |
 | Strict runtime-source typecheck | Pass | `npm run typecheck`. |
 | Public declaration-consumer typecheck | Pass | Strict `tsc` check of `test/consumer.ts`, including expected errors for invalid priority and snapshot mutation. |
-| Runtime lifecycle contract | **110 / 110 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
+| Runtime lifecycle contract | **121 / 121 pass** | Latest hardening run confirms the normal served-browser Playwright path, including visual suppression without removal from the accessibility-tree contract and strict option parsing. Earlier local synthetic-browser evidence was session-local and is not committed to Git. |
 | Demo/UI/real-timer checks | **20 / 20 historical local pass** | Earlier local synthetic-document checks exercised actual demo markup/styles/runtime, but their generated JSON/screenshots are intentionally not committed. Manual zoom/AT evidence is still required. |
 | Uncaught browser page errors | **0** | GitHub Actions served-browser lifecycle suite. |
 | Package exports and DOM-free imports | Pass | `npm run test:package`. |
@@ -96,7 +100,7 @@ The shared lifecycle suite uses a deterministic clock for detailed timer/race co
 
 ## Behavior exercised
 
-The 110 lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, and promise-orchestration coverage in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
+The 121 lifecycle scenarios include animation-driver, interruption, reduced-motion, CSS exit, re-entrant observer, multi-exit batch, hidden-document cancellation, ordered queue-release, progress add-on, promise orchestration, and explicit key-deduplication coverage in addition to the earlier core cases. The original core scenarios include repeated and re-entrant initialization, root ownership, strict option normalization, visible/queued updates, immutable event snapshots, safe text rendering, full-queue rejection, FIFO ordering under re-entrant additions, clear without intermediate promotion, timer preservation/reset, overlapping pause reasons, hidden-document handling, announcement ordering/coalescing/cancellation, action retry/cancellation/stale-result guards, add-on setup/cleanup/error isolation, and destruction during observers.
 
 Focus coverage includes preserving focus on show, retaining focused controls during content updates, removing/replacing a focused action, returning to a surviving origin, and showing a focusable empty notification region when no origin remains.
 

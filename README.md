@@ -75,7 +75,7 @@ Options, labels, and exposed snapshots are frozen. No configure/set-options API 
 
 Tones: `neutral`, `info`, `success`, `warning`, `error`, `loading`.
 
-Messages, labels, and titles are rendered as text. HTML strings are not interpreted. `key` is a caller correlation value, **not** automatic deduplication. All toasts have independently generated IDs; queue rejection returns `null`.
+Messages, labels, and titles are rendered as text. HTML strings are not interpreted. In core, `key` remains caller correlation metadata and does **not** automatically deduplicate. The optional dedupe controller can apply explicit key-based policies. All direct core toasts otherwise receive independently generated IDs; queue rejection returns `null`.
 
 `announcement` can supply concise alternative wording. Null/blank restores generated wording. `priority: 'off'` suppresses the plugin's live-region writes; it does not hide the visible notification from assistive technology.
 
@@ -225,6 +225,39 @@ The utility:
 - returns `id: null` if the loading toast is rejected by queue capacity while still passing the promise through.
 
 `trackToastPromise` does not cancel the operation. If the operation itself needs cancellation, own that separately with the application's normal AbortController/domain API.
+
+## Explicit key-based deduplication
+
+Core never deduplicates automatically. The optional controller provides explicit exact-key behavior without comparing message text.
+
+```ts
+import { createDedupeController } from 'a11y-toast/addons/dedupe';
+
+const dedupe = createDedupeController(toast, {
+  policy: 'update-existing',
+});
+
+await dedupe.show({
+  key: 'network-status',
+  message: 'Connection restored.',
+  tone: 'success',
+  duration: 5000,
+});
+```
+
+Keys are trimmed, case-sensitive, and required for this controller.
+
+Policies:
+
+- `update-existing` — default. Reuses the first active matching toast ID and normal `update()` semantics. Visible/queued position is preserved and content-only updates do not implicitly restart the timer.
+- `drop-new` — keeps the existing keyed toast unchanged. No new toast, update, or announcement is created.
+- `replace-existing` — logically dismisses the existing toast, waits for any visual exit, then creates a new ID. A queued replacement therefore receives a new queue position.
+
+Operations for the same key are serialized by the controller. If external dismissal code creates the same key while a replacement is waiting for exit completion, that active toast is adopted/updated instead of creating another duplicate.
+
+Different keys do not block each other. Direct `toast.show({ key })` calls remain unaffected and can still create duplicates by design.
+
+The controller reports `shown`, `updated`, `kept-existing`, `replaced`, `rejected`, or `stopped`, together with the resulting ID and previous ID where relevant. `destroy()` stops future controller work without changing existing toast state.
 
 ## Add-ons and ecosystem integration
 

@@ -48,7 +48,7 @@ Windows NVDA/JAWS and mobile AT are not claimed verified. Record actual environm
 
 TOAST-200: **Complete** — visual timeout progress add-on; separate JS/CSS exports, no polling loop, pause/resume/update/loading lifecycle synchronization, non-semantic visual output, reduced-motion suppression.
 TOAST-210: **Complete** — promise/loading orchestration utility; one retained toast ID, caller-authored success/error copy, late settlement ignored after dismiss/destroy, queue-safe settlement, pass-through promise and explicit stop control.
-TOAST-220: explicit key-based deduplication policy.
+TOAST-220: **Complete** — explicit key-based deduplication controller; opt-in exact-key matching with update-existing/drop-new/replace-existing policies, same-key serialization, animated-replacement waiting, queue/timer preservation, and no message-text dedupe.
 TOAST-230: generic DOM-event adapter with explicit announcement ownership.
 TOAST-240: first real ecosystem adapter selected from an actual use case.
 TOAST-250: experimental ariaNotify transport evaluation.
@@ -62,4 +62,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-220 — explicit key-based deduplication policy. Keep dedupe opt-in and key-based; do not dedupe by message text. Define deterministic update-existing/drop-new/replace-existing behavior without allowing duplicate render/announcement flashes.
+TOAST-230 — generic DOM-event adapter with explicit announcement ownership. Map external lifecycle events to show/update/dismiss without inspecting private component state, retain correlated toast IDs, and require a clear announcement owner so adapters do not create duplicate speech.
