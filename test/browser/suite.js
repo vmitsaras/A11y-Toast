@@ -1661,9 +1661,11 @@ export async function runSuite(api, capabilities = { layout: true }) {
       equal(starts, 1);
       resolvers[0]();
       await waitMicrotasks();
+      await waitMicrotasks();
       equal(starts, 2);
       equal(element.getAttribute('data-a11y-toast-view-transition-phase'), 'exit');
       resolvers[1]();
+      await waitMicrotasks();
       await waitMicrotasks();
       equal(element.hasAttribute('style'), false);
       equal(element.hasAttribute('data-a11y-toast-view-transition-phase'), false);
