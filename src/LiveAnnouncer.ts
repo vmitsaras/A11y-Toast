@@ -1,4 +1,4 @@
-import type { ToastAnnouncementTransport, ToastAnnouncementTransportResult, ToastId, ToastPriority } from './types.js';
+import type { ToastAnnouncementTransport, ToastAnnouncementTransportContext, ToastAnnouncementTransportResult, ToastId, ToastPriority } from './types.js';
 
 type Priority = Exclude<ToastPriority, 'off'>;
 interface Entry {
@@ -16,7 +16,7 @@ interface Channel {
 }
 export const LIVE_REGION_TRANSPORT: ToastAnnouncementTransport = Object.freeze({
   name: 'live-region',
-  announce({ message, liveRegion }) {
+  announce({ message, liveRegion }: ToastAnnouncementTransportContext) {
     liveRegion.textContent = message;
     return Object.freeze({ transport: 'live-region', fallback: false });
   },

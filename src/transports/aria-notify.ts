@@ -1,5 +1,6 @@
 import type {
   ToastAnnouncementTransport,
+  ToastAnnouncementTransportContext,
   ToastAnnouncementTransportResult,
 } from '../types.js';
 
@@ -19,7 +20,7 @@ type AriaNotifyDocument = Document & {
 export function createAriaNotifyTransport(): ToastAnnouncementTransport {
   return Object.freeze({
     name: 'aria-notify',
-    announce({ message, priority, liveRegion }): ToastAnnouncementTransportResult {
+    announce({ message, priority, liveRegion }: ToastAnnouncementTransportContext): ToastAnnouncementTransportResult {
       const doc = liveRegion.ownerDocument as AriaNotifyDocument;
       if (typeof doc.ariaNotify === 'function') {
         doc.ariaNotify(message, { priority: priority === 'assertive' ? 'high' : 'normal' });
