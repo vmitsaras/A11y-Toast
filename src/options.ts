@@ -8,7 +8,7 @@ export const DEFAULT_LABELS: Readonly<ToastLabels> = Object.freeze({
   tones: Object.freeze({ neutral: 'Notification', info: 'Information', success: 'Success', warning: 'Warning', error: 'Error', loading: 'In progress' }),
 });
 export const DEFAULT_OPTIONS: ResolvedToastOptions = Object.freeze({
-  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', labels: DEFAULT_LABELS,
+  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', showToneLabel: true, labels: DEFAULT_LABELS,
 });
 export function parseBoolean(value: unknown, fallback: boolean): boolean {
   if (value === true || value === 'true') return true;
@@ -42,6 +42,7 @@ export function resolveOptions(root: HTMLElement, options: ToastOptions): Resolv
     maxQueue: parseInteger(options.maxQueue ?? d.a11yToastMaxQueue, DEFAULT_OPTIONS.maxQueue, 0, 100),
     position: member<ToastPosition>(options.position ?? d.a11yToastPosition, POSITIONS, DEFAULT_OPTIONS.position),
     priority: member<ToastPriority>(options.priority ?? d.a11yToastPriority, PRIORITIES, DEFAULT_OPTIONS.priority),
+    showToneLabel: parseBoolean(options.showToneLabel ?? d.a11yToastShowToneLabel, DEFAULT_OPTIONS.showToneLabel),
     labels: Object.freeze({
       region: label(labels?.region, DEFAULT_LABELS.region), dismiss: label(labels?.dismiss, DEFAULT_LABELS.dismiss),
       actionFailed: label(labels?.actionFailed, DEFAULT_LABELS.actionFailed), empty: label(labels?.empty, DEFAULT_LABELS.empty), tones: Object.freeze(tones),
