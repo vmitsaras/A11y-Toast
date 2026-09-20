@@ -1,10 +1,12 @@
 import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/index.js';
+import { createProgressAddon } from '../../dist/addons/progress.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
 const target = document.querySelector('#target');
 const position = form.elements.position;
 const animation = form.elements.animation;
+const showProgress = form.elements.showProgress;
 const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
@@ -37,6 +39,7 @@ function sync(source) {
   const surfaceActive = Boolean(root.querySelector('[data-a11y-toast-id]'));
   position.disabled = surfaceActive;
   animation.disabled = surfaceActive;
+  showProgress.disabled = surfaceActive;
   showToneLabel.disabled = surfaceActive;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
   if (loadingId && !source.getToast(loadingId)) loadingId = null;
@@ -72,6 +75,7 @@ function initialize() {
   manager = createToast(root, {
     position: position.value,
     animation: animation.value,
+    addons: showProgress.checked ? [createProgressAddon()] : [],
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
   });
@@ -116,6 +120,7 @@ function reinitializeManager() {
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
+showProgress.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
 document.querySelector('[data-burst]').addEventListener('click', event => safely(() => {
   for (let i = 1; i <= 5; i++) manager.show({ message: `Queue example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });

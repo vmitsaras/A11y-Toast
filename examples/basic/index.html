@@ -7,6 +7,7 @@
   <title>A11y Toast — Playground</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../dist/styles.css">
+  <link rel="stylesheet" href="../../dist/addons/progress.css">
   <link rel="stylesheet" href="./demo.css">
   <script type="module" src="./demo.js"></script>
 </head>
@@ -51,6 +52,8 @@
                   <div class="toast-demo__field"><label for="position">Position</label><select id="position" name="position" aria-describedby="position-hint"><option value="bottom-end">Bottom end</option><option value="bottom-center">Bottom center</option><option value="bottom-start">Bottom start</option><option value="top-end">Top end</option><option value="top-center">Top center</option><option value="top-start">Top start</option></select></div>
                 </div>
                 <p class="toast-demo__hint" id="duration-hint">Loading always stays visible. Actions and assertive messages stay visible with automatic defaults.</p>
+                <label class="toast-demo__check"><input id="show-progress" name="showProgress" type="checkbox" checked aria-describedby="progress-hint"> Show visual timeout progress</label>
+                <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The indicator is visual, non-live, and hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
                 <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
                 <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="none">None</option></select></div>
                 <p class="toast-demo__hint" id="animation-hint">Animation is decorative. Reduced-motion preference skips it. Change this option when no notification surface is active.</p>

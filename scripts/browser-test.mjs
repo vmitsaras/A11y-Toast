@@ -13,8 +13,9 @@ try {
   // Leave the demo empty and exercise independent fixture hosts using the same built entry.
   const results = await page.evaluate(async () => {
     const api = await import('/dist/index.js');
+    const { createProgressAddon } = await import('/dist/addons/progress.js');
     const { runSuite } = await import('/test/browser/suite.js');
-    return runSuite(api);
+    return runSuite({ ...api, createProgressAddon });
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

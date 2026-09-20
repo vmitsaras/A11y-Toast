@@ -1,6 +1,7 @@
 import { createToast, addToastEventListener, TOAST_EVENTS } from 'a11y-toast';
 import type { ToastInput, ToastAddon, ToastAnimationDriver } from 'a11y-toast';
 import { docs } from 'a11y-toast/docs';
+import { createProgressAddon } from 'a11y-toast/addons/progress';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -12,7 +13,7 @@ const animation: ToastAnimationDriver = {
   name: 'consumer-test',
   enter({ element, signal }) { if (!signal.aborted) void element; },
 };
-const toast = createToast(root, { addons: [logger], animation });
+const toast = createToast(root, { addons: [logger, createProgressAddon()], animation });
 const input: ToastInput = { message: 'Saved', priority: 'polite', action: { label: 'Undo', onClick: async ({ signal }) => { if (signal.aborted) return; } } };
 const id = toast.show(input);
 if (id !== null) toast.update(id, { message: 'Updated' });

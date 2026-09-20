@@ -534,5 +534,85 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(m.visibleCount, 2);
   });
 
+  await test('95 progress add-on renders only for visible timed notifications and stays non-semantic', () => {
+    const m = create({ addons: [api.createProgressAddon()] });
+    const timed = m.show({ message: 'Timed', duration: 5000 });
+    const track = item(m, timed).querySelector('[data-a11y-toast-progress]');
+    ok(track);
+    equal(track.getAttribute('aria-hidden'), 'true');
+    equal(track.getAttribute('role'), null);
+    equal(track.getAttribute('aria-live'), null);
+    const persistent = m.show({ message: 'Persistent', persistent: true });
+    equal(item(m, persistent).querySelector('[data-a11y-toast-progress]'), null);
+  });
+
+  await test('96 progress add-on waits for queued toast display before creating DOM', () => {
+    const m = create({ maxVisible: 1, addons: [api.createProgressAddon()] });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', duration: 5000 });
+    equal(item(m, b), null);
+    m.dismiss(a);
+    ok(item(m, b).querySelector('[data-a11y-toast-progress]'));
+  });
+
+  await test('97 progress add-on freezes and resumes from authoritative remaining time', () => {
+    const c = fakeClock();
+    const m = create({ addons: [api.createProgressAddon()] });
+    const id = m.show({ message: 'A', duration: 1000 });
+    c.tick(400);
+    m.pause(id);
+    const track = item(m, id).querySelector('[data-a11y-toast-progress]');
+    const bar = track.querySelector('[data-a11y-toast-progress-bar]');
+    equal(track.dataset.a11yToastProgressState, 'paused');
+    ok(bar.style.transform.includes('0.6'));
+    m.resume(id);
+    equal(track.dataset.a11yToastProgressState, 'running');
+    equal(Number.parseFloat(bar.style.transitionDuration), 600);
+  });
+
+  await test('98 progress add-on follows timed/persistent updates without owning timer state', () => {
+    const c = fakeClock();
+    const m = create({ addons: [api.createProgressAddon()] });
+    const id = m.show({ message: 'A', duration: 1000 });
+    c.tick(400);
+    m.update(id, { message: 'B' });
+    let bar = item(m, id).querySelector('[data-a11y-toast-progress-bar]');
+    equal(Number.parseFloat(bar.style.transitionDuration), 600);
+    m.update(id, { persistent: true });
+    equal(item(m, id).querySelector('[data-a11y-toast-progress]'), null);
+    m.update(id, { persistent: false, duration: 2000 });
+    bar = item(m, id).querySelector('[data-a11y-toast-progress-bar]');
+    equal(Number.parseFloat(bar.style.transitionDuration), 2000);
+  });
+
+  await test('99 loading-to-success creates progress only when the toast becomes timed', () => {
+    const m = create({ addons: [api.createProgressAddon()] });
+    const id = m.loading('Working');
+    equal(item(m, id).querySelector('[data-a11y-toast-progress]'), null);
+    m.update(id, { message: 'Done', tone: 'success', persistent: false, duration: 5000 });
+    ok(item(m, id).querySelector('[data-a11y-toast-progress]'));
+  });
+
+  await test('100 unregistering progress removes all add-on DOM and leaves toast lifecycle untouched', () => {
+    const m = create();
+    const id = m.show({ message: 'A', duration: 5000 });
+    m.registerAddon(api.createProgressAddon());
+    ok(item(m, id).querySelector('[data-a11y-toast-progress]'));
+    equal(m.unregisterAddon('progress'), true);
+    equal(item(m, id).querySelector('[data-a11y-toast-progress]'), null);
+    ok(m.getToast(id));
+  });
+
+  await test('101 progress add-on can adopt an already-visible timed toast', () => {
+    const c = fakeClock();
+    const m = create();
+    const id = m.show({ message: 'A', duration: 1000 });
+    c.tick(250);
+    m.registerAddon(api.createProgressAddon());
+    const bar = item(m, id).querySelector('[data-a11y-toast-progress-bar]');
+    ok(bar);
+    equal(Number.parseFloat(bar.style.transitionDuration), 750);
+  });
+
   return results;
 }

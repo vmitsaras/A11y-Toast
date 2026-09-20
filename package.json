@@ -9,14 +9,34 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./docs": { "types": "./dist/docs.d.ts", "import": "./dist/docs.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./docs": {
+      "types": "./dist/docs.d.ts",
+      "import": "./dist/docs.js"
+    },
     "./styles.css": "./dist/styles.css",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./addons/progress": {
+      "types": "./dist/addons/progress.d.ts",
+      "import": "./dist/addons/progress.js"
+    },
+    "./addons/progress.css": "./dist/addons/progress.css"
   },
-  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
-  "sideEffects": ["**/*.css"],
-  "engines": { "node": ">=22.0.0" },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "clean": "node scripts/clean.mjs",
     "build": "npm run clean && tsdown && node scripts/copy-assets.mjs",
@@ -39,5 +59,11 @@
     "typescript": "~5.8.3",
     "vitest": "^3.2.4"
   },
-  "keywords": ["accessibility", "toast", "typescript", "live-region", "vanilla-js"]
+  "keywords": [
+    "accessibility",
+    "toast",
+    "typescript",
+    "live-region",
+    "vanilla-js"
+  ]
 }
