@@ -1,6 +1,8 @@
 import type { ToastAnimationContext, ToastAnimationDriver } from '../types.js';
 
 const PHASE_ATTRIBUTE = 'data-a11y-toast-view-transition-phase';
+const STATE_ATTRIBUTE = 'data-a11y-toast-view-transition-state';
+const DIRECTION_ATTRIBUTE = 'data-a11y-toast-view-transition-direction';
 
 interface ElementViewTransitionLike {
   readonly finished: Promise<unknown>;
@@ -17,46 +19,12 @@ type ViewTransitionElement = HTMLElement & {
   startViewTransition?: StartElementViewTransition;
 };
 
-export interface ElementViewTransitionOptions {
-  /** Vertical travel in CSS pixels before/after the settled position. Defaults to 4. */
-  distance?: number;
-}
-
-function finiteNumber(value: unknown, fallback: number, label: string): number {
-  if (value === undefined) return fallback;
-  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-    throw new TypeError(`${label} must be a finite number greater than or equal to 0.`);
-  }
-  return value;
-}
-
-function direction(context: ToastAnimationContext, distance: number): number {
-  return context.instance.options.position.startsWith('top') ? -distance : distance;
-}
-
 function restoreAttribute(element: HTMLElement, name: string, value: string | null): void {
   if (value === null) element.removeAttribute(name);
   else element.setAttribute(name, value);
 }
 
-function restoreStyle(element: HTMLElement, value: string | null): void {
-  if (value !== null) {
-    element.setAttribute('style', value);
-    return;
-  }
-  // Chromium may preserve an empty style attribute after CSSStyleDeclaration
-  // mutations even when removeAttribute() ran earlier. Clear the driver-owned
-  // declarations and serialized cssText before removing the attribute.
-  element.style.removeProperty('opacity');
-  element.style.removeProperty('translate');
-  element.style.cssText = '';
-  element.removeAttribute('style');
-}
-
-function animateNow(
-  context: ToastAnimationContext,
-  distance: number,
-): Promise<void> {
+function animateNow(context: ToastAnimationContext): Promise<void> {
   const scope = context.element as ViewTransitionElement;
   const startViewTransition = scope.startViewTransition;
   if (typeof startViewTransition !== 'function') return Promise.resolve();
@@ -64,18 +32,25 @@ function animateNow(
     return Promise.reject(new DOMException('View Transition animation aborted.', 'AbortError'));
   }
 
-  const initialStyle = scope.getAttribute('style');
   const initialPhase = scope.getAttribute(PHASE_ATTRIBUTE);
-  const travel = direction(context, distance);
+  const initialState = scope.getAttribute(STATE_ATTRIBUTE);
+  const initialDirection = scope.getAttribute(DIRECTION_ATTRIBUTE);
+  const direction = context.instance.options.position.startsWith('top') ? 'top' : 'bottom';
 
   const restore = (): void => {
-    restoreStyle(scope, initialStyle);
     restoreAttribute(scope, PHASE_ATTRIBUTE, initialPhase);
+    restoreAttribute(scope, STATE_ATTRIBUTE, initialState);
+    restoreAttribute(scope, DIRECTION_ATTRIBUTE, initialDirection);
   };
 
   const applyOffset = (): void => {
-    scope.style.opacity = '0';
-    scope.style.translate = `0 ${travel}px`;
+    scope.setAttribute(STATE_ATTRIBUTE, 'offset');
+    scope.setAttribute(DIRECTION_ATTRIBUTE, direction);
+  };
+
+  const clearOffset = (): void => {
+    restoreAttribute(scope, STATE_ATTRIBUTE, initialState);
+    restoreAttribute(scope, DIRECTION_ATTRIBUTE, initialDirection);
   };
 
   scope.setAttribute(PHASE_ATTRIBUTE, context.phase);
@@ -84,7 +59,7 @@ function animateNow(
   let transition: ElementViewTransitionLike;
   try {
     transition = startViewTransition.call(scope, () => {
-      if (context.phase === 'enter') restoreAttribute(scope, 'style', initialStyle);
+      if (context.phase === 'enter') clearOffset();
       else applyOffset();
     });
   } catch (error) {
@@ -104,8 +79,8 @@ function animateNow(
       removeAbort();
       restore();
       const finalize = (): void => {
-        // Some browsers finalize scoped-transition bookkeeping after finished
-        // callbacks run. Restore once more before exposing driver completion.
+        // Browser scoped-transition bookkeeping can finalize after finished
+        // callbacks. Reassert authored data attributes before exposing completion.
         restore();
         if (error !== undefined) reject(error);
         else resolve();
@@ -149,18 +124,18 @@ function animateNow(
  * Experimental TOAST-180 driver using Element.startViewTransition().
  * Unsupported browsers settle immediately with no decorative motion.
  * Document.startViewTransition() is never used as a fallback.
+ *
+ * Motion distance/timing are stylesheet concerns so this driver never writes
+ * inline styles. See a11y-toast/animations/view-transition.css.
  */
-export function createElementViewTransitionDriver(
-  options: ElementViewTransitionOptions = {},
-): ToastAnimationDriver {
-  const distance = finiteNumber(options.distance, 4, 'View Transition distance');
+export function createElementViewTransitionDriver(): ToastAnimationDriver {
   const tails = new WeakMap<HTMLElement, Promise<void>>();
 
   const animate = (context: ToastAnimationContext): Promise<void> => {
     const previous = tails.get(context.element);
     const task = previous
-      ? previous.catch(() => {}).then(() => animateNow(context, distance))
-      : animateNow(context, distance);
+      ? previous.catch(() => {}).then(() => animateNow(context))
+      : animateNow(context);
     const tail = task.then(() => undefined, () => undefined);
     tails.set(context.element, tail);
     void tail.finally(() => {

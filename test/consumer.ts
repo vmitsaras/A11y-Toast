@@ -62,5 +62,5 @@ toast.show({ message: 'Invalid', priority: 'loud' });
 if (id) toast.getToast(id)!.message = 'Cannot mutate';
 void docs;
 
-const experimentalViewTransition = createElementViewTransitionDriver({ distance: 4 });
+const experimentalViewTransition = createElementViewTransitionDriver();
 void experimentalViewTransition;

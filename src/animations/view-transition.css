@@ -1,5 +1,14 @@
-/* Experimental element-scoped View Transition timing.
+/* Experimental element-scoped View Transition motion.
    Import only when using a11y-toast/animations/view-transition. */
+.a11y-toast[data-a11y-toast-view-transition-state='offset'] {
+  opacity: 0;
+}
+.a11y-toast[data-a11y-toast-view-transition-state='offset'][data-a11y-toast-view-transition-direction='top'] {
+  translate: 0 calc(var(--a11y-toast-view-transition-distance, 0.25rem) * -1);
+}
+.a11y-toast[data-a11y-toast-view-transition-state='offset'][data-a11y-toast-view-transition-direction='bottom'] {
+  translate: 0 var(--a11y-toast-view-transition-distance, 0.25rem);
+}
 .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-group(root),
 .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-old(root),
 .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-new(root) {

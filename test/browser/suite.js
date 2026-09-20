@@ -1605,12 +1605,14 @@ export async function runSuite(api, capabilities = { layout: true }) {
       return { finished: Promise.resolve(), skipTransition() {}, transitionRoot: this };
     };
     try {
-      const m = create({ animation: api.createElementViewTransitionDriver({ distance: 7 }) });
+      const m = create({ animation: api.createElementViewTransitionDriver() });
       const id = m.show({ message: 'State', persistent: true });
       const element = item(m, id);
       await waitMicrotasks();
       equal(element.hasAttribute('style'), false);
       equal(element.hasAttribute('data-a11y-toast-view-transition-phase'), false);
+      equal(element.hasAttribute('data-a11y-toast-view-transition-state'), false);
+      equal(element.hasAttribute('data-a11y-toast-view-transition-direction'), false);
       m.dismiss(id);
       await waitMicrotasks();
       equal(element.isConnected, false);
@@ -1669,6 +1671,8 @@ export async function runSuite(api, capabilities = { layout: true }) {
       await waitMicrotasks();
       equal(element.hasAttribute('style'), false);
       equal(element.hasAttribute('data-a11y-toast-view-transition-phase'), false);
+      equal(element.hasAttribute('data-a11y-toast-view-transition-state'), false);
+      equal(element.hasAttribute('data-a11y-toast-view-transition-direction'), false);
       equal(element.isConnected, false);
     } finally {
       if (original === undefined) delete Element.prototype.startViewTransition;

@@ -46,7 +46,7 @@ describe('experimental element-scoped View Transition driver', () => {
     element.setAttribute('style', 'outline-width: 2px;');
     element.setAttribute('data-a11y-toast-view-transition-phase', 'authored');
     const snapshot = toast.getToast(id)!;
-    const driver = createElementViewTransitionDriver({ distance: 6 });
+    const driver = createElementViewTransitionDriver();
 
     await driver.enter!({
       instance: toast,
@@ -59,6 +59,8 @@ describe('experimental element-scoped View Transition driver', () => {
 
     expect(transitionRoot).toBe(element);
     expect(element.getAttribute('style')).toBe('outline-width: 2px;');
+    expect(element.hasAttribute('data-a11y-toast-view-transition-state')).toBe(false);
+    expect(element.hasAttribute('data-a11y-toast-view-transition-direction')).toBe(false);
     expect(element.getAttribute('data-a11y-toast-view-transition-phase')).toBe('authored');
 
     cleanups.push(() => { toast.destroy(); root.remove(); });
@@ -127,6 +129,8 @@ describe('experimental element-scoped View Transition driver', () => {
     await expect(pending).rejects.toMatchObject({ name: 'AbortError' });
     expect(element.hasAttribute('style')).toBe(false);
     expect(element.hasAttribute('data-a11y-toast-view-transition-phase')).toBe(false);
+    expect(element.hasAttribute('data-a11y-toast-view-transition-state')).toBe(false);
+    expect(element.hasAttribute('data-a11y-toast-view-transition-direction')).toBe(false);
 
     cleanups.push(() => { toast.destroy(); root.remove(); });
   });
