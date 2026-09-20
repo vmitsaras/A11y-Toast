@@ -25,7 +25,10 @@ export const docs = {
     { name: 'destroy()', type: '() => void', description: 'Idempotent teardown; cancel timers, scheduled announcements and action signals; preserve authored DOM.' },
     { name: 'addToastEventListener(target, type, listener, options)', type: 'Typed DOM-event helper returning cleanup', description: 'Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.' },
   ],
-  examples: [{ name: 'Playground', description: 'One page with content/timing/animation controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  examples: [{ name: 'Playground', description: 'One page with content/timing/animation/progress controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  addons: [
+    { name: 'Progress', export: 'a11y-toast/addons/progress', stylesheet: 'a11y-toast/addons/progress.css', description: 'Visual-only timeout progress synchronized from core lifecycle snapshots; no live or progressbar semantics.' },
+  ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',

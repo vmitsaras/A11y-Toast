@@ -166,6 +166,35 @@ Drivers are not add-ons: they participate in generated DOM lifetime. They must t
 
 The package does not yet ship GSAP or View Transition drivers; those remain TOAST-260 follow-up work against this contract.
 
+## Visual timeout progress add-on
+
+The optional progress add-on adds a decorative remaining-time indicator to visible timed notifications without creating another timer or accessibility announcement.
+
+```ts
+import { createToast } from 'a11y-toast';
+import { createProgressAddon } from 'a11y-toast/addons/progress';
+import 'a11y-toast/styles.css';
+import 'a11y-toast/addons/progress.css';
+
+const toast = createToast(root, {
+  addons: [createProgressAddon()],
+});
+```
+
+It appears only for visible timed notifications. Persistent, loading, queued, and default actionable/urgent notifications do not get a progress indicator until their state actually becomes timed and visible.
+
+The add-on reads the core's authoritative `duration`, `remaining`, pause reasons, and animation phase. It uses lifecycle-boundary CSS transform transitions rather than a repeating JavaScript timer or animation-frame loop. Focus/hover/API/action/document pauses freeze the indicator, and updates resynchronize it from the toast snapshot.
+
+The progress DOM is `aria-hidden`, has no `progressbar` role, and is never a live region. It communicates no required information. Under `prefers-reduced-motion: reduce`, the optional progress surface is hidden.
+
+Public styling variables:
+
+- `--a11y-toast-progress-height`
+- `--a11y-toast-progress-track`
+- `--a11y-toast-progress-color`
+
+Unregistering the add-on removes its generated DOM without changing the toast timer or lifecycle.
+
 ## Add-ons and ecosystem integration
 
 ```ts

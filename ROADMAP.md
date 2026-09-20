@@ -44,9 +44,9 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 
 Windows NVDA/JAWS and mobile AT are not claimed verified. Record actual environment coverage rather than inferring it from Chromium DOM behavior.
 
-## Optional enhancements — not started
+## Optional enhancements
 
-TOAST-200: visual timeout progress add-on.
+TOAST-200: **Complete** — visual timeout progress add-on; separate JS/CSS exports, no polling loop, pause/resume/update/loading lifecycle synchronization, non-semantic visual output, reduced-motion suppression.
 TOAST-210: promise/loading orchestration add-on.
 TOAST-220: explicit key-based deduplication policy.
 TOAST-230: generic DOM-event adapter with explicit announcement ownership.
@@ -54,8 +54,12 @@ TOAST-240: first real ecosystem adapter selected from an actual use case.
 TOAST-250: experimental ariaNotify transport evaluation.
 TOAST-260: optional GSAP and experimental element-scoped View Transition drivers using the frozen TOAST-180 contract.
 
-A history/notification-center capability is also out of the initial scope. None of the above should be marked implemented because the old prototype had something similar.
+A history/notification-center capability is also out of the initial scope. Unimplemented items above are not credited from the old prototype.
 
 ## Next unblocked slice
 
 TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess the two moderate development-only Vitest/@vitest-mocker audit findings under `npm ci`. TOAST-120 macOS VoiceOver and actual browser zoom remain separate manual acceptance gates. Do not begin optional add-ons until confirmed core accessibility findings are resolved. Publication remains a separate explicit decision.
+
+## Next optional enhancement slice
+
+TOAST-210 — promise/loading orchestration add-on. Keep orchestration outside core, retain one toast ID across loading → success/error, require caller-supplied user-facing error copy, and ignore late promise settlement after dismissal/destroy.
