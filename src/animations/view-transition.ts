@@ -39,6 +39,20 @@ function restoreAttribute(element: HTMLElement, name: string, value: string | nu
   else element.setAttribute(name, value);
 }
 
+function restoreStyle(element: HTMLElement, value: string | null): void {
+  if (value !== null) {
+    element.setAttribute('style', value);
+    return;
+  }
+  // Chromium may preserve an empty style attribute after CSSStyleDeclaration
+  // mutations even when removeAttribute() ran earlier. Clear the driver-owned
+  // declarations and serialized cssText before removing the attribute.
+  element.style.removeProperty('opacity');
+  element.style.removeProperty('translate');
+  element.style.cssText = '';
+  element.removeAttribute('style');
+}
+
 function animateNow(
   context: ToastAnimationContext,
   distance: number,
@@ -55,7 +69,7 @@ function animateNow(
   const travel = direction(context, distance);
 
   const restore = (): void => {
-    restoreAttribute(scope, 'style', initialStyle);
+    restoreStyle(scope, initialStyle);
     restoreAttribute(scope, PHASE_ATTRIBUTE, initialPhase);
   };
 
