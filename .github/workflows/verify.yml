@@ -1,0 +1,55 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install development dependencies
+        run: npm install --no-fund
+
+      - name: Build package
+        run: npm run build
+
+      - name: Typecheck runtime source
+        run: npm run typecheck
+
+      - name: Typecheck public declaration consumer
+        run: npx tsc --strict --noEmit --target ES2022 --module ESNext --moduleResolution Bundler test/consumer.ts
+
+      - name: Run Vitest
+        run: npm test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run served-browser lifecycle suite
+        run: npm run test:browser
+
+      - name: Verify package exports
+        run: npm run test:package
+
+      - name: Verify package contents
+        run: npm run pack:check
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
