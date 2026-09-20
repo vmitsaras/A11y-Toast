@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { gsap } from 'gsap';
-import { Flip } from 'gsap/Flip';
+import Flip from 'gsap/Flip';
 import { createToast } from '../src/index.js';
 import { createGsapFlipLayoutAddon } from '../src/animations/gsap-flip.js';
 
