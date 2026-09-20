@@ -24,7 +24,7 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 | TOAST-090 Add-on lifecycle | Complete | Setup/subscriptions/hooks/cleanup/failure isolation tested. |
 | TOAST-100 Default CSS | Complete | BEM/tokens, logical placement, reduced motion and forced-colors emulation checked. |
 | TOAST-110 One-page playground | Complete | Real compiled runtime used; content/options/queue/loading/retry/log workflows checked, and the normal served-browser lifecycle suite passes in GitHub Actions. |
-| TOAST-115 Optional visual tone label | Complete + hardened | `showToneLabel` defaults to true. False visually hides `.a11y-toast__tone` without removing it from the accessibility tree; invalid data tokens fall back safely, generated announcement wording is unchanged, and the playground explains the state constraint. |
+| TOAST-115 Optional visual tone label | Complete + hardened | `showToneLabel` defaults to true. False visually hides `.a11y-toast__tone` without removing it from the accessibility tree; invalid data tokens fall back safely, generated announcement wording is unchanged, and the playground explains the state constraint. Final CI: 79/79 browser scenarios, 0 uncaught page errors. |
 
 ## Verification and release readiness
 
