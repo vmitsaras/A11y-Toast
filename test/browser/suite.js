@@ -614,5 +614,147 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(Number.parseFloat(bar.style.transitionDuration), 750);
   });
 
+  await test('102 promise orchestration updates one retained ID from loading to success', async () => {
+    let resolve;
+    const operation = new Promise(r => { resolve = r; });
+    const m = create();
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Saving',
+      success: { message: 'Saved', duration: 5000 },
+      error: 'Could not save',
+    });
+    ok(handle.id);
+    equal(m.getToast(handle.id).tone, 'loading');
+    equal(m.getToast(handle.id).persistent, true);
+    resolve('value');
+    await waitMicrotasks();
+    equal(m.getToast(handle.id).message, 'Saved');
+    equal(m.getToast(handle.id).tone, 'success');
+    equal(m.getToasts().length, 1);
+    equal(await handle.promise, 'value');
+  });
+
+  await test('103 promise rejection uses caller copy and never exposes raw rejection text', async () => {
+    let reject;
+    const operation = new Promise((_, r) => { reject = r; });
+    const m = create();
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Saving',
+      success: 'Saved',
+      error: { message: 'Could not save. Try again.', persistent: true },
+    });
+    reject(new Error('secret backend detail'));
+    await handle.promise.catch(() => {});
+    await waitMicrotasks();
+    const toast = m.getToast(handle.id);
+    equal(toast.message, 'Could not save. Try again.');
+    equal(toast.tone, 'error');
+    equal(toast.persistent, true);
+    ok(!toast.message.includes('secret backend detail'));
+  });
+
+  await test('104 dismissing the loading toast stops orchestration and late resolution is ignored', async () => {
+    let resolve;
+    const operation = new Promise(r => { resolve = r; });
+    const m = create();
+    const updates = events(m, api.TOAST_EVENTS.update);
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Working', success: 'Done', error: 'Failed',
+    });
+    m.dismiss(handle.id);
+    resolve('late');
+    await waitMicrotasks();
+    equal(m.getToast(handle.id), undefined);
+    equal(updates.length, 0);
+    equal(handle.stop(), false);
+  });
+
+  await test('105 destroying the manager ignores late rejection without leaking a toast update', async () => {
+    let reject;
+    const operation = new Promise((_, r) => { reject = r; });
+    const m = create();
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Working', success: 'Done', error: 'Friendly failure',
+    });
+    m.destroy();
+    reject(new Error('private failure'));
+    await handle.promise.catch(() => {});
+    await waitMicrotasks();
+    equal(m.isDestroyed, true);
+    equal(handle.stop(), false);
+  });
+
+  await test('106 promise can settle while queued and displays the latest outcome when promoted', async () => {
+    let resolve;
+    const operation = new Promise(r => { resolve = r; });
+    const m = create({ maxVisible: 1 });
+    const blocker = m.show({ message: 'Blocker', persistent: true });
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Queued work', success: { message: 'Queued work done', duration: 5000 }, error: 'Queued work failed',
+    });
+    equal(m.getToast(handle.id).state, 'queued');
+    resolve('done');
+    await waitMicrotasks();
+    equal(m.getToast(handle.id).message, 'Queued work done');
+    equal(m.getToast(handle.id).state, 'queued');
+    m.dismiss(blocker);
+    equal(m.getToast(handle.id).state, 'visible');
+    equal(m.getToast(handle.id).tone, 'success');
+  });
+
+  await test('107 promise orchestration composes with progress add-on after loading becomes timed', async () => {
+    let resolve;
+    const operation = new Promise(r => { resolve = r; });
+    const m = create({ addons: [api.createProgressAddon()] });
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Working', success: { message: 'Done', duration: 5000 }, error: 'Failed',
+    });
+    equal(item(m, handle.id).querySelector('[data-a11y-toast-progress]'), null);
+    resolve('done');
+    await waitMicrotasks();
+    ok(item(m, handle.id).querySelector('[data-a11y-toast-progress]'));
+  });
+
+  await test('108 stop detaches orchestration without dismissing or cancelling the underlying promise', async () => {
+    let resolve;
+    const operation = new Promise(r => { resolve = r; });
+    const m = create();
+    const handle = api.trackToastPromise(m, operation, {
+      loading: 'Working', success: 'Done', error: 'Failed',
+    });
+    equal(handle.stop(), true);
+    equal(handle.stop(), false);
+    ok(m.getToast(handle.id));
+    resolve('value');
+    equal(await handle.promise, 'value');
+    await waitMicrotasks();
+    equal(m.getToast(handle.id).message, 'Working');
+    equal(m.getToast(handle.id).tone, 'loading');
+  });
+
+  await test('109 invalid promise state copy fails before creating a loading toast', () => {
+    const m = create();
+    throws(() => api.trackToastPromise(m, Promise.resolve(), {
+      loading: 'Working', success: '  ', error: 'Failed',
+    }));
+    equal(m.getToasts().length, 0);
+    throws(() => api.trackToastPromise(m, Promise.resolve(), {
+      loading: 'Working', success: 'Done', error: '',
+    }));
+    equal(m.getToasts().length, 0);
+  });
+
+  await test('110 full queue returns a null orchestration ID while preserving promise pass-through', async () => {
+    const m = create({ maxVisible: 1, maxQueue: 0 });
+    m.show({ message: 'Blocker', persistent: true });
+    const handle = api.trackToastPromise(m, Promise.resolve(42), {
+      loading: 'Working', success: 'Done', error: 'Failed',
+    });
+    equal(handle.id, null);
+    equal(await handle.promise, 42);
+    await waitMicrotasks();
+    equal(m.getToasts().length, 1);
+  });
+
   return results;
 }

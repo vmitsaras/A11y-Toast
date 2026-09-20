@@ -23,7 +23,11 @@
       "types": "./dist/addons/progress.d.ts",
       "import": "./dist/addons/progress.js"
     },
-    "./addons/progress.css": "./dist/addons/progress.css"
+    "./addons/progress.css": "./dist/addons/progress.css",
+    "./addons/promise": {
+      "types": "./dist/addons/promise.d.ts",
+      "import": "./dist/addons/promise.js"
+    }
   },
   "files": [
     "dist",

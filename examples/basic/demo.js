@@ -1,5 +1,6 @@
 import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/index.js';
 import { createProgressAddon } from '../../dist/addons/progress.js';
+import { trackToastPromise } from '../../dist/addons/promise.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
@@ -134,6 +135,24 @@ document.querySelector('[data-finish-loading]').addEventListener('click', () => 
   loadingId = null;
   sync(manager);
 }));
+document.querySelector('[data-promise-success]').addEventListener('click', event => safely(() => {
+  const operation = new Promise(resolve => window.setTimeout(() => resolve('ok'), 900));
+  const handle = trackToastPromise(manager, operation, {
+    loading: { message: 'Saving a demo item…', title: 'Promise example', origin: event.currentTarget },
+    success: { message: 'The demo item was saved.', title: 'Promise example', duration: 5000 },
+    error: { message: 'The demo item could not be saved. Try again.', title: 'Promise example', persistent: true },
+  });
+  void handle.promise;
+}));
+document.querySelector('[data-promise-error]').addEventListener('click', event => safely(() => {
+  const operation = new Promise((_, reject) => window.setTimeout(() => reject(new Error('Intentional private demo failure')), 900));
+  const handle = trackToastPromise(manager, operation, {
+    loading: { message: 'Saving a demo item…', title: 'Promise example', origin: event.currentTarget },
+    success: { message: 'The demo item was saved.', title: 'Promise example', duration: 5000 },
+    error: { message: 'The demo item could not be saved. Try again.', title: 'Promise example', persistent: true },
+  });
+  void handle.promise.catch(() => {});
+}));
 document.querySelector('[data-retry]').addEventListener('click', event => safely(() => {
   let attempted = false;
   manager.show({
@@ -154,7 +173,7 @@ document.querySelector('[data-clear-log]').addEventListener('click', () => log.r
 
 initialize();
 document.querySelector('[data-controls]').disabled = false;
-for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
+for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
 document.querySelector('[data-boot]').hidden = true;
 window.addEventListener('pagehide', event => {
   if (event.persisted) return; // BFCache resumes the same live manager; visibility handles its timers.
