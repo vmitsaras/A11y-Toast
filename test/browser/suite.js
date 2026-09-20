@@ -1158,5 +1158,92 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(calls, 0);
   });
 
+  await test('133 custom announcement transport commits without writing the live-region DOM', () => {
+    const c = fakeClock();
+    const calls = [];
+    const m = create({
+      announcementTransport: {
+        name: 'test-transport',
+        announce(context) {
+          calls.push([context.message, context.priority, context.liveRegion.textContent]);
+          return { transport: 'test-transport', fallback: false };
+        },
+      },
+    });
+    const announced = events(m, api.TOAST_EVENTS.announce);
+    m.show({ message: 'Custom transport', priority: 'polite', persistent: true });
+    c.tick(100);
+    equal(calls, [['Custom transport', 'polite', '']]);
+    equal(m.root.querySelector('[role="status"]').textContent, '');
+    equal(announced.map(row => [row.transport, row.fallback]), [['test-transport', false]]);
+  });
+
+  await test('134 announcement transport receives assertive priority unchanged', () => {
+    const c = fakeClock();
+    const priorities = [];
+    const m = create({
+      announcementTransport: {
+        name: 'priority-probe',
+        announce(context) {
+          priorities.push(context.priority);
+          return { transport: 'priority-probe', fallback: false };
+        },
+      },
+    });
+    m.show({ message: 'Urgent', priority: 'assertive', persistent: true });
+    c.tick(100);
+    equal(priorities, ['assertive']);
+  });
+
+  await test('135 transport failures emit announcement-error without breaking toast lifecycle', () => {
+    const c = fakeClock();
+    const m = create({
+      announcementTransport: {
+        name: 'failing-transport',
+        announce() { throw new Error('Transport failed'); },
+      },
+    });
+    const announced = events(m, api.TOAST_EVENTS.announce);
+    const errors = events(m, api.TOAST_EVENTS.announcementError);
+    const id = m.show({ message: 'Still visible', persistent: true });
+    c.tick(100);
+    ok(m.getToast(id));
+    equal(announced.length, 0);
+    equal(errors.length, 1);
+    equal(errors[0].transport, 'failing-transport');
+  });
+
+  await test('136 custom transport keeps existing coalescing semantics', () => {
+    const c = fakeClock();
+    const messages = [];
+    const m = create({
+      announcementTransport: {
+        name: 'coalesce-probe',
+        announce(context) {
+          messages.push(context.message);
+          return { transport: 'coalesce-probe', fallback: false };
+        },
+      },
+    });
+    const id = m.show({ message: 'First', persistent: true });
+    m.update(id, { message: 'Second' });
+    m.update(id, { message: 'Third' });
+    c.tick(100);
+    equal(messages, ['Third']);
+  });
+
+  await test('137 priority off bypasses an injected announcement transport', () => {
+    const c = fakeClock(); let calls = 0;
+    const m = create({
+      announcementTransport: {
+        name: 'off-probe',
+        announce() { calls++; return { transport: 'off-probe', fallback: false }; },
+      },
+    });
+    m.show({ message: 'Silent', priority: 'off', persistent: true });
+    c.tick(5000);
+    equal(calls, 0);
+  });
+
   return results;
 }

@@ -1,11 +1,12 @@
-import type { ToastId, ToastPriority } from './types.js';
+import type { ToastAnnouncementTransport, ToastAnnouncementTransportResult, ToastId, ToastPriority } from './types.js';
 
 type Priority = Exclude<ToastPriority, 'off'>;
 interface Entry {
   id: ToastId;
   message: string;
   valid: () => boolean;
-  committed: () => void;
+  committed: (result: ToastAnnouncementTransportResult) => void;
+  failed: (error: unknown, transport: string) => void;
 }
 interface Channel {
   region: HTMLElement;
@@ -13,13 +14,26 @@ interface Channel {
   timer: number | null;
   stage: 'idle' | 'write' | 'gap';
 }
-/** Schedules DOM writes, not speech. Browsers expose no live-region speech-complete event. */
+export const LIVE_REGION_TRANSPORT: ToastAnnouncementTransport = Object.freeze({
+  name: 'live-region',
+  announce({ message, liveRegion }) {
+    liveRegion.textContent = message;
+    return Object.freeze({ transport: 'live-region', fallback: false });
+  },
+});
+
+/** Schedules announcement transport commits, not speech. Browsers expose no speech-complete event. */
 export class LiveAnnouncer {
   private readonly channels: Record<Priority, Channel>;
   private paused = false;
   private destroyed = false;
 
-  constructor(private readonly win: Window, polite: HTMLElement, assertive: HTMLElement) {
+  constructor(
+    private readonly win: Window,
+    polite: HTMLElement,
+    assertive: HTMLElement,
+    private readonly transport: ToastAnnouncementTransport = LIVE_REGION_TRANSPORT,
+  ) {
     this.channels = {
       polite: { region: polite, pending: new Map(), timer: null, stage: 'idle' },
       assertive: { region: assertive, pending: new Map(), timer: null, stage: 'idle' },
@@ -80,7 +94,23 @@ export class LiveAnnouncer {
         if (candidate.valid()) { entry = candidate; break; }
       }
       if (!entry) return;
-      channel.region.textContent = entry.message;
+      let result: ToastAnnouncementTransportResult;
+      try {
+        result = this.transport.announce({
+          message: entry.message,
+          priority: channel === this.channels.assertive ? 'assertive' : 'polite',
+          liveRegion: channel.region,
+        }) ?? Object.freeze({ transport: this.transport.name, fallback: false });
+      } catch (error) {
+        channel.stage = 'gap';
+        channel.timer = this.win.setTimeout(() => {
+          channel.timer = null;
+          channel.stage = 'idle';
+          this.pump(channel);
+        }, 1000);
+        entry.failed(error, this.transport.name);
+        return;
+      }
       channel.stage = 'gap';
       // Register the next scheduling boundary before invoking application code.
       channel.timer = this.win.setTimeout(() => {
@@ -88,7 +118,7 @@ export class LiveAnnouncer {
         channel.stage = 'idle';
         this.pump(channel);
       }, 1000);
-      entry.committed();
+      entry.committed(result);
     }, 100);
   }
 }

@@ -1,4 +1,4 @@
-import { LiveAnnouncer } from './LiveAnnouncer.js';
+import { LIVE_REGION_TRANSPORT, LiveAnnouncer } from './LiveAnnouncer.js';
 import { addToastEventListener, TOAST_EVENTS } from './events.js';
 import type { ToastEventMap, ToastEventName } from './events.js';
 import { isHTMLElement, normalizeToast, resolveOptions } from './options.js';
@@ -126,7 +126,10 @@ export class A11yToast implements ToastInstance {
     this.polite.setAttribute(ATTR.role, 'status');
     this.assertive.setAttribute(ATTR.role, 'alert');
     for (const region of [this.polite, this.assertive]) region.setAttribute(ATTR.atomic, 'true');
-    this.announcer = new LiveAnnouncer(win, this.polite, this.assertive);
+    const announcementTransport = this.options.announcementTransport === 'live-region'
+      ? LIVE_REGION_TRANSPORT
+      : this.options.announcementTransport;
+    this.announcer = new LiveAnnouncer(win, this.polite, this.assertive, announcementTransport);
     this.announcer.setPaused(this.doc.hidden);
     for (const name of [CLASSES.host, CLASSES.initialized]) {
       if (!root.classList.contains(name)) { root.classList.add(name); this.addedClasses.push(name); }
@@ -536,10 +539,19 @@ export class A11yToast implements ToastInstance {
     this.announcer.request(priority, {
       id: record.id, message,
       valid: () => this.owns(record) && record.state === 'visible' && this.root.isConnected && record.data.priority === priority,
-      committed: () => {
+      committed: result => {
         if (!this.owns(record)) return;
         record.lastAnnouncement = signature;
-        this.emit(TOAST_EVENTS.announce, { toast: this.snapshot(record), message, priority });
+        this.emit(TOAST_EVENTS.announce, {
+          toast: this.snapshot(record), message, priority,
+          transport: result.transport, fallback: result.fallback,
+        });
+      },
+      failed: (error, transport) => {
+        if (!this.owns(record)) return;
+        this.emit(TOAST_EVENTS.announcementError, {
+          toast: this.snapshot(record), message, priority, transport, error,
+        });
       },
     });
   }

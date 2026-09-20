@@ -39,6 +39,10 @@
     "./adapters/menu-button-async-state": {
       "types": "./dist/adapters/menu-button-async-state.d.ts",
       "import": "./dist/adapters/menu-button-async-state.js"
+    },
+    "./transports/aria-notify": {
+      "types": "./dist/transports/aria-notify.d.ts",
+      "import": "./dist/transports/aria-notify.js"
     }
   },
   "files": [

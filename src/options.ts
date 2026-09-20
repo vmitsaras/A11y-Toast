@@ -1,4 +1,4 @@
-import type { ResolvedToastOptions, ToastAction, ToastAnimationDriver, ToastAnimationMode, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
+import type { ResolvedToastOptions, ToastAction, ToastAnimationDriver, ToastAnimationMode, ToastAnnouncementTransport, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
 
 export const TONES = Object.freeze(['neutral', 'info', 'success', 'warning', 'error', 'loading'] as const);
 export const POSITIONS = Object.freeze(['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end'] as const);
@@ -9,7 +9,7 @@ export const DEFAULT_LABELS: Readonly<ToastLabels> = Object.freeze({
   tones: Object.freeze({ neutral: 'Notification', info: 'Information', success: 'Success', warning: 'Warning', error: 'Error', loading: 'In progress' }),
 });
 export const DEFAULT_OPTIONS: ResolvedToastOptions = Object.freeze({
-  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', animation: 'css', showToneLabel: true, labels: DEFAULT_LABELS,
+  duration: 5000, maxVisible: 3, maxQueue: 10, position: 'bottom-end', priority: 'polite', animation: 'css', announcementTransport: 'live-region', showToneLabel: true, labels: DEFAULT_LABELS,
 });
 export function parseBoolean(value: unknown, fallback: boolean): boolean {
   if (value === true || value === 'true') return true;
@@ -32,6 +32,15 @@ function text(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value.trim() : fallback;
 }
 function label(value: unknown, fallback: string): string { return text(value) || fallback; }
+function resolveAnnouncementTransport(value: unknown): ResolvedToastOptions['announcementTransport'] {
+  if (value === undefined || value === 'live-region') return 'live-region';
+  if (!value || typeof value !== 'object') return 'live-region';
+  const transport = value as ToastAnnouncementTransport;
+  const name = text(transport.name);
+  if (!name) throw new TypeError('Toast announcement transport requires a non-empty name.');
+  if (typeof transport.announce !== 'function') throw new TypeError('Toast announcement transport requires an announce function.');
+  return Object.freeze({ name, announce: transport.announce });
+}
 function resolveAnimation(value: unknown): ResolvedToastOptions['animation'] {
   if (typeof value === 'string') return member<ToastAnimationMode>(value, ANIMATIONS, DEFAULT_OPTIONS.animation as ToastAnimationMode);
   if (!value || typeof value !== 'object') return DEFAULT_OPTIONS.animation;
@@ -55,6 +64,7 @@ export function resolveOptions(root: HTMLElement, options: ToastOptions): Resolv
     position: member<ToastPosition>(options.position ?? d.a11yToastPosition, POSITIONS, DEFAULT_OPTIONS.position),
     priority: member<ToastPriority>(options.priority ?? d.a11yToastPriority, PRIORITIES, DEFAULT_OPTIONS.priority),
     animation: resolveAnimation(options.animation ?? d.a11yToastAnimation),
+    announcementTransport: resolveAnnouncementTransport(options.announcementTransport),
     showToneLabel: parseBoolean(options.showToneLabel ?? d.a11yToastShowToneLabel, DEFAULT_OPTIONS.showToneLabel),
     labels: Object.freeze({
       region: label(labels?.region, DEFAULT_LABELS.region), dismiss: label(labels?.dismiss, DEFAULT_LABELS.dismiss),

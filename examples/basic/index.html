@@ -57,6 +57,8 @@
                 <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
                 <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="none">None</option></select></div>
                 <p class="toast-demo__hint" id="animation-hint">Animation is decorative. Reduced-motion preference skips it. Change this option when no notification surface is active.</p>
+                <div class="toast-demo__field"><label for="announcement-transport">Announcement transport</label><select id="announcement-transport" name="announcementTransport" aria-describedby="announcement-transport-hint"><option value="live-region" selected>Live regions — default</option><option value="aria-notify">ariaNotify — experimental</option></select></div>
+                <p class="toast-demo__hint" id="announcement-transport-hint">Experimental ariaNotify falls back to live regions when the API is unavailable. A Permissions Policy can still block ariaNotify silently, so this is not delivery proof.</p>
                 <div class="toast-demo__field"><label for="announcement">Announcement override <span>(optional)</span></label><input id="announcement" name="announcement" maxlength="2000" placeholder="Otherwise, the visible content is used"></div>
                 <label class="toast-demo__check"><input name="dismissible" type="checkbox" checked> Show a close button</label>
                 <label class="toast-demo__check"><input id="show-tone-label" name="showToneLabel" type="checkbox" checked aria-describedby="tone-label-hint"> Show tone label visually</label>
@@ -131,7 +133,7 @@
     </div>
     <section class="toast-demo__events" aria-labelledby="events-title">
       <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">03 / OBSERVABILITY</p><h2 id="events-title">Lifecycle events</h2></div><button class="toast-demo__button" data-clear-log type="button" disabled>Clear log</button></div>
-      <p class="toast-demo__hint">Newest first · last 40 events · intentionally not a live region. “Announce” means a DOM write, not proof that speech finished.</p>
+      <p class="toast-demo__hint">Newest first · last 40 events · intentionally not a live region. “Announce” means the selected transport committed an announcement attempt, not proof that speech finished.</p>
       <ol class="toast-demo__log" data-log tabindex="0" aria-label="Lifecycle event history"></ol>
     </section>
     <footer class="toast-demo__footer"><span>Vanilla DOM · ESM · BEM CSS</span><span>One page. The actual built package.</span></footer>

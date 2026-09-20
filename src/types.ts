@@ -10,7 +10,23 @@ export type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' |
 export type ToastAnimationPhase = 'enter' | 'exit';
 export type ToastAnimationStatus = 'completed' | 'cancelled' | 'failed';
 export type ToastAnimationMode = 'css' | 'none';
+export type ToastAnnouncementPriority = Exclude<ToastPriority, 'off'>;
 export type ToastCleanup = () => void;
+
+export interface ToastAnnouncementTransportContext {
+  readonly message: string;
+  readonly priority: ToastAnnouncementPriority;
+  readonly liveRegion: HTMLElement;
+}
+export interface ToastAnnouncementTransportResult {
+  readonly transport: string;
+  readonly fallback: boolean;
+}
+export interface ToastAnnouncementTransport {
+  readonly name: string;
+  announce(context: ToastAnnouncementTransportContext): void | ToastAnnouncementTransportResult;
+}
+export type ToastAnnouncementTransportOption = 'live-region' | ToastAnnouncementTransport;
 
 export interface ToastAnimationContext {
   readonly instance: ToastInstance;
@@ -73,6 +89,8 @@ export interface ToastOptions {
   priority?: ToastPriority;
   /** Built-in CSS, no motion, or an injected engine-neutral animation driver. Defaults to css. */
   animation?: ToastAnimationOption;
+  /** Live regions by default, or an explicit announcement transport driver. */
+  announcementTransport?: ToastAnnouncementTransportOption;
   /** Controls whether the tone label is visually displayed. The text stays available to assistive technology and live announcements. Defaults to true. */
   showToneLabel?: boolean;
   labels?: Partial<Omit<ToastLabels, 'tones'>> & { tones?: Partial<Record<ToastTone, string>> };
@@ -85,6 +103,7 @@ export interface ResolvedToastOptions {
   readonly position: ToastPosition;
   readonly priority: ToastPriority;
   readonly animation: ToastAnimationMode | Readonly<ToastAnimationDriver>;
+  readonly announcementTransport: 'live-region' | Readonly<ToastAnnouncementTransport>;
   readonly showToneLabel: boolean;
   readonly labels: Readonly<ToastLabels>;
 }

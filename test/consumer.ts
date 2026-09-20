@@ -6,6 +6,7 @@ import { trackToastPromise } from 'a11y-toast/addons/promise';
 import { createDedupeController } from 'a11y-toast/addons/dedupe';
 import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
 import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu-button-async-state';
+import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -17,7 +18,8 @@ const animation: ToastAnimationDriver = {
   name: 'consumer-test',
   enter({ element, signal }) { if (!signal.aborted) void element; },
 };
-const toast = createToast(root, { addons: [logger, createProgressAddon()], animation });
+const experimentalTransport = createAriaNotifyTransport();
+const toast = createToast(root, { addons: [logger, createProgressAddon()], animation, announcementTransport: experimentalTransport });
 const input: ToastInput = { message: 'Saved', priority: 'polite', action: { label: 'Undo', onClick: async ({ signal }) => { if (signal.aborted) return; } } };
 const id = toast.show(input);
 if (id !== null) toast.update(id, { message: 'Updated' });

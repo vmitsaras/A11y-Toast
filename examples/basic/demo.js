@@ -3,12 +3,14 @@ import { createProgressAddon } from '../../dist/addons/progress.js';
 import { trackToastPromise } from '../../dist/addons/promise.js';
 import { createDedupeController } from '../../dist/addons/dedupe.js';
 import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
+import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
 const target = document.querySelector('#target');
 const position = form.elements.position;
 const animation = form.elements.animation;
+const announcementTransport = form.elements.announcementTransport;
 const showProgress = form.elements.showProgress;
 const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
@@ -48,6 +50,7 @@ function sync(source) {
   const surfaceActive = Boolean(root.querySelector('[data-a11y-toast-id]'));
   position.disabled = surfaceActive;
   animation.disabled = surfaceActive;
+  announcementTransport.disabled = surfaceActive;
   showProgress.disabled = surfaceActive;
   showToneLabel.disabled = surfaceActive;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
@@ -62,7 +65,7 @@ function sync(source) {
   }
 }
 function observe(event) {
-  const { instance, toast, reason, phase, driver, status } = event.detail;
+  const { instance, toast, reason, phase, driver, status, transport, fallback } = event.detail;
   const li = document.createElement('li');
   const time = document.createElement('time');
   const now = new Date(event.detail.timestamp);
@@ -71,7 +74,7 @@ function observe(event) {
   const name = document.createElement('span');
   name.textContent = event.type.replace('a11y-toast:', '');
   const detail = document.createElement('small');
-  detail.textContent = [toast?.message, reason, phase, driver, status].filter(Boolean).join(' · ') || 'Manager lifecycle';
+  detail.textContent = [toast?.message, reason, phase, driver, status, transport, fallback ? 'fallback' : ''].filter(Boolean).join(' · ') || 'Manager lifecycle';
   li.append(time, name, detail);
   log.prepend(li);
   while (log.children.length > 40) log.lastElementChild.remove();
@@ -102,6 +105,7 @@ function initialize() {
   manager = createToast(root, {
     position: position.value,
     animation: animation.value,
+    announcementTransport: announcementTransport.value === 'aria-notify' ? createAriaNotifyTransport() : 'live-region',
     addons: showProgress.checked ? [createProgressAddon()] : [],
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
@@ -149,6 +153,7 @@ function reinitializeManager() {
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
+announcementTransport.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
 adapterOwner.addEventListener('change', () => safely(initializeAdapter));
