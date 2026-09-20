@@ -259,6 +259,52 @@ Different keys do not block each other. Direct `toast.show({ key })` calls remai
 
 The controller reports `shown`, `updated`, `kept-existing`, `replaced`, `rejected`, or `stopped`, together with the resulting ID and previous ID where relevant. `destroy()` stops future controller work without changing existing toast state.
 
+## Generic DOM-event adapter
+
+The optional DOM-event adapter bridges an external `EventTarget` to toast commands without inspecting the source component's private state.
+
+```ts
+import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
+
+const adapter = createDomEventAdapter(toast, {
+  target: uploader,
+  announcementOwner: 'source',
+  bindings: [{
+    event: 'upload:status',
+    map(event) {
+      if (!(event instanceof CustomEvent)) return { type: 'ignore' };
+
+      if (event.detail.phase === 'done') {
+        return {
+          type: 'update',
+          correlationKey: event.detail.id,
+          patch: { message: 'Upload complete.', tone: 'success', duration: 5000 },
+        };
+      }
+
+      return {
+        type: 'show',
+        correlationKey: event.detail.id,
+        input: { message: 'Uploading…', tone: 'loading' },
+      };
+    },
+  }],
+});
+```
+
+Announcement ownership is mandatory:
+
+- `announcementOwner: 'toast'` — mapped toast priority is preserved and A11y Toast owns the announcement.
+- `announcementOwner: 'source'` — the adapter forces mapped show/update priority to `off`, so a source component that already announces does not create duplicate toast speech.
+
+Bindings map source events synchronously to `show`, `update`, `dismiss`, or `ignore` commands. A `correlationKey` retains the toast ID across source lifecycle events. Repeated `show` commands for the same active correlation update the retained toast instead of creating another record.
+
+Unknown update/dismiss correlations are safe no-ops. External toast dismissal clears adapter tracking. Mapper/command failures are isolated through optional `onError`; they do not break source event dispatch.
+
+`destroy()` removes every source/toast listener. `dismissTrackedOnDestroy: true` can additionally dismiss active adapter-tracked toasts when the adapter itself is disposed. Destroying the toast manager automatically disposes the adapter.
+
+Correlation keys are adapter-local lifecycle identifiers; they are independent from the optional key-deduplication controller.
+
 ## Add-ons and ecosystem integration
 
 ```ts

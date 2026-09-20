@@ -31,6 +31,9 @@ export const docs = {
     { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.' },
     { name: 'Key deduplication', export: 'a11y-toast/addons/dedupe', description: 'Explicit exact-key update/drop/replace policies; no message-text or automatic core deduplication.' },
   ],
+  adapters: [
+    { name: 'DOM events', export: 'a11y-toast/adapters/dom-events', description: 'Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy.' },
+  ],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',

@@ -9,6 +9,7 @@
 - Added TOAST-200 visual timeout progress as an optional add-on with separate JS/CSS exports. It observes authoritative remaining-time snapshots, pauses/resumes with core lifecycle, avoids live/progressbar semantics, and hides under reduced motion.
 - Added TOAST-210 promise/loading orchestration as a separate utility export. It retains one toast ID, requires caller-authored error copy, ignores late settlement after dismissal/destroy/stop, supports queued settlement, and does not cancel the underlying operation.
 - Added TOAST-220 explicit key-based deduplication as a separate controller export. It supports update-existing/drop-new/replace-existing policies, serializes same-key work, waits for visual exit before replacement, preserves normal update timer/queue semantics, and never deduplicates by message text.
+- Added TOAST-230 generic DOM-event adapter with explicit toast/source announcement ownership, correlated show/update/dismiss commands, duplicate correlated-show updates, mapper error isolation, and lifecycle-safe listener cleanup.
 
 - Added `showToneLabel` and `data-a11y-toast-show-tone-label`; hardening now visually hides `.a11y-toast__tone` without removing its text from assistive technology or changing generated announcement wording.
 - Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.
