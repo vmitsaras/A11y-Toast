@@ -18,9 +18,9 @@ Open `http://127.0.0.1:4173/examples/basic/`. Node.js 22 or later is the declare
 
 The demo is one page: content/options form, visible/queued selection, loading/update controls, action retry, six logical positions, and a deliberately non-live event log. No CDN, framework, backend, account, or storage is used.
 
-## Package preview
+## npm publication
 
-A release archive is not committed to this repository. Use `npm run build && npm pack` to inspect a local package archive. Verify ownership/availability of the npm name before any eventual publication; this README does not direct users to an unverified registry release.
+Publication to npm is planned alongside the author's other accessibility plugins. Until `a11y-toast` is actually published, use the repository for development and do not assume `npm install a11y-toast` resolves to this project.
 
 ## Usage
 
@@ -60,10 +60,11 @@ The runtime never auto-initializes on import. `A11yToast`, `createToast`, and `i
 | `maxQueue` | `10` | Integer from 0 to 100; 0 disables waiting. |
 | `position` | `bottom-end` | `top-start`, `top-center`, `top-end`, `bottom-start`, `bottom-center`, `bottom-end`. |
 | `priority` | `polite` | `off`, `polite`, or `assertive`; independent of visual tone. |
+| `showToneLabel` | `true` | Show the visible `.a11y-toast__tone` label. Set `false` to hide only that visual/browsable line; generated live-region wording is unchanged. |
 | `labels` | English strings | Partial overrides for `region`, `dismiss`, `actionFailed`, `empty`, and `tones`. |
 | `addons` | none | Explicit instance-local add-ons; no auto-discovery. |
 
-HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, and `data-a11y-toast-priority`. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
+HTML may supply `data-a11y-toast-duration`, `data-a11y-toast-max-visible`, `data-a11y-toast-max-queue`, `data-a11y-toast-position`, `data-a11y-toast-priority`, and `data-a11y-toast-show-tone-label`. Explicit JavaScript options take precedence. Invalid values fall back; strings such as `500ms`, negative counts, fractions, and empty numeric strings are not partially parsed.
 
 Options, labels, and exposed snapshots are frozen. No configure/set-options API is included in this release.
 
