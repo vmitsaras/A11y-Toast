@@ -37,7 +37,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-05 | Showing never steals focus; actions/dismissal/update have safe ownership and recovery. | Browser 09, 40–48, 59–60, 65–75; demo checks. |
 | AC-06 | Lifecycle snapshots, subscriptions, add-ons and cleanup are isolated and removable. | Browser 03, 10, 49–64, 72, 76–77. |
 | AC-07 | BEM styling and one real-build demo support narrow layouts, motion preference and forced colors. | UI checks, screenshots, stylesheet. |
-| AC-07A | Animation is interruptible and cannot change announcement semantics, consume timed lifetime during entrance, leave exiting controls interactive, or promote the queue before exit completion. | Browser 80–86; CSS stylesheet/driver contract. |
+| AC-07A | Animation is interruptible and cannot change announcement semantics, consume timed lifetime during entrance, leave exiting controls interactive, promote the queue before exit completion, or continue stale settlement after a re-entrant destroy. Multi-exit and hidden-document cancellation preserve queue ordering. | Browser 80–94; CSS stylesheet/driver contract. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 

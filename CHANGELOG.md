@@ -5,6 +5,7 @@
 - Added the TOAST-180 engine-neutral animation lifecycle: `css`, `none`, or an injected driver; typed start/end/error events; abort signals; reduced-motion and hidden-document safety.
 - Added TOAST-185 CSS entrance/exit animation. Logical dismissal remains immediate, exiting DOM is inert/aria-hidden, queue promotion waits for exit completion, and timed lifetime begins after entrance settles.
 - Added public motion CSS variables and CSS/None controls to the playground.
+- Hardened animation re-entrancy, batch dismissal, hidden-document cancellation and independent exit ordering; stale completion now stops when animation observers destroy the manager.
 
 - Added `showToneLabel` and `data-a11y-toast-show-tone-label`; hardening now visually hides `.a11y-toast__tone` without removing its text from assistive technology or changing generated announcement wording.
 - Added the tone-label option to the single-page playground and clarified that npm publication is planned rather than currently available.

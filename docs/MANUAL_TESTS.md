@@ -16,7 +16,7 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-10 | Add an action, activate it, then use Test action retry twice. | Action/retry labels are discoverable; first failure is understandable and remains available; success updates, not duplicates. | Pending |
 | M-11 | Focus Close and dismiss. | Focus returns to a meaningful surviving origin. No keyboard trap or unexplained move to document body. | Pending |
 | M-12 | Programmatically update a focused action's message, then remove its action. | The stable control keeps focus for content-only change; a removed control receives a deliberate fallback. | Pending |
-| M-13 | Dismiss all, including queued items. | No flash/announcement of queued items during clear. Demo focus remains on an enabled useful control. | Pending |
+| M-13 | Dismiss all, including queued items, with CSS animation enabled and several visible items. | No flash/announcement of queued items during clear; multiple exits may finish visually, but no cleared item is promoted/revived. Demo focus remains on an enabled useful control. | Pending |
 | M-14 | Browser zoom at 200%, then 400%; long message/action labels. | Content reflows, list scrolls by keyboard, close/action remain reachable, focused page controls are not completely obscured. | Pending |
 | M-15 | Enable reduced motion and OS contrast/appearance settings. | No required movement; visible text, borders and focus remain intelligible. | Pending |
 | M-16 | Put a host in the application's real modal/route scope; dispose/recreate its view. | No inaccessible out-of-scope action, stale speech or leaked callback; surrounding app explicitly owns navigation focus. | Pending / integration-specific |

@@ -32,7 +32,7 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 | --- | --- | --- |
 | TOAST-180 Animation lifecycle/driver contract | **Complete** | `css`, `none`, or injected driver; animation phase snapshot; typed start/end/error events; AbortSignal interruption; reduced-motion/hidden-document safety; timer starts after entrance. |
 | TOAST-185 Built-in CSS entrance + exit | **Complete** | Logical dismissal remains immediate; exiting surfaces are inert + aria-hidden and reserve their slot until exit completion. Public duration/ease/distance CSS variables added. Browser contract passes 86/86. |
-| TOAST-190 Animation interruption/batch hardening | Not started | Expand re-entrant/dismissAll/visibility stress tests and demo acceptance before third-party drivers. |
+| TOAST-190 Animation interruption/batch hardening | **Complete** | Re-entrant animation observers, multi-exit `dismissAll()`, hidden-document enter/exit cancellation, destroy-during-settlement, and ordered queue-slot release are hardened. Browser contract passes 94/94. |
 
 ## Verification and release readiness
 
