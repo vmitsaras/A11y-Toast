@@ -10,7 +10,7 @@ export async function runSuite(api, capabilities = { layout: true }) {
   const waitMicrotasks = async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); };
   const host = () => { const root = document.createElement('div'); root.dataset.a11yToast = ''; fixture.append(root); return root; };
   const trigger = () => { const b = document.createElement('button'); b.textContent = 'Origin'; fixture.append(b); return b; };
-  const create = (options = {}, root = host()) => { const instance = api.createToast(root, options); instances.push(instance); return instance; };
+  const create = (options = {}, root = host()) => { const instance = api.createToast(root, { animation: 'none', ...options }); instances.push(instance); return instance; };
   const item = (m, id) => m.root.querySelector(`[data-a11y-toast-id="${id}"]`);
   const events = (m, type) => { const rows = []; m.root.addEventListener(type, event => rows.push(event.detail)); return rows; };
   const hidden = value => { Object.defineProperty(document, 'hidden', { configurable: true, value }); document.dispatchEvent(new Event('visibilitychange')); };
@@ -247,6 +247,130 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const tone = item(shownManager, id).querySelector('.a11y-toast__tone');
     equal(tone.classList.contains('a11y-toast__tone--visually-hidden'), false);
   });
+
+  await test('80 animation defaults to css and invalid custom drivers fail before initialization', () => {
+    const root = host();
+    const m = api.createToast(root);
+    instances.push(m);
+    equal(m.options.animation, 'css');
+    equal(m.root.querySelector('.a11y-toast-region__viewport').dataset.a11yToastAnimation, 'css');
+    m.destroy();
+    throws(() => create({ animation: { name: 'empty-driver' } }, root));
+  });
+
+  await test('81 custom entrance delays timeout until animation completion', async () => {
+    const c = fakeClock(); let resolveEnter, signal;
+    const driver = { name: 'test-driver', enter(context) {
+      signal = context.signal;
+      return new Promise(resolve => { resolveEnter = resolve; });
+    }};
+    const m = create({ animation: driver });
+    const starts = events(m, api.TOAST_EVENTS.animationStart);
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    const id = m.show({ message: 'Animated', duration: 1000 });
+    equal(m.getToast(id).animationPhase, 'enter');
+    equal(starts.map(row => [row.phase, row.driver]), [['enter', 'test-driver']]);
+    c.tick(5000);
+    equal(m.getToast(id).remaining, 1000);
+    ok(!signal.aborted);
+    resolveEnter();
+    await waitMicrotasks();
+    equal(m.getToast(id).animationPhase, null);
+    equal(ends.map(row => [row.phase, row.status]), [['enter', 'completed']]);
+    c.tick(999); ok(m.getToast(id));
+    c.tick(1); equal(m.getToast(id), undefined);
+  });
+
+  await test('82 animated exit dismisses logically at once but reserves its visual slot', async () => {
+    let resolveExit;
+    const driver = { name: 'exit-driver', exit() { return new Promise(resolve => { resolveExit = resolve; }); } };
+    const m = create({ animation: driver, maxVisible: 1 });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    const element = item(m, a);
+    equal(m.getToast(b).state, 'queued');
+    equal(m.dismiss(a), true);
+    equal(m.getToast(a), undefined);
+    equal(element.isConnected, true);
+    equal(element.getAttribute('aria-hidden'), 'true');
+    equal(element.inert, true);
+    equal(m.getToast(b).state, 'queued');
+    resolveExit();
+    await waitMicrotasks();
+    equal(element.isConnected, false);
+    equal(m.getToast(b).state, 'visible');
+  });
+
+  await test('83 destroy aborts an active custom animation and removes generated DOM synchronously', () => {
+    let signal;
+    const driver = { name: 'never-ending', enter(context) {
+      signal = context.signal;
+      return new Promise(() => {});
+    }};
+    const m = create({ animation: driver });
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    m.show({ message: 'A', persistent: true });
+    m.destroy();
+    equal(signal.aborted, true);
+    equal(ends.map(row => row.status), ['cancelled']);
+    equal(m.root.children.length, 0);
+  });
+
+  await test('84 animation driver failure is isolated and leaves the toast usable', async () => {
+    const m = create({ animation: { name: 'failing', enter() { return Promise.reject(new Error('Animation failure')); } } });
+    const errors = events(m, api.TOAST_EVENTS.animationError);
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    const id = m.show({ message: 'Still visible', persistent: true });
+    await waitMicrotasks();
+    ok(m.getToast(id));
+    equal(m.getToast(id).animationPhase, null);
+    equal(errors.length, 1);
+    equal(errors[0].driver, 'failing');
+    equal(ends.map(row => row.status), ['failed']);
+  });
+
+  await test('85 reduced motion skips injected animation and starts timing immediately', () => {
+    const oldMatchMedia = window.matchMedia;
+    window.matchMedia = query => ({
+      matches: query === '(prefers-reduced-motion: reduce)', media: query, onchange: null,
+      addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; },
+    });
+    try {
+      const c = fakeClock(); let calls = 0;
+      const m = create({ animation: { name: 'motion', enter() { calls++; } } });
+      const id = m.show({ message: 'Reduced', duration: 1000 });
+      equal(calls, 0);
+      equal(m.getToast(id).animationPhase, null);
+      c.tick(1000);
+      equal(m.getToast(id), undefined);
+    } finally { window.matchMedia = oldMatchMedia; }
+  });
+
+  await test('86 CSS exit keeps an inert surface until animation completes, then promotes the queue', async () => {
+    const m = create({ animation: 'css', maxVisible: 1 });
+    const waitForPhase = phase => new Promise(resolve => {
+      const off = api.addToastEventListener(m.root, api.TOAST_EVENTS.animationEnd, event => {
+        if (event.detail.phase !== phase) return;
+        off(); resolve(event.detail);
+      });
+    });
+    const enterDone = waitForPhase('enter');
+    const a = m.show({ message: 'A', persistent: true });
+    await enterDone;
+    const b = m.show({ message: 'B', persistent: true });
+    const element = item(m, a);
+    const exitDone = waitForPhase('exit');
+    m.dismiss(a);
+    equal(m.getToast(a), undefined);
+    equal(element.isConnected, true);
+    equal(element.classList.contains('is-exiting'), true);
+    equal(element.getAttribute('aria-hidden'), 'true');
+    equal(m.getToast(b).state, 'queued');
+    const detail = await exitDone;
+    equal(detail.status, 'completed');
+    equal(element.isConnected, false);
+    equal(m.getToast(b).state, 'visible');
+  }, true);
 
   return results;
 }

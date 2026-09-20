@@ -1,5 +1,5 @@
 import { createToast, addToastEventListener, TOAST_EVENTS } from 'a11y-toast';
-import type { ToastInput, ToastAddon } from 'a11y-toast';
+import type { ToastInput, ToastAddon, ToastAnimationDriver } from 'a11y-toast';
 import { docs } from 'a11y-toast/docs';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
@@ -8,7 +8,11 @@ const logger: ToastAddon = {
     return context.on(TOAST_EVENTS.show, event => { const message: string = event.detail.toast.message; void message; });
   },
 };
-const toast = createToast(root, { addons: [logger] });
+const animation: ToastAnimationDriver = {
+  name: 'consumer-test',
+  enter({ element, signal }) { if (!signal.aborted) void element; },
+};
+const toast = createToast(root, { addons: [logger], animation });
 const input: ToastInput = { message: 'Saved', priority: 'polite', action: { label: 'Undo', onClick: async ({ signal }) => { if (signal.aborted) return; } } };
 const id = toast.show(input);
 if (id !== null) toast.update(id, { message: 'Updated' });
