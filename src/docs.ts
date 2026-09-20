@@ -1,0 +1,33 @@
+/** Pure metadata: importing this module never loads or initializes the DOM runtime. */
+export const docs = {
+  slug: 'a11y-toast', name: 'A11y Toast', packageName: 'a11y-toast',
+  description: 'Framework-free toast notifications with explicit announcement priority, bounded queues, safe timers and lifecycle events.',
+  status: '0.1.0 — manual assistive-technology verification pending; not published by this delivery',
+  install: { npm: 'npm install a11y-toast', pnpm: 'pnpm add a11y-toast', yarn: 'yarn add a11y-toast' },
+  usage: `import { createToast } from 'a11y-toast';\nimport 'a11y-toast/styles.css';\nconst root = document.querySelector('[data-a11y-toast]');\nif (root instanceof HTMLElement) {\n  const toast = createToast(root);\n  toast.success('Your changes were saved.');\n}`,
+  selectors: ['[data-a11y-toast]', '[data-a11y-toast-id]', '[data-a11y-toast-action]', '[data-a11y-toast-dismiss]'],
+  keyboard: [
+    { key: 'Tab / Shift+Tab', description: 'Reach the scrollable notification list and its native action/dismiss buttons. Focus pauses relevant timers.' },
+    { key: 'Enter / Space', description: 'Activate a focused native button.' },
+    { key: 'Arrow / Page Up / Page Down', description: 'Native scrolling while the notification list is focused. No custom global shortcuts.' },
+  ],
+  api: [
+    { name: 'createToast(root, options)', type: '(HTMLElement, ToastOptions?) => A11yToast', description: 'Initialize a mounted, non-live host; duplicate initialization reuses the active manager.' },
+    { name: 'initToastAll(options, scope)', type: '(ToastOptions?, ParentNode?) => A11yToast[]', description: 'Explicitly initialize matching descendants. Never runs on import.' },
+    { name: 'show(input)', type: '(ToastInput) => string | null', description: 'Display or enqueue a toast. null means the bounded queue rejected it.' },
+    { name: 'info / success / warning / error / loading', type: '(string, ToastShorthandOptions?) => string | null', description: 'Tone convenience methods. Error does not imply assertive priority.' },
+    { name: 'update(id, patch)', type: '(string, ToastPatch) => boolean', description: 'Patch an existing visible/queued record. Content-only updates preserve remaining time.' },
+    { name: 'dismiss(id, reason)', type: '(string, ToastDismissReason?) => boolean', description: 'Remove one record synchronously and drain the queue.' },
+    { name: 'dismissAll(reason)', type: '(ToastDismissReason?) => number', description: 'Remove visible and queued records without showing intermediate queued items.' },
+    { name: 'pause(id) / resume(id)', type: '(string) => boolean', description: 'Manage the caller-owned API pause without overriding keyboard/hover/visibility safeguards.' },
+    { name: 'getToast(id) / getToasts()', type: 'Readonly snapshot accessors', description: 'Inspect state without receiving callbacks, origin nodes or mutable collections.' },
+    { name: 'registerAddon / unregisterAddon / getAddon / getAddons', type: 'ToastAddon lifecycle', description: 'Explicit per-instance setup, selected observer hooks, subscriptions and cleanup.' },
+    { name: 'destroy()', type: '() => void', description: 'Idempotent teardown; cancel timers, scheduled announcements and action signals; preserve authored DOM.' },
+    { name: 'addToastEventListener(target, type, listener, options)', type: 'Typed DOM-event helper returning cleanup', description: 'Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.' },
+  ],
+  examples: [{ name: 'Playground', description: 'One page with content/timing controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  accessibility: {
+    focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
+    limitations: 'An announce event records a DOM write, not proof of speech. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
+  },
+} as const;

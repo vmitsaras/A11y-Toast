@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>A11y Toast — Playground</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../dist/styles.css">
+  <link rel="stylesheet" href="./demo.css">
+  <script type="module" src="./demo.js"></script>
+</head>
+<body class="toast-demo">
+  <a class="toast-demo__skip" href="#playground">Skip to playground</a>
+  <header class="toast-demo__header">
+    <a class="toast-demo__brand" href="./">a11y<span> / </span>toast</a>
+    <span class="toast-demo__version">v0.1.0 · TypeScript · No runtime dependencies</span>
+  </header>
+  <main class="toast-demo__main">
+    <div class="toast-demo__intro">
+      <p class="toast-demo__eyebrow">THE COMPONENT PLAYGROUND</p>
+      <h1>Small messages.<br>Predictable behavior.</h1>
+      <p class="toast-demo__lead">Compose a toast. Inspect its lifecycle. Keep focus where it belongs.</p>
+    </div>
+    <p class="toast-demo__boot" data-boot>Loading the playground. Use <code>npm run demo</code> and open the served address, rather than opening this file directly.</p>
+    <noscript><p>This interactive demo requires JavaScript. Important application feedback should also exist as ordinary page content.</p></noscript>
+    <div class="toast-demo__layout">
+      <section class="toast-demo__composer" id="playground" aria-labelledby="composer-title">
+        <div class="toast-demo__section-heading"><h2 id="composer-title">Compose a toast</h2><span>01 / CONTENT</span></div>
+        <form id="toast-form">
+          <fieldset class="toast-demo__fields" data-controls disabled>
+            <legend class="toast-demo__sr-only">Toast content and behavior</legend>
+            <div class="toast-demo__field">
+              <label for="message">Message <span>(required)</span></label>
+              <textarea id="message" name="message" rows="3" required maxlength="2000">Your changes were saved.</textarea>
+            </div>
+            <div class="toast-demo__row">
+              <div class="toast-demo__field"><label for="title">Title <span>(optional)</span></label><input id="title" name="title" maxlength="120" placeholder="For example, Draft saved"></div>
+              <div class="toast-demo__field"><label for="tone">Visual tone</label><select id="tone" name="tone"><option value="neutral">Neutral</option><option value="info">Information</option><option value="success" selected>Success</option><option value="warning">Warning</option><option value="error">Error</option><option value="loading">Loading</option></select></div>
+            </div>
+            <details class="toast-demo__details" open>
+              <summary>Timing &amp; announcements</summary>
+              <div class="toast-demo__detail-body">
+                <div class="toast-demo__row">
+                  <div class="toast-demo__field"><label for="priority">Announcement priority</label><select id="priority" name="priority" aria-describedby="priority-hint"><option value="polite">Polite — wait for a pause</option><option value="assertive">Assertive — interrupt</option><option value="off">Off — another component owns it</option></select></div>
+                  <div class="toast-demo__field"><label for="persistence">Dismissal</label><select id="persistence" name="persistence"><option value="auto">Automatic safe defaults</option><option value="persistent">Keep until dismissed</option><option value="timed">Use a timer</option></select></div>
+                </div>
+                <p class="toast-demo__hint" id="priority-hint">Tone changes appearance, not urgency. Reserve assertive speech for important, time-sensitive information.</p>
+                <div class="toast-demo__row">
+                  <div class="toast-demo__field"><label for="duration">Timed duration <span>(seconds)</span></label><input id="duration" name="duration" type="number" min="1" max="120" step="1" value="5" aria-describedby="duration-hint"></div>
+                  <div class="toast-demo__field"><label for="position">Position</label><select id="position" name="position" aria-describedby="position-hint"><option value="bottom-end">Bottom end</option><option value="bottom-center">Bottom center</option><option value="bottom-start">Bottom start</option><option value="top-end">Top end</option><option value="top-center">Top center</option><option value="top-start">Top start</option></select></div>
+                </div>
+                <p class="toast-demo__hint" id="duration-hint">Loading always stays visible. Actions and assertive messages stay visible with automatic defaults.</p>
+                <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
+                <div class="toast-demo__field"><label for="announcement">Announcement override <span>(optional)</span></label><input id="announcement" name="announcement" maxlength="2000" placeholder="Otherwise, the visible content is used"></div>
+                <label class="toast-demo__check"><input name="dismissible" type="checkbox" checked> Show a close button</label>
+              </div>
+            </details>
+            <details class="toast-demo__details">
+              <summary>Add a demo action</summary>
+              <div class="toast-demo__detail-body">
+                <label class="toast-demo__check"><input id="has-action" name="hasAction" type="checkbox"> Include an action button</label>
+                <div class="toast-demo__field"><label for="action-label">Action label</label><input id="action-label" name="actionLabel" value="Undo demo change" maxlength="80" disabled></div>
+                <p class="toast-demo__hint">The action updates this notification. It does not change or delete real data.</p>
+              </div>
+            </details>
+            <div class="toast-demo__submit-row"><button class="toast-demo__button toast-demo__button--primary" type="submit">Show toast <span aria-hidden="true">↗</span></button><span class="toast-demo__hint">No focus jump. No page reload.</span></div>
+          </fieldset>
+        </form>
+        <p class="toast-demo__feedback" data-feedback hidden></p>
+      </section>
+      <div class="toast-demo__rail">
+        <section class="toast-demo__panel" aria-labelledby="lifecycle-title">
+          <div class="toast-demo__section-heading"><h2 id="lifecycle-title">Try the lifecycle</h2><span>02 / BEHAVIOR</span></div>
+          <p>Use the real API, with three visible notifications and ten queue slots.</p>
+          <div class="toast-demo__button-grid">
+            <button class="toast-demo__button" type="button" data-burst disabled>Show 5 toasts</button>
+            <button class="toast-demo__button" type="button" data-start-loading disabled>Start loading</button>
+            <button class="toast-demo__button" type="button" data-finish-loading disabled>Finish loading</button>
+            <button class="toast-demo__button" type="button" data-retry disabled>Test action retry</button>
+          </div>
+          <div class="toast-demo__field toast-demo__target"><label for="target">Current notification</label><select id="target" disabled><option value="">No notifications</option></select></div>
+          <div class="toast-demo__button-grid">
+            <button class="toast-demo__button" type="button" data-update disabled>Update selected</button>
+            <button class="toast-demo__button" type="button" data-dismiss disabled>Dismiss selected</button>
+          </div>
+          <button class="toast-demo__button toast-demo__button--quiet" type="button" data-clear disabled>Dismiss all notifications</button>
+          <p class="toast-demo__counts"><span data-visible>0</span> visible <span aria-hidden="true">/</span> <span data-queued>0</span> queued</p>
+        </section>
+        <section class="toast-demo__panel toast-demo__panel--notes" aria-labelledby="notes-title">
+          <h2 id="notes-title">Designed to stay out of the way.</h2>
+          <p><strong>Focus stays put.</strong> Tab into a toast to pause its timer. Hover and a hidden tab pause it too.</p>
+          <p><strong>One announcement owner.</strong> Choose “Off” when another component already announces the result.</p>
+          <p><strong>Do not hide essential information.</strong> Timed feedback must be available elsewhere. Important actions should not expire.</p>
+          <p class="toast-demo__hint">Manual VoiceOver verification is still pending. This playground does not claim universal screen-reader support.</p>
+        </section>
+      </div>
+    </div>
+    <section class="toast-demo__events" aria-labelledby="events-title">
+      <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">03 / OBSERVABILITY</p><h2 id="events-title">Lifecycle events</h2></div><button class="toast-demo__button" data-clear-log type="button" disabled>Clear log</button></div>
+      <p class="toast-demo__hint">Newest first · last 40 events · intentionally not a live region. “Announce” means a DOM write, not proof that speech finished.</p>
+      <ol class="toast-demo__log" data-log tabindex="0" aria-label="Lifecycle event history"></ol>
+    </section>
+    <footer class="toast-demo__footer"><span>Vanilla DOM · ESM · BEM CSS</span><span>One page. The actual built package.</span></footer>
+  </main>
+  <div data-a11y-toast></div>
+</body>
+</html>

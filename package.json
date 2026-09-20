@@ -1,0 +1,43 @@
+{
+  "name": "a11y-toast",
+  "version": "0.1.0",
+  "description": "Framework-free TypeScript toast notifications with explicit announcement ownership and deterministic lifecycle cleanup.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Vasileios Mitsaras",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./docs": { "types": "./dist/docs.d.ts", "import": "./dist/docs.js" },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "CHANGELOG.md", "LICENSE"],
+  "sideEffects": ["**/*.css"],
+  "engines": { "node": ">=22.0.0" },
+  "scripts": {
+    "clean": "node scripts/clean.mjs",
+    "build": "npm run clean && tsdown && node scripts/copy-assets.mjs",
+    "build:portable": "npm run clean && tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:browser": "node scripts/browser-test.mjs",
+    "test:package": "node scripts/package-test.mjs",
+    "demo": "node scripts/serve.mjs",
+    "pack:check": "npm pack --dry-run --ignore-scripts",
+    "prepack": "npm run build",
+    "changeset": "changeset",
+    "version-packages": "changeset version"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.0",
+    "jsdom": "^26.1.0",
+    "playwright": "^1.51.1",
+    "tsdown": "^0.15.0",
+    "typescript": "~5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "keywords": ["accessibility", "toast", "typescript", "live-region", "vanilla-js"]
+}
