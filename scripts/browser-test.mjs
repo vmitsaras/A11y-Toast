@@ -16,8 +16,9 @@ try {
     const { createProgressAddon } = await import('/dist/addons/progress.js');
     const { trackToastPromise } = await import('/dist/addons/promise.js');
     const { createDedupeController } = await import('/dist/addons/dedupe.js');
+    const { createDomEventAdapter } = await import('/dist/adapters/dom-events.js');
     const { runSuite } = await import('/test/browser/suite.js');
-    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController });
+    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter });
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

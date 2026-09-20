@@ -4,6 +4,7 @@ import { docs } from 'a11y-toast/docs';
 import { createProgressAddon } from 'a11y-toast/addons/progress';
 import { trackToastPromise } from 'a11y-toast/addons/promise';
 import { createDedupeController } from 'a11y-toast/addons/dedupe';
+import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -27,6 +28,18 @@ const tracked = trackToastPromise(toast, Promise.resolve('ok'), {
 void tracked.promise;
 const dedupe = createDedupeController(toast);
 void dedupe.show({ key: 'save-status', message: 'Saved' });
+const source = new EventTarget();
+const adapter = createDomEventAdapter(toast, {
+  target: source,
+  announcementOwner: 'toast',
+  bindings: [{
+    event: 'demo:status',
+    map: event => event instanceof CustomEvent
+      ? { type: 'show', correlationKey: 'demo', input: { message: String(event.detail) } }
+      : { type: 'ignore' },
+  }],
+});
+adapter.destroy();
 addToastEventListener(root, TOAST_EVENTS.drop, event => { const reason: 'queue-full' | 'clearing' = event.detail.reason; void reason; });
 // @ts-expect-error Unsupported ARIA politeness is rejected by the public declaration contract.
 toast.show({ message: 'Invalid', priority: 'loud' });

@@ -31,6 +31,10 @@
     "./addons/dedupe": {
       "types": "./dist/addons/dedupe.d.ts",
       "import": "./dist/addons/dedupe.js"
+    },
+    "./adapters/dom-events": {
+      "types": "./dist/adapters/dom-events.d.ts",
+      "import": "./dist/adapters/dom-events.js"
     }
   },
   "files": [

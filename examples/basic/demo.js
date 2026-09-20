@@ -2,6 +2,7 @@ import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/ind
 import { createProgressAddon } from '../../dist/addons/progress.js';
 import { trackToastPromise } from '../../dist/addons/promise.js';
 import { createDedupeController } from '../../dist/addons/dedupe.js';
+import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
@@ -12,8 +13,12 @@ const showProgress = form.elements.showProgress;
 const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
+const adapterOwner = document.querySelector('#adapter-owner');
+const sourceStatus = document.querySelector('[data-source-status]');
+const sourceEvents = new EventTarget();
 let manager;
 let dedupe;
+let domAdapter;
 let dedupeSequence = 0;
 let loadingId = null;
 const removers = [];
@@ -75,6 +80,24 @@ function observe(event) {
 }
 for (const name of Object.values(TOAST_EVENTS)) removers.push(addToastEventListener(root, name, observe));
 
+function initializeAdapter() {
+  domAdapter?.destroy();
+  sourceStatus.textContent = '';
+  domAdapter = createDomEventAdapter(manager, {
+    target: sourceEvents,
+    announcementOwner: adapterOwner.value,
+    bindings: [{
+      event: 'demo:source-status',
+      map(event) {
+        const detail = event.detail;
+        if (detail.action === 'dismiss') return { type: 'dismiss', correlationKey: 'demo-source' };
+        if (detail.action === 'update') return { type: 'update', correlationKey: 'demo-source', patch: { message: detail.message } };
+        return { type: 'show', correlationKey: 'demo-source', input: { message: detail.message, tone: 'info', persistent: true } };
+      },
+    }],
+  });
+}
+
 function initialize() {
   manager = createToast(root, {
     position: position.value,
@@ -84,6 +107,7 @@ function initialize() {
     showToneLabel: showToneLabel.checked,
   });
   dedupe = createDedupeController(manager);
+  initializeAdapter();
   sync(manager);
 }
 function valid() {
@@ -121,12 +145,21 @@ form.addEventListener('submit', event => {
 form.elements.message.addEventListener('input', () => form.elements.message.setCustomValidity(''));
 form.elements.hasAction.addEventListener('change', () => { form.elements.actionLabel.disabled = !form.elements.hasAction.checked; });
 function reinitializeManager() {
-  safely(() => { dedupe?.destroy(); manager.destroy(); initialize(); });
+  safely(() => { domAdapter?.destroy(); dedupe?.destroy(); manager.destroy(); initialize(); });
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
+adapterOwner.addEventListener('change', () => safely(initializeAdapter));
+function dispatchSourceStatus(action, message = '') {
+  if (adapterOwner.value === 'source' && message) sourceStatus.textContent = message;
+  else sourceStatus.textContent = '';
+  sourceEvents.dispatchEvent(new CustomEvent('demo:source-status', { detail: { action, message } }));
+}
+document.querySelector('[data-adapter-start]').addEventListener('click', () => safely(() => dispatchSourceStatus('show', 'Source operation started.')));
+document.querySelector('[data-adapter-update]').addEventListener('click', () => safely(() => dispatchSourceStatus('update', 'Source operation is still running.')));
+document.querySelector('[data-adapter-dismiss]').addEventListener('click', () => safely(() => dispatchSourceStatus('dismiss')));
 document.querySelector('[data-burst]').addEventListener('click', event => safely(() => {
   for (let i = 1; i <= 5; i++) manager.show({ message: `Queue example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });
 }));
@@ -191,10 +224,11 @@ document.querySelector('[data-clear-log]').addEventListener('click', () => log.r
 
 initialize();
 document.querySelector('[data-controls]').disabled = false;
-for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
+for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-adapter-start]', '[data-adapter-update]', '[data-adapter-dismiss]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
 document.querySelector('[data-boot]').hidden = true;
 window.addEventListener('pagehide', event => {
   if (event.persisted) return; // BFCache resumes the same live manager; visibility handles its timers.
+  domAdapter?.destroy();
   dedupe?.destroy();
   manager.destroy();
   for (const remove of removers) remove();

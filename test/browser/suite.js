@@ -922,5 +922,241 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(m.getToast(externalId).message, 'Replacement');
   });
 
+  await test('122 source-owned adapter forces priority off for show and update while retaining one correlation ID', () => {
+    const source = new EventTarget();
+    const m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'source',
+      bindings: [{
+        event: 'job',
+        map(event) {
+          const detail = event.detail;
+          return detail.phase === 'start'
+            ? { type: 'show', correlationKey: detail.id, input: { message: detail.message, priority: 'assertive', persistent: true } }
+            : { type: 'update', correlationKey: detail.id, patch: { message: detail.message, priority: 'assertive' } };
+        },
+      }],
+    });
+    source.dispatchEvent(new CustomEvent('job', { detail: { id: '42', phase: 'start', message: 'Working' } }));
+    const id = adapter.getToastId('42');
+    ok(id);
+    equal(m.getToast(id).priority, 'off');
+    source.dispatchEvent(new CustomEvent('job', { detail: { id: '42', phase: 'update', message: 'Still working' } }));
+    equal(adapter.getToastId('42'), id);
+    equal(m.getToast(id).message, 'Still working');
+    equal(m.getToast(id).priority, 'off');
+  });
+
+  await test('123 toast-owned adapter preserves mapped announcement priority', () => {
+    const c = fakeClock();
+    const source = new EventTarget();
+    const m = create();
+    const announced = events(m, api.TOAST_EVENTS.announce);
+    api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [{
+        event: 'notice',
+        map: () => ({ type: 'show', correlationKey: 'n', input: { message: 'Important', priority: 'assertive', persistent: true } }),
+      }],
+    });
+    source.dispatchEvent(new Event('notice'));
+    c.tick(100);
+    equal(m.getToasts()[0].priority, 'assertive');
+    equal(announced.length, 1);
+    equal(announced[0].priority, 'assertive');
+  });
+
+  await test('124 correlated update and dismiss commands use retained IDs and external dismiss clears tracking', () => {
+    const source = new EventTarget();
+    const m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [{
+        event: 'flow',
+        map(event) {
+          const detail = event.detail;
+          if (detail.action === 'show') return { type: 'show', correlationKey: detail.id, input: { message: detail.message, persistent: true } };
+          if (detail.action === 'update') return { type: 'update', correlationKey: detail.id, patch: { message: detail.message } };
+          return { type: 'dismiss', correlationKey: detail.id };
+        },
+      }],
+    });
+    source.dispatchEvent(new CustomEvent('flow', { detail: { id: 'a', action: 'show', message: 'A' } }));
+    const id = adapter.getToastId('a');
+    source.dispatchEvent(new CustomEvent('flow', { detail: { id: 'a', action: 'update', message: 'B' } }));
+    equal(m.getToast(id).message, 'B');
+    source.dispatchEvent(new CustomEvent('flow', { detail: { id: 'a', action: 'dismiss' } }));
+    equal(m.getToast(id), undefined);
+    equal(adapter.getToastId('a'), undefined);
+
+    source.dispatchEvent(new CustomEvent('flow', { detail: { id: 'x', action: 'show', message: 'X' } }));
+    const external = adapter.getToastId('x');
+    m.dismiss(external);
+    equal(adapter.getToastId('x'), undefined);
+  });
+
+  await test('125 repeated show for one correlation updates the retained toast instead of duplicating it', () => {
+    const source = new EventTarget();
+    const m = create();
+    const shows = events(m, api.TOAST_EVENTS.show);
+    const updates = events(m, api.TOAST_EVENTS.update);
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [{
+        event: 'status',
+        map: event => ({ type: 'show', correlationKey: 'same', input: { message: event.detail, persistent: true } }),
+      }],
+    });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'First' }));
+    const id = adapter.getToastId('same');
+    source.dispatchEvent(new CustomEvent('status', { detail: 'Second' }));
+    equal(adapter.getToastId('same'), id);
+    equal(m.getToasts().length, 1);
+    equal(m.getToast(id).message, 'Second');
+    equal(shows.length, 1);
+    equal(updates.length, 1);
+  });
+
+  await test('126 unknown correlation update and dismiss commands are safe no-ops', () => {
+    const source = new EventTarget();
+    const m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [
+        { event: 'u', map: () => ({ type: 'update', correlationKey: 'missing', patch: { message: 'Nope' } }) },
+        { event: 'd', map: () => ({ type: 'dismiss', correlationKey: 'missing' }) },
+      ],
+    });
+    source.dispatchEvent(new Event('u'));
+    source.dispatchEvent(new Event('d'));
+    equal(m.getToasts().length, 0);
+    equal(adapter.getToastId('missing'), undefined);
+  });
+
+  await test('127 mapper and command validation errors are isolated through onError', () => {
+    const source = new EventTarget();
+    const m = create();
+    const errors = [];
+    api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      onError(error, context) { errors.push([String(error), context.eventType]); },
+      bindings: [
+        { event: 'throw', map() { throw new Error('Mapper failed'); } },
+        { event: 'bad', map: () => ({ type: 'unsupported' }) },
+        { event: 'key', map: () => ({ type: 'update', correlationKey: '  ', patch: { message: 'Bad' } }) },
+      ],
+    });
+    source.dispatchEvent(new Event('throw'));
+    source.dispatchEvent(new Event('bad'));
+    source.dispatchEvent(new Event('key'));
+    equal(errors.length, 3);
+    equal(errors.map(row => row[1]), ['throw', 'bad', 'key']);
+    equal(m.getToasts().length, 0);
+  });
+
+  await test('128 adapter destroy removes source listeners and optionally dismisses tracked toasts', () => {
+    const source = new EventTarget();
+    const m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      dismissTrackedOnDestroy: true,
+      bindings: [{
+        event: 'show',
+        map: () => ({ type: 'show', correlationKey: 'a', input: { message: 'A', persistent: true } }),
+      }],
+    });
+    source.dispatchEvent(new Event('show'));
+    const id = adapter.getToastId('a');
+    ok(m.getToast(id));
+    adapter.destroy();
+    equal(adapter.isDestroyed, true);
+    equal(m.getToast(id), undefined);
+    source.dispatchEvent(new Event('show'));
+    equal(m.getToasts().length, 0);
+    adapter.destroy();
+  });
+
+  await test('129 destroying the toast manager automatically disposes the adapter source listeners', () => {
+    const source = new EventTarget();
+    const m = create();
+    let calls = 0;
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [{
+        event: 'show',
+        map: () => { calls++; return { type: 'show', correlationKey: 'a', input: { message: 'A' } }; },
+      }],
+    });
+    m.destroy();
+    equal(adapter.isDestroyed, true);
+    source.dispatchEvent(new Event('show'));
+    equal(calls, 0);
+  });
+
+  await test('130 source-owned duplicate show remains silent and update-only', () => {
+    const c = fakeClock();
+    const source = new EventTarget();
+    const m = create();
+    const announcements = events(m, api.TOAST_EVENTS.announce);
+    api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'source',
+      bindings: [{
+        event: 'status',
+        map: event => ({ type: 'show', correlationKey: 'x', input: { message: event.detail, priority: 'assertive', persistent: true } }),
+      }],
+    });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'One' }));
+    source.dispatchEvent(new CustomEvent('status', { detail: 'Two' }));
+    c.tick(3000);
+    equal(m.getToasts().length, 1);
+    equal(m.getToasts()[0].message, 'Two');
+    equal(m.getToasts()[0].priority, 'off');
+    equal(announcements.length, 0);
+  });
+
+  await test('131 queued correlated toast can be updated before promotion', () => {
+    const source = new EventTarget();
+    const m = create({ maxVisible: 1 });
+    m.show({ message: 'Blocker', persistent: true });
+    const adapter = api.createDomEventAdapter(m, {
+      target: source,
+      announcementOwner: 'toast',
+      bindings: [{
+        event: 'job',
+        map(event) {
+          return event.detail.update
+            ? { type: 'update', correlationKey: event.detail.id, patch: { message: event.detail.message } }
+            : { type: 'show', correlationKey: event.detail.id, input: { message: event.detail.message, persistent: true } };
+        },
+      }],
+    });
+    source.dispatchEvent(new CustomEvent('job', { detail: { id: '7', message: 'Queued' } }));
+    const id = adapter.getToastId('7');
+    equal(m.getToast(id).state, 'queued');
+    source.dispatchEvent(new CustomEvent('job', { detail: { id: '7', message: 'Latest queued', update: true } }));
+    equal(m.getToast(id).message, 'Latest queued');
+    equal(m.getToast(id).state, 'queued');
+  });
+
+  await test('132 invalid adapter configuration fails before source listeners are attached', () => {
+    const source = new EventTarget();
+    const m = create();
+    let calls = 0;
+    throws(() => api.createDomEventAdapter(m, { target: source, bindings: [{ event: 'x', map() { calls++; return null; } }] }));
+    throws(() => api.createDomEventAdapter(m, { target: source, announcementOwner: 'toast', bindings: [] }));
+    throws(() => api.createDomEventAdapter(m, { target: source, announcementOwner: 'toast', bindings: [{ event: ' ', map() { return null; } }] }));
+    source.dispatchEvent(new Event('x'));
+    equal(calls, 0);
+  });
+
   return results;
 }

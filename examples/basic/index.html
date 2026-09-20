@@ -88,6 +88,19 @@
             <button class="toast-demo__button" type="button" data-promise-success disabled>Promise success</button>
             <button class="toast-demo__button" type="button" data-promise-error disabled>Promise failure</button>
           </div>
+          <details class="toast-demo__details">
+            <summary>Try a DOM event adapter</summary>
+            <div class="toast-demo__detail-body">
+              <div class="toast-demo__field"><label for="adapter-owner">Announcement owner</label><select id="adapter-owner"><option value="toast">Toast</option><option value="source">Source</option></select></div>
+              <div class="toast-demo__button-grid">
+                <button class="toast-demo__button" type="button" data-adapter-start disabled>Source start</button>
+                <button class="toast-demo__button" type="button" data-adapter-update disabled>Source update</button>
+                <button class="toast-demo__button" type="button" data-adapter-dismiss disabled>Source dismiss</button>
+              </div>
+              <p class="toast-demo__hint">The source and toast never announce the same mapped message at once. Source ownership forces the toast priority to Off.</p>
+              <p class="toast-demo__sr-only" role="status" data-source-status></p>
+            </div>
+          </details>
           <div class="toast-demo__field toast-demo__target"><label for="target">Current notification</label><select id="target" disabled><option value="">No notifications</option></select></div>
           <details class="toast-demo__details">
             <summary>Try keyed deduplication</summary>
