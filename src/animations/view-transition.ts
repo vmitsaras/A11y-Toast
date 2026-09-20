@@ -135,8 +135,10 @@ export function createElementViewTransitionDriver(
   const tails = new WeakMap<HTMLElement, Promise<void>>();
 
   const animate = (context: ToastAnimationContext): Promise<void> => {
-    const previous = tails.get(context.element) ?? Promise.resolve();
-    const task = previous.catch(() => {}).then(() => animateNow(context, distance));
+    const previous = tails.get(context.element);
+    const task = previous
+      ? previous.catch(() => {}).then(() => animateNow(context, distance))
+      : animateNow(context, distance);
     const tail = task.then(() => undefined, () => undefined);
     tails.set(context.element, tail);
     void tail.finally(() => {
