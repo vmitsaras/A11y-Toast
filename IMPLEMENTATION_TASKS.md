@@ -5,7 +5,7 @@ Each task is implementation work plus matching evidence. “Implemented” does 
 | ID | Objective / affected paths | Dependencies | Acceptance and current state |
 | --- | --- | --- | --- |
 | TOAST-001 | Inspect prototype; `docs/MIGRATION.md`, contract | None | Reconciliation recorded. No wholesale migration or remote edit. Done. |
-| TOAST-010 | Package/TypeScript/tsdown/Vitest/Changesets configs, scripts | 001 | ESM entries, docs/CSS exports, no runtime dependencies. Implemented; standard install/tooling gate open. |
+| TOAST-010 | Package/TypeScript/tsdown/Vitest/Changesets configs, scripts | 001 | ESM entries, docs/CSS exports, no runtime dependencies. Online install/tsdown/Vitest now pass in GitHub Actions; lockfile still absent. |
 | TOAST-020 | `src/types.ts`, `events.ts`, `options.ts`, `index.ts` | 010 | Strict types, frozen constants, normalized options, readonly DTOs. Source/public consumer typechecks passed. |
 | TOAST-030 | Class initialization and ownership | 020 | Mounted host, WeakMap, init/ready, removable listeners, repeat destroy. Browser tests passed. |
 | TOAST-040 | `src/LiveAnnouncer.ts` and class coordination | 030 | Separate initially empty channels; serialization, coalescing, off mode and cancellation. DOM tests passed; actual speech pending. |
@@ -15,10 +15,10 @@ Each task is implementation work plus matching evidence. “Implemented” does 
 | TOAST-080 | Native action, cancellation, retry, focus | 070 | Keep interactive states reachable; guard stale promise results and missing origins. Browser tests passed; manual AT pending. |
 | TOAST-090 | Add-on setup/hooks/event subscriptions | 050 | Removable, isolated, reverse cleanup; accidental asynchronous failures caught. Browser tests passed. |
 | TOAST-100 | `src/styles.css` | 050 | Scoped BEM, public/private properties, focus, motion, direction, forced colors. CSS/browser checks passed. |
-| TOAST-110 | `examples/basic/*`, local server | 080,100 | One page uses real dist; options and state selection, loading/update/retry, non-live log. Local DOM/interaction checks passed; usual served browser route blocked here. |
+| TOAST-110 | `examples/basic/*`, local server | 080,100 | One page uses generated dist; options and state selection, loading/update/retry, non-live log. Local interaction checks and the normal GitHub Actions served-browser lifecycle suite pass. |
 | TOAST-120 | `docs/MANUAL_TESTS.md`, acceptance matrix | 110 | VoiceOver Safari/Chrome and actual zoom evidence required. Partial, not complete. |
-| TOAST-130 | README, docs metadata, roadmap, migration | 120 partial | Documents current preview and open gates rather than claiming a release. Complete for preview. |
-| TOAST-140 | Package build/import/type/pack checks | 130 | Portable compiler, Node exports, declaration consumer and pack checked. Standard tsdown/Vitest/dependency audit remain blocked. |
+| TOAST-130 | README, docs metadata, roadmap, migration | 120 partial | Reconciled with actual Git tree and CI evidence; generated dist/results are no longer described as committed repository files. Complete for preview. |
+| TOAST-140 | Package build/import/type/pack checks | 130 | GitHub Actions run #1 passed npm install, tsdown, source/public typechecks, Vitest, served Chromium, package exports, pack check, and the configured high-severity audit gate. Partial only because no lockfile is committed and two moderate Vitest/@vitest-mocker findings remain. |
 
 ## Regression additions in this implementation
 
@@ -32,6 +32,8 @@ Further hardening included guards after pause/resume/abort/focus observers destr
 
 **TOAST-120-B — actual browser zoom.** Test browser 200% and 400% zoom, focused content under the fixed toast region, and keyboard scrolling of long notifications. The automated root-text-size smoke test is not the same check.
 
-**TOAST-140-A — online dependency setup.** Run `npm install`, capture a lockfile, review dependency/audit output, run tsdown build, Vitest, declaration consumer, normal browser suite and local packaging. Do not publish. Update `docs/VERIFICATION.md` with actual logs.
+**TOAST-140-A — online dependency setup.** Completed in GitHub Actions run #1 except lockfile capture. The run passed tsdown build, Vitest, declaration consumer, served browser suite, package checks, and the high-severity audit gate. Audit output reports two moderate development-only vulnerabilities through Vitest/@vitest-mocker.
+
+**TOAST-140-B — reproducible dependency graph.** Generate and review `package-lock.json`, commit it, switch CI installation to `npm ci`, and update/reassess the current moderate audit findings. Do not use `npm audit fix --force` blindly; the suggested Vitest major update requires its own verified change.
 
 **TOAST-230 — first adapter (later).** Select a real source event, import its actual constants, retain toast IDs, define which component owns announcements, and verify disposal from both source and toast. Do not start this before core acceptance findings are resolved.
