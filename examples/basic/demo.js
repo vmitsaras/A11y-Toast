@@ -4,6 +4,7 @@ const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
 const target = document.querySelector('#target');
 const position = form.elements.position;
+const showToneLabel = form.elements.showToneLabel;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
 let manager;
@@ -33,6 +34,7 @@ function sync(source) {
   else if (records.length) target.value = records.at(-1).id;
   target.disabled = !records.length;
   position.disabled = records.length > 0;
+  showToneLabel.disabled = records.length > 0;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
   if (loadingId && !source.getToast(loadingId)) loadingId = null;
   document.querySelector('[data-finish-loading]').disabled = !loadingId;
@@ -63,7 +65,11 @@ function observe(event) {
 for (const name of Object.values(TOAST_EVENTS)) removers.push(addToastEventListener(root, name, observe));
 
 function initialize() {
-  manager = createToast(root, { position: position.value, duration: Number(form.elements.duration.value) * 1000 });
+  manager = createToast(root, {
+    position: position.value,
+    duration: Number(form.elements.duration.value) * 1000,
+    showToneLabel: showToneLabel.checked,
+  });
   sync(manager);
 }
 function valid() {
@@ -100,7 +106,11 @@ form.addEventListener('submit', event => {
 });
 form.elements.message.addEventListener('input', () => form.elements.message.setCustomValidity(''));
 form.elements.hasAction.addEventListener('change', () => { form.elements.actionLabel.disabled = !form.elements.hasAction.checked; });
-position.addEventListener('change', () => safely(() => { manager.destroy(); initialize(); }));
+function reinitializeManager() {
+  safely(() => { manager.destroy(); initialize(); });
+}
+position.addEventListener('change', reinitializeManager);
+showToneLabel.addEventListener('change', reinitializeManager);
 document.querySelector('[data-burst]').addEventListener('click', event => safely(() => {
   for (let i = 1; i <= 5; i++) manager.show({ message: `Queue example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });
 }));
