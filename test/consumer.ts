@@ -7,6 +7,8 @@ import { createDedupeController } from 'a11y-toast/addons/dedupe';
 import { createDomEventAdapter } from 'a11y-toast/adapters/dom-events';
 import { createMenuButtonAsyncStateToastAdapter } from 'a11y-toast/adapters/menu-button-async-state';
 import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
+import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
+import { gsap } from 'gsap';
 declare const root: HTMLElement;
 const logger: ToastAddon = {
   name: 'consumer-test',
@@ -14,10 +16,10 @@ const logger: ToastAddon = {
     return context.on(TOAST_EVENTS.show, event => { const message: string = event.detail.toast.message; void message; });
   },
 };
-const animation: ToastAnimationDriver = {
-  name: 'consumer-test',
-  enter({ element, signal }) { if (!signal.aborted) void element; },
-};
+const animation: ToastAnimationDriver = createGsapAnimationDriver(gsap, {
+  enterDuration: 0.15,
+  exitDuration: 0.12,
+});
 const experimentalTransport = createAriaNotifyTransport();
 const toast = createToast(root, { addons: [logger, createProgressAddon()], animation, announcementTransport: experimentalTransport });
 const input: ToastInput = { message: 'Saved', priority: 'polite', action: { label: 'Undo', onClick: async ({ signal }) => { if (signal.aborted) return; } } };

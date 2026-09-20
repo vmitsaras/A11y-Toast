@@ -18,8 +18,9 @@ try {
     const { createDedupeController } = await import('/dist/addons/dedupe.js');
     const { createDomEventAdapter } = await import('/dist/adapters/dom-events.js');
     const { createAriaNotifyTransport } = await import('/dist/transports/aria-notify.js');
+    const { createGsapAnimationDriver } = await import('/dist/animations/gsap.js');
     const { runSuite } = await import('/test/browser/suite.js');
-    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport });
+    return runSuite({ ...api, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport, createGsapAnimationDriver });
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

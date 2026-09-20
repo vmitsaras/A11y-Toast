@@ -4,6 +4,8 @@ import { trackToastPromise } from '../../dist/addons/promise.js';
 import { createDedupeController } from '../../dist/addons/dedupe.js';
 import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
 import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js';
+import { createGsapAnimationDriver } from '../../dist/animations/gsap.js';
+import { gsap } from '../../node_modules/gsap/index.js';
 
 const root = document.querySelector('[data-a11y-toast]');
 const form = document.querySelector('#toast-form');
@@ -104,7 +106,7 @@ function initializeAdapter() {
 function initialize() {
   manager = createToast(root, {
     position: position.value,
-    animation: animation.value,
+    animation: animation.value === 'gsap' ? createGsapAnimationDriver(gsap) : animation.value,
     announcementTransport: announcementTransport.value === 'aria-notify' ? createAriaNotifyTransport() : 'live-region',
     addons: showProgress.checked ? [createProgressAddon()] : [],
     duration: Number(form.elements.duration.value) * 1000,

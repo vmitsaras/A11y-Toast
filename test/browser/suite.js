@@ -1257,5 +1257,157 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(announced[0].fallback, !supported);
   });
 
+  await test('139 GSAP driver is caller-injected and reports the shared animation driver name', async () => {
+    const calls = [];
+    const fakeGsap = {
+      fromTo(element, fromVars, toVars) {
+        calls.push(['fromTo', element, fromVars, toVars]);
+        return {
+          play() { toVars.onComplete(); },
+          revert() { calls.push(['revert-enter']); },
+        };
+      },
+      to(element, vars) {
+        calls.push(['to', element, vars]);
+        return {
+          play() { vars.onComplete(); },
+          revert() { calls.push(['revert-exit']); },
+        };
+      },
+    };
+    const m = create({ animation: api.createGsapAnimationDriver(fakeGsap) });
+    const starts = events(m, api.TOAST_EVENTS.animationStart);
+    const ends = events(m, api.TOAST_EVENTS.animationEnd);
+    const id = m.show({ message: 'GSAP', persistent: true });
+    await waitMicrotasks();
+    equal(starts.map(row => [row.phase, row.driver]), [['enter', 'gsap']]);
+    equal(ends.map(row => [row.phase, row.driver, row.status]), [['enter', 'gsap', 'completed']]);
+    equal(calls[0][0], 'fromTo');
+    ok(!('gsap' in window));
+    m.dismiss(id);
+    await waitMicrotasks();
+    equal(calls.some(row => row[0] === 'to'), true);
+  });
+
+  await test('140 GSAP driver uses logical vertical direction and configured timing/easing', async () => {
+    const captures = [];
+    const fakeGsap = {
+      fromTo(_element, fromVars, toVars) {
+        captures.push({ fromVars, toVars });
+        return { play() { toVars.onComplete(); }, revert() {} };
+      },
+      to(_element, vars) {
+        return { play() { vars.onComplete(); }, revert() {} };
+      },
+    };
+    const m = create({
+      position: 'top-end',
+      animation: api.createGsapAnimationDriver(fakeGsap, {
+        enterDuration: 0.2,
+        exitDuration: 0.1,
+        enterEase: 'power2.out',
+        exitEase: 'power2.in',
+        distance: 8,
+      }),
+    });
+    m.show({ message: 'Direction', persistent: true });
+    await waitMicrotasks();
+    equal(captures[0].fromVars.y, -8);
+    equal(captures[0].toVars.duration, 0.2);
+    equal(captures[0].toVars.ease, 'power2.out');
+    equal(captures[0].toVars.paused, true);
+  });
+
+  await test('141 dismiss during GSAP entrance aborts/reverts before starting the exit tween', async () => {
+    let enterVars, enterReverts = 0, exitCalls = 0;
+    const fakeGsap = {
+      fromTo(_element, _fromVars, toVars) {
+        enterVars = toVars;
+        return {
+          play() {},
+          revert() { enterReverts++; },
+        };
+      },
+      to(_element, vars) {
+        exitCalls++;
+        return { play() { vars.onComplete(); }, revert() {} };
+      },
+    };
+    const m = create({ animation: api.createGsapAnimationDriver(fakeGsap) });
+    const id = m.show({ message: 'Abort enter', persistent: true });
+    equal(m.getToast(id).animationPhase, 'enter');
+    m.dismiss(id);
+    await waitMicrotasks();
+    equal(enterReverts, 1);
+    equal(exitCalls, 1);
+    ok(enterVars);
+  });
+
+  await test('142 GSAP exit keeps queue promotion blocked until the tween completes', async () => {
+    let exitVars;
+    const fakeGsap = {
+      fromTo(_element, _fromVars, toVars) {
+        return { play() { toVars.onComplete(); }, revert() {} };
+      },
+      to(_element, vars) {
+        exitVars = vars;
+        return { play() {}, revert() {} };
+      },
+    };
+    const m = create({ maxVisible: 1, animation: api.createGsapAnimationDriver(fakeGsap) });
+    const a = m.show({ message: 'A', persistent: true });
+    await waitMicrotasks();
+    const b = m.show({ message: 'B', persistent: true });
+    m.dismiss(a);
+    equal(m.getToast(b).state, 'queued');
+    exitVars.onComplete();
+    await waitMicrotasks();
+    equal(m.getToast(b).state, 'visible');
+  });
+
+  await test('143 GSAP onInterrupt becomes animation-error but cannot strand dismissal', async () => {
+    let exitVars;
+    const fakeGsap = {
+      fromTo(_element, _fromVars, toVars) {
+        return { play() { toVars.onComplete(); }, revert() {} };
+      },
+      to(_element, vars) {
+        exitVars = vars;
+        return { play() {}, revert() {} };
+      },
+    };
+    const m = create({ animation: api.createGsapAnimationDriver(fakeGsap) });
+    const errors = events(m, api.TOAST_EVENTS.animationError);
+    const id = m.show({ message: 'Interrupt', persistent: true });
+    await waitMicrotasks();
+    m.dismiss(id);
+    exitVars.onInterrupt();
+    await waitMicrotasks();
+    equal(errors.length, 1);
+    equal(errors[0].driver, 'gsap');
+    equal(m.getToast(id), undefined);
+    equal(m.root.querySelectorAll('[data-a11y-toast-id]').length, 0);
+  });
+
+  await test('144 reduced motion skips the GSAP driver before any GSAP method is called', () => {
+    const oldMatchMedia = window.matchMedia;
+    window.matchMedia = query => ({
+      matches: query === '(prefers-reduced-motion: reduce)', media: query, onchange: null,
+      addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; },
+    });
+    try {
+      let calls = 0;
+      const fakeGsap = {
+        fromTo() { calls++; throw new Error('should not run'); },
+        to() { calls++; throw new Error('should not run'); },
+      };
+      const m = create({ animation: api.createGsapAnimationDriver(fakeGsap) });
+      m.show({ message: 'Reduced motion', persistent: true });
+      equal(calls, 0);
+    } finally {
+      window.matchMedia = oldMatchMedia;
+    }
+  });
+
   return results;
 }

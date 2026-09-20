@@ -43,6 +43,10 @@
     "./transports/aria-notify": {
       "types": "./dist/transports/aria-notify.d.ts",
       "import": "./dist/transports/aria-notify.js"
+    },
+    "./animations/gsap": {
+      "types": "./dist/animations/gsap.d.ts",
+      "import": "./dist/animations/gsap.js"
     }
   },
   "files": [
@@ -78,7 +82,8 @@
     "tsdown": "^0.15.0",
     "typescript": "~5.8.3",
     "vitest": "^3.2.4",
-    "a11y-menu-button": "^1.0.1"
+    "a11y-menu-button": "^1.0.1",
+    "gsap": "^3.15.0"
   },
   "keywords": [
     "accessibility",
@@ -88,10 +93,14 @@
     "vanilla-js"
   ],
   "peerDependencies": {
-    "a11y-menu-button": "^1.0.1"
+    "a11y-menu-button": "^1.0.1",
+    "gsap": ">=3.11.0 <4"
   },
   "peerDependenciesMeta": {
     "a11y-menu-button": {
+      "optional": true
+    },
+    "gsap": {
       "optional": true
     }
   }
