@@ -60,7 +60,7 @@ The runtime never auto-initializes on import. `A11yToast`, `createToast`, and `i
 | `maxQueue` | `10` | Integer from 0 to 100; 0 disables waiting. |
 | `position` | `bottom-end` | `top-start`, `top-center`, `top-end`, `bottom-start`, `bottom-center`, `bottom-end`. |
 | `priority` | `polite` | `off`, `polite`, or `assertive`; independent of visual tone. |
-| `showToneLabel` | `true` | Show the visible `.a11y-toast__tone` label. Set `false` to hide only that visual/browsable line; generated live-region wording is unchanged. |
+| `showToneLabel` | `true` | Show the `.a11y-toast__tone` label visually. Set `false` to visually hide it while keeping the tone text available to assistive technology and generated live-region wording. |
 | `labels` | English strings | Partial overrides for `region`, `dismiss`, `actionFailed`, `empty`, and `tones`. |
 | `addons` | none | Explicit instance-local add-ons; no auto-discovery. |
 

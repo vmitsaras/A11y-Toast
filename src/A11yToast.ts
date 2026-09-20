@@ -17,7 +17,7 @@ const SELECTORS = Object.freeze({
 const CLASSES = Object.freeze({
   host: 'a11y-toast-region', viewport: 'a11y-toast-region__viewport', list: 'a11y-toast-region__list',
   empty: 'a11y-toast-region__empty', live: 'a11y-toast-region__announcer', item: 'a11y-toast', content: 'a11y-toast__content',
-  tone: 'a11y-toast__tone', title: 'a11y-toast__title', message: 'a11y-toast__message',
+  tone: 'a11y-toast__tone', toneVisuallyHidden: 'a11y-toast__tone--visually-hidden', title: 'a11y-toast__title', message: 'a11y-toast__message',
   actions: 'a11y-toast__actions', action: 'a11y-toast__action', dismiss: 'a11y-toast__dismiss',
   error: 'a11y-toast__action-error', initialized: 'is-initialized', visible: 'is-visible',
   paused: 'is-paused', pending: 'is-action-pending',
@@ -434,7 +434,7 @@ export class A11yToast implements ToastInstance {
     v.item.classList.toggle(CLASSES.paused, record.pauses.size > 0);
     v.item.classList.toggle(CLASSES.pending, record.actionPending);
     v.tone.textContent = this.options.labels.tones[data.tone];
-    v.tone.hidden = !this.options.showToneLabel;
+    v.tone.classList.toggle(CLASSES.toneVisuallyHidden, !this.options.showToneLabel);
     v.title.textContent = data.title;
     v.title.hidden = !data.title;
     v.message.textContent = data.message;

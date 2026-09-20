@@ -219,12 +219,19 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const hiddenId = hiddenManager.success('Saved', { persistent: true });
     const hiddenTone = item(hiddenManager, hiddenId).querySelector('.a11y-toast__tone');
     equal(hiddenManager.options.showToneLabel, false);
-    equal(hiddenTone.hidden, true);
+    equal(hiddenTone.hidden, false);
+    equal(hiddenTone.getAttribute('aria-hidden'), null);
+    equal(hiddenTone.classList.contains('a11y-toast__tone--visually-hidden'), true);
     equal(hiddenManager.getToast(hiddenId).announcement, 'Success. Saved');
   });
 
   await test('79 tone-label dataset option is strict and explicit option wins', () => {
     const root = host();
+    root.dataset.a11yToastShowToneLabel = '0';
+    const invalidManager = create({}, root);
+    equal(invalidManager.options.showToneLabel, true);
+    invalidManager.destroy();
+
     root.dataset.a11yToastShowToneLabel = 'false';
     const hiddenManager = create({}, root);
     equal(hiddenManager.options.showToneLabel, false);
@@ -233,7 +240,8 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const shownManager = create({ showToneLabel: true }, root);
     equal(shownManager.options.showToneLabel, true);
     const id = shownManager.info('Visible label', { persistent: true });
-    equal(item(shownManager, id).querySelector('.a11y-toast__tone').hidden, false);
+    const tone = item(shownManager, id).querySelector('.a11y-toast__tone');
+    equal(tone.classList.contains('a11y-toast__tone--visually-hidden'), false);
   });
 
   return results;

@@ -28,7 +28,7 @@ export const docs = {
   examples: [{ name: 'Playground', description: 'One page with content/timing controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   accessibility: {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Separate empty status/alert live regions',
-    toneLabel: 'Visible by default; showToneLabel:false hides only the visual tone label while generated announcement wording is unchanged.',
+    toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',
     limitations: 'An announce event records a DOM write, not proof of speech. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
   },
 } as const;

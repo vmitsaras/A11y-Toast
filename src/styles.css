@@ -78,6 +78,17 @@
 .a11y-toast.is-visible { animation: a11y-toast-enter 150ms ease-out; }
 .a11y-toast__content { flex: 1; min-inline-size: 0; }
 .a11y-toast__tone { display: block; color: var(--_accent); font-size: 0.8125rem; font-weight: 650; }
+.a11y-toast__tone--visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 .a11y-toast__title { margin: 0.25rem 0 0; font-size: 1rem; font-weight: 650; }
 .a11y-toast__message { margin: 0.25rem 0 0; }
 .a11y-toast__actions { margin-block-start: 0.75rem; }

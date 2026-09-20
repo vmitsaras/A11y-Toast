@@ -20,6 +20,7 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-14 | Browser zoom at 200%, then 400%; long message/action labels. | Content reflows, list scrolls by keyboard, close/action remain reachable, focused page controls are not completely obscured. | Pending |
 | M-15 | Enable reduced motion and OS contrast/appearance settings. | No required movement; visible text, borders and focus remain intelligible. | Pending |
 | M-16 | Put a host in the application's real modal/route scope; dispose/recreate its view. | No inaccessible out-of-scope action, stale speech or leaked callback; surrounding app explicitly owns navigation focus. | Pending / integration-specific |
+| M-17 | Turn off “Show tone label visually”, then create success/warning/error examples and navigate back through them with assistive technology. | No visible tone line is shown, but the tone text remains discoverable to assistive technology and live-announcement wording remains appropriate. | Pending |
 
 ### Stop conditions
 
