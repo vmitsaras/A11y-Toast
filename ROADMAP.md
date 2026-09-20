@@ -1,14 +1,14 @@
 # A11y Toast roadmap
 
 Version: 0.1.0 implementation preview
-Status: Core implemented; automated local checks passed; manual accessibility and standard npm-tooling gates open.
+Status: Core implemented; local and GitHub Actions package checks pass; manual accessibility and dependency-lock follow-up remain open.
 
 ## Foundation
 
 | Task | Implementation | Verification / remaining gate |
 | --- | --- | --- |
 | TOAST-001 Prototype reconciliation | Complete | Current prototype tree inspected; migration dispositions documented. |
-| TOAST-010 Standard package foundation | Complete | Portable compiler/types/exports work; online install, tsdown, Vitest and lockfile not verified here. |
+| TOAST-010 Standard package foundation | Complete | Online install, tsdown build, Vitest, exports, and served-browser workflow pass in GitHub Actions run #1; no lockfile is committed yet. |
 | TOAST-020 Public types/constants | Complete | Strict source and public declaration-consumer checks pass. |
 | TOAST-030 Initialization/teardown | Complete | Automated browser checks pass, including duplicate/re-entrant construction and repeat destroy. |
 
@@ -23,15 +23,15 @@ Status: Core implemented; automated local checks passed; manual accessibility an
 | TOAST-080 Actions/focus recovery | Complete | Native controls, retry/cancellation, focused updates and fallback tested; AT interaction pending. |
 | TOAST-090 Add-on lifecycle | Complete | Setup/subscriptions/hooks/cleanup/failure isolation tested. |
 | TOAST-100 Default CSS | Complete | BEM/tokens, logical placement, reduced motion and forced-colors emulation checked. |
-| TOAST-110 One-page playground | Complete | Real compiled runtime used; content/options/queue/loading/retry/log workflows checked. |
+| TOAST-110 One-page playground | Complete | Real compiled runtime used; content/options/queue/loading/retry/log workflows checked, and the normal served-browser lifecycle suite passes in GitHub Actions. |
 
 ## Verification and release readiness
 
 | Task | Status | Next action |
 | --- | --- | --- |
 | TOAST-120 Accessibility verification | Partial | Run `docs/MANUAL_TESTS.md` with VoiceOver + Safari and VoiceOver + Chrome; actual browser 200%/400% zoom. |
-| TOAST-130 Documentation/metadata | Complete for this preview | Keep synchronized after manual fixes. |
-| TOAST-140 Package verification | Partial | Portable build, strict source types, exported declaration consumer, Node imports and local pack passed. Install dependencies online, create/review lockfile, execute tsdown + Vitest + normal served-browser tests, audit dev dependencies. |
+| TOAST-130 Documentation/metadata | Complete for this preview | Reconciled with generated-artifact policy and GitHub Actions evidence; keep synchronized after later fixes. |
+| TOAST-140 Package verification | Partial | GitHub Actions run #1 passed install, tsdown, typechecks, Vitest, Chromium lifecycle suite, package exports, pack check, and the high-severity audit gate. Remaining: commit/review a lockfile and address or explicitly accept the two moderate Vitest/@vitest-mocker findings. |
 
 Windows NVDA/JAWS and mobile AT are not claimed verified. Record actual environment coverage rather than inferring it from Chromium DOM behavior.
 
@@ -49,4 +49,4 @@ A history/notification-center capability is also out of the initial scope. None 
 
 ## Next unblocked slice
 
-Manual macOS acceptance of TOAST-120 against the included build. Fix confirmed interaction/announcement findings before beginning an optional add-on. Standard online toolchain checks can run independently when npm access is available. Publication remains a separate explicit decision.
+TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess the two moderate development-only Vitest/@vitest-mocker audit findings under `npm ci`. TOAST-120 macOS VoiceOver and actual browser zoom remain separate manual acceptance gates. Do not begin optional add-ons until confirmed core accessibility findings are resolved. Publication remains a separate explicit decision.
