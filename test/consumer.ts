@@ -1,3 +1,4 @@
+import './history-consumer.js';
 import { createToast, addToastEventListener, TOAST_EVENTS } from 'a11y-toast';
 import type { ToastInput, ToastAddon, ToastAnimationDriver } from 'a11y-toast';
 import { docs } from 'a11y-toast/docs';

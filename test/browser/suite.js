@@ -1,6 +1,7 @@
+import { runHistorySuite } from './history.js';
 /* Browser and Vitest share this behavioral contract. No production internals are exposed. */
 export async function runSuite(api, capabilities = { layout: true }) {
-  const results = [];
+  const results = await runHistorySuite(api);
   let fixture, instances, clock, hiddenDescriptor;
   const equal = (actual, expected, note = '') => {
     if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`${note} Expected ${JSON.stringify(expected)}, received ${JSON.stringify(actual)}`);

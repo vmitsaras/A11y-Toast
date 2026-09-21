@@ -27,6 +27,7 @@ export const docs = {
   ],
   examples: [{ name: 'Playground', description: 'One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   addons: [
+    { name: 'In-memory history', export: 'a11y-toast/addons/history', description: 'Bounded immutable show/update/dismiss entries with read/clear access and lifecycle cleanup. No persistence, announcement replay or action replay; no backfill.' },
     { name: 'Progress', export: 'a11y-toast/addons/progress', stylesheet: 'a11y-toast/addons/progress.css', description: 'Visual-only timeout progress synchronized from core lifecycle snapshots; no live or progressbar semantics.' },
     { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.' },
     { name: 'Key deduplication', export: 'a11y-toast/addons/dedupe', description: 'Explicit exact-key update/drop/replace policies; no message-text or automatic core deduplication.' },

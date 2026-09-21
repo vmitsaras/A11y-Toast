@@ -1,0 +1,43 @@
+.toast-history-demo {
+  --_border: #c5ccd6;
+  --_muted: #465161;
+  margin-block: 2rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border: 1px solid var(--_border);
+  border-radius: 0.75rem;
+  background: #fff;
+  color: #182230;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.toast-history-demo__heading { margin-block: 0 0.75rem; font-size: 1.35rem; }
+.toast-history-demo__hint,
+.toast-history-demo__count { color: var(--_muted); line-height: 1.6; }
+.toast-history-demo__summary { cursor: pointer; padding-block: 0.75rem; font-weight: 650; }
+.toast-history-demo__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem; }
+.toast-history-demo__button {
+  font: inherit;
+  color: inherit;
+  background: #f4f6f8;
+  border: 1px solid var(--_border);
+  border-radius: 0.4rem;
+  padding: 0.625rem 1rem;
+  min-block-size: 2.75rem;
+  max-inline-size: 100%;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.toast-history-demo__button:hover { background: #e6eaf0; }
+.toast-history-demo__button:focus-visible,
+.toast-history-demo__summary:focus-visible { outline: 3px solid #1859ae; outline-offset: 3px; }
+.toast-history-demo__list { padding-inline-start: 1.5rem; }
+.toast-history-demo__entry { padding-block: 0.85rem; border-block-start: 1px solid var(--_border); }
+.toast-history-demo__meta,
+.toast-history-demo__action-label { color: var(--_muted); font-size: 0.9em; line-height: 1.5; }
+.toast-history-demo__message { white-space: pre-wrap; line-height: 1.6; }
+@media (forced-colors: active) {
+  .toast-history-demo { border-color: CanvasText; background: Canvas; color: CanvasText; }
+  .toast-history-demo__button { border-color: ButtonText; color: ButtonText; background: ButtonFace; }
+  .toast-history-demo__button:focus-visible,
+  .toast-history-demo__summary:focus-visible { outline-color: Highlight; }
+}

@@ -1,5 +1,7 @@
 # Verification — a11y-toast 0.1.0 preview
 
+**TOAST-270 update:** Implementation and verification are recorded in [TOAST-270-VERIFICATION.md](./TOAST-270-VERIFICATION.md). The new slice passed 25 history and four inspector DOM checks using real compiled ESM in Chromium 144.0.7559.96. After integration, the local tsdown build, strict typecheck, 6 Vitest files / 23 tests, 183 / 183 served-browser scenarios, package checks, and pack dry run also passed. Remote CI and named manual acceptance for the changed files are still pending. Earlier CI passes below apply to their recorded baseline, not automatically to TOAST-270.
+
 Date: 2026-09-20  
 Overall status: **Partially verified — core/package automation passes online; manual accessibility and reproducible dependency-lock gates remain open.**
 

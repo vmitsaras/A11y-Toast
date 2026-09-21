@@ -9,7 +9,7 @@ Deliver small application feedback without unexpected focus movement, inaccessib
 
 ## Approved scope
 
-The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Progress, promise orchestration, explicit key deduplication, the generic DOM-event adapter, the first concrete A11y Menu Button async-state adapter, an experimental ariaNotify transport, optional GSAP enter/exit, optional GSAP Flip surviving-stack motion, and an experimental element-scoped View Transition driver are implemented as optional exports. Additional ecosystem adapters and history remain deferred.
+The previous planning conversation approved a TypeScript/ESM core, one demo, BEM CSS, stable lifecycle events, overlapping pauses, an extension contract, and no code migration wholesale from the prototype. Progress, promise orchestration, explicit key deduplication, the generic DOM-event adapter, the first concrete A11y Menu Button async-state adapter, an experimental ariaNotify transport, optional GSAP enter/exit, optional GSAP Flip surviving-stack motion, and an experimental element-scoped View Transition driver are implemented as optional exports. Bounded in-memory history is now implemented as a separate optional export; additional ecosystem adapters and a durable notification center remain deferred.
 
 ## Resolved implementation decisions
 
@@ -32,6 +32,8 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 17. Optional GSAP Flip layout motion is implemented as an add-on using existing before/after hooks, not as a second enter/exit driver. It captures only survivors, excludes the mutated/leaving/entering toast, coalesces synchronous changes, waits for exit completion before queue-promotion reflow, and skips all measurement under reduced motion. Temporary Flip IDs/styles are restored without overwriting application-authored inline changes.
 18. The experimental View Transition driver uses only `Element.startViewTransition()` on the individual toast element. Unsupported browsers settle with no motion; there is no document-scoped fallback. Active same-element phases serialize through the platform transition's `finished` boundary, abort uses `skipTransition()`, and queue/timer/focus ownership stays in core. Motion is expressed through temporary data attributes plus the optional stylesheet rather than inline styles, and authored attribute state is restored after platform finalization.
 
+19. The optional history controller observes future show/update/dismiss payloads from one manager. It retains at most the configured lifecycle entry count (default 50; integer 1–1,000), exposes frozen plain-data reads and history-only clear, and clears/detaches on destroy or unregister. It does not backfill, persist, replay announcements/actions, mutate core state or claim a delivery audit. Observation order can differ from operation order during nested synchronous events. Full details are in `docs/HISTORY.md`.
+
 ## Acceptance criteria
 
 | ID | Observable contract | Primary evidence |
@@ -53,6 +55,7 @@ The previous planning conversation approved a TypeScript/ESM core, one demo, BEM
 | AC-07H | The optional GSAP driver is caller-injected, follows logical placement direction, preserves core reduced-motion/queue/timer semantics, restores exact pre-animation styles on every settlement path, and turns external GSAP interruption into isolated animation failure. | Browser 139–144; 5 real-GSAP Vitest integration tests against GSAP 3.15.0; package/type checks. |
 | AC-07I | Optional GSAP Flip motion affects only surviving stack items, batches synchronous layout changes, waits through exit/queue-promotion boundaries, skips measurement under reduced motion, and leaves no Flip-owned ID/style residue after completion or teardown. | Browser 145–151; 3 real-Flip Vitest tests against GSAP 3.15.0; package/type checks. |
 | AC-07J | Experimental View Transition motion is element-scoped only, never document-scoped; unsupported browsers degrade to no motion, reduced motion skips API calls, overlapping same-toast phases serialize, abort skips the active transition, exit retains its queue slot, and temporary attribute/CSS state is restored. | Browser 152–158; 4 dedicated View Transition Vitest tests; package/type checks. |
+| AC-07K | Optional history is bounded, immutable, per-instance and removable; reads/clear add no announcements/actions/DOM work; queue and animation semantics remain core-owned. | H01–H25 targeted Chromium checks plus four inspector DOM checks pass; integrated CI/manual history acceptance pending. |
 | AC-08 | Users can actually understand/hear the result with macOS VoiceOver. | Manual tests — pending. |
 | AC-09 | Standard toolchain installs/builds/tests/packs reproducibly. | Partial: portable build/types/imports/pack checked; npm installation, tsdown, Vitest and lockfile pending. |
 

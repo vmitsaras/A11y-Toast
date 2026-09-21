@@ -28,6 +28,10 @@
       "types": "./dist/addons/promise.d.ts",
       "import": "./dist/addons/promise.js"
     },
+    "./addons/history": {
+      "types": "./dist/addons/history.d.ts",
+      "import": "./dist/addons/history.js"
+    },
     "./addons/dedupe": {
       "types": "./dist/addons/dedupe.d.ts",
       "import": "./dist/addons/dedupe.js"

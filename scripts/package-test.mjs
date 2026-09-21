@@ -41,3 +41,13 @@ assert(!javascript.includes('innerHTML'));
 console.log('PASS: ESM exports, DOM-free import, explicit initialization, docs entry, declarations, stylesheet, zero runtime dependencies, safe text rendering.');
 console.log(`Portable runtime modules: ${Buffer.byteLength(javascript)} bytes raw / ${gzipSync(javascript).length} bytes gzip (combined estimate; not a bundled transfer measurement).`);
 console.log(`Stylesheet: ${Buffer.byteLength(css)} bytes raw / ${gzipSync(css).length} bytes gzip.`);
+
+// TOAST-270: the optional history subpath must remain safe to import without a DOM.
+const historyExports = await import('a11y-toast/addons/history');
+assert.equal(typeof historyExports.createHistoryController, 'function');
+assert.equal(typeof globalThis.document, 'undefined');
+assert.equal('createHistoryController' in api, false);
+assert(Object.isFrozen(historyExports.TOAST_HISTORY_DEFAULTS));
+assert(Object.isFrozen(historyExports.TOAST_HISTORY_LIMITS));
+for (const name of ['addons/history.js', 'addons/history.d.ts']) await access(new URL(`../dist/${name}`, import.meta.url));
+console.log('PASS: optional history export, declarations, frozen defaults and DOM-free import.');

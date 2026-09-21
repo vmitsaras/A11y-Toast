@@ -2,6 +2,9 @@
 
 ## 0.1.0 — Unreleased implementation preview
 
+- Added TOAST-270 as the separate `a11y-toast/addons/history` export: bounded frozen lifecycle entries, explicit read/clear access, owned teardown, and no persistence, announcement replay or action replay.
+- Added an application-owned non-live history inspector, H01–H25 shared behavioral scenarios, declaration/package coverage, and a targeted offline ESM verification route. Targeted and integrated local automation pass; remote CI and named manual acceptance for this slice remain pending.
+
 - Added the TOAST-180 engine-neutral animation lifecycle: `css`, `none`, or an injected driver; typed start/end/error events; abort signals; reduced-motion and hidden-document safety.
 - Added TOAST-185 CSS entrance/exit animation. Logical dismissal remains immediate, exiting DOM is inert/aria-hidden, queue promotion waits for exit completion, and timed lifetime begins after entrance settles.
 - Added public motion CSS variables and CSS/None controls to the playground.

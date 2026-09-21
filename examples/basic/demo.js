@@ -1,3 +1,4 @@
+import { createHistoryDemo } from './history-demo.js';
 import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/index.js';
 import { createProgressAddon } from '../../dist/addons/progress.js';
 import { trackToastPromise } from '../../dist/addons/promise.js';
@@ -25,6 +26,7 @@ const adapterOwner = document.querySelector('#adapter-owner');
 const sourceStatus = document.querySelector('[data-source-status]');
 const sourceEvents = new EventTarget();
 let manager;
+let historyDemo;
 let dedupe;
 let domAdapter;
 let dedupeSequence = 0;
@@ -124,6 +126,8 @@ function initialize() {
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
   });
+  historyDemo?.destroy();
+  historyDemo = createHistoryDemo(manager, document.querySelector('main'));
   dedupe = createDedupeController(manager);
   initializeAdapter();
   sync(manager);

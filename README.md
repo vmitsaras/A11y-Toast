@@ -18,6 +18,20 @@ Open `http://127.0.0.1:4173/examples/basic/`. Node.js 22 or later is the declare
 
 The demo is one page: content/options form, visible/queued selection, loading/update controls, action retry, six logical positions, and a deliberately non-live event log. No CDN, framework, backend, account, or storage is used.
 
+## Optional in-memory history (TOAST-270)
+
+```ts
+import { createHistoryController } from 'a11y-toast/addons/history';
+const history = createHistoryController(toast, { maxEntries: 50 });
+const entries = history.getEntries(); // frozen show/update/dismiss entries
+history.clear();   // clears history only, not active notifications
+history.destroy(); // clears and unregisters the owned observer
+```
+
+Attach before producing notifications: existing toasts are not backfilled. Capacity counts lifecycle entries, not distinct toast IDs; the default is 50, with an accepted integer range of 1–1,000. Entries are oldest-observed first and contain no callbacks, DOM nodes or action replay surface. No storage, announcement replay, action replay, polling or core options are added. Core destruction or external history unregistration clears internal data. Previously retained caller copies cannot be revoked.
+
+The playground includes an application-owned, non-live inspector with explicit Refresh and Clear controls. This is a bounded event history, not a current-state cache or durable notification center. [History contract](docs/HISTORY.md) · [TOAST-270 evidence and remaining gates](docs/TOAST-270-VERIFICATION.md). This slice has targeted automated evidence; the earlier successful workflow run is not a CI pass for these changes.
+
 ## npm publication
 
 Publication to npm is planned alongside the author's other accessibility plugins. Until `a11y-toast` is actually published, use the repository for development and do not assume `npm install a11y-toast` resolves to this project.

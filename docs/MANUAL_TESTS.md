@@ -40,3 +40,8 @@ Missing or duplicate speech, a disappearing action, lost focus, inaccessible ove
 ### Important distinction
 
 The automated 200% **root text size** / 320px smoke test exercises CSS reflow. It does not verify browser zoom, OS magnification, the VoiceOver reading cursor, speech completion, or this widget's placement in every host application.
+
+
+## TOAST-270 history acceptance — pending
+
+Run H-M01 through H-M06 in [TOAST-270 verification](./TOAST-270-VERIFICATION.md): on-demand history reading without announcement/action replay, explicit refresh, clear independence and retained focus, queue/promotion semantics, bounded eviction/reload cleanup, and actual browser zoom. Record VoiceOver + Safari and VoiceOver + Chrome separately. Automated DOM checks do not mark these manual rows passed.

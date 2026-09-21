@@ -56,7 +56,9 @@ TOAST-260A: **Complete** — injected GSAP animation driver using the frozen TOA
 TOAST-260B: **Complete** — optional GSAP Flip layout/reflow add-on. It captures surviving toast geometry before show/update/dismiss mutations, coalesces synchronous stack changes, waits through animated exit completion before queue-promotion reflow, excludes entering/leaving toasts, respects reduced motion, and restores temporary Flip/style attributes. Uses the existing optional GSAP peer; no additional runtime dependency.
 TOAST-260C: **Complete — experimental only** — separate element-scoped View Transition driver and CSS export. Each toast element owns its own scoped transition; document-scoped transitions are never used. Unsupported browsers settle immediately with no motion, reduced motion skips the API, abort calls `skipTransition()`, overlapping enter→exit phases serialize per toast, queue slots remain reserved through exit, and motion uses temporary data attributes/CSS rather than inline styles.
 
-A history/notification-center capability is also out of the initial scope. Unimplemented items above are not credited from the old prototype.
+TOAST-270: **Implemented — targeted and integrated local verification passed; remote CI/manual acceptance pending** — separate in-memory history controller, 50 lifecycle entries by default (integer 1–1,000), immutable show/update/dismiss snapshots, read/clear access, bounded ring eviction and owned cleanup. No backfill, persistence, announcement replay or action replay. Non-live playground inspector and 25 shared history scenarios added; targeted history/inspector checks and the complete local 183-scenario served-browser suite pass. See `docs/TOAST-270-VERIFICATION.md`.
+
+A durable notification center remains out of scope. Unimplemented capabilities are not credited from the old prototype.
 
 ## Next unblocked slice
 
@@ -64,4 +66,4 @@ TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess th
 
 ## Next optional enhancement slice
 
-TOAST-270 — optional in-memory notification history. Observe immutable toast lifecycle snapshots without replaying announcements or actions, cap retained entries, keep persistence out of the first slice, and expose read/clear access without turning history into a second toast manager.
+TOAST-270 verification gate — the integrated local build/type/Vitest/183-scenario served-browser/package/pack checks pass. Run the history manual cases and, when requested, remote CI. No VoiceOver/zoom pass is inferred from automated checks. TOAST-120 and TOAST-140-B remain open as above. No next optional feature is scheduled by this slice; persistence/replay/full notification-center work requires a separate scope decision.
