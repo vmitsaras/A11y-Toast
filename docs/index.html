@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Accessible Toast Playground | A11y Toast</title>
+  <meta name="description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://vmitsaras.github.io/A11y-Toast/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vmitsaras.github.io/A11y-Toast/">
+  <meta property="og:site_name" content="A11y Toast">
+  <meta property="og:title" content="Accessible Toast Playground | A11y Toast">
+  <meta property="og:description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta property="og:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="A11y Toast: accessible toast feedback with predictable focus, timing, and announcements.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Accessible Toast Playground | A11y Toast">
+  <meta name="twitter:description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta name="twitter:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <meta name="twitter:image:alt" content="A11y Toast: accessible toast feedback with predictable focus, timing, and announcements.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://vmitsaras.github.io/A11y-Toast/#playground-webpage",
+          "url": "https://vmitsaras.github.io/A11y-Toast/",
+          "name": "Accessible Toast Playground | A11y Toast",
+          "description": "Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.",
+          "isPartOf": {
+            "@id": "https://github.com/vmitsaras/A11y-Toast#repository"
+          },
+          "mainEntity": {
+            "@id": "https://vmitsaras.github.io/A11y-Toast/#software"
+          }
+        },
+        {
+          "@type": "SoftwareSourceCode",
+          "@id": "https://vmitsaras.github.io/A11y-Toast/#software",
+          "name": "A11y Toast",
+          "description": "Framework-free TypeScript toast notifications with explicit announcement ownership and deterministic lifecycle cleanup.",
+          "codeRepository": "https://github.com/vmitsaras/A11y-Toast",
+          "programmingLanguage": [
+            "TypeScript",
+            "JavaScript"
+          ],
+          "runtimePlatform": "Browser",
+          "version": "0.1.0",
+          "license": "MIT",
+          "keywords": [
+            "accessibility",
+            "toast",
+            "typescript",
+            "live-region",
+            "vanilla-js"
+          ],
+          "author": {
+            "@type": "Person",
+            "name": "Vasileios Mitsaras",
+            "url": "https://github.com/vmitsaras/",
+            "sameAs": [
+              "https://github.com/vmitsaras/",
+              "https://linkedin.com/in/vasilis-mitsaras"
+            ]
+          },
+          "targetProduct": {
+            "@type": "SoftwareApplication",
+            "name": "Modern web browsers",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Any",
+            "runtimePlatform": "Browser"
+          },
+          "sameAs": [
+            "https://github.com/vmitsaras/A11y-Toast"
+          ]
+        }
+      ]
+    }
+  </script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./dist/styles.css">
+  <link rel="stylesheet" href="./dist/addons/progress.css">
+  <link rel="stylesheet" href="./dist/animations/view-transition.css">
+  <link rel="stylesheet" href="./demo.css">
+  <link rel="stylesheet" href="./history-demo.css">
+  <script type="module" src="./demo.js"></script>
+</head>
+<body class="toast-demo">
+  <a class="toast-demo__skip" href="#playground">Skip to playground</a>
+  <header class="toast-demo__masthead">
+    <nav class="toast-demo__nav" aria-label="Primary">
+      <a class="toast-demo__brand" href="./" aria-label="A11y Toast home">
+        <img src="./a11y-toast-mark.svg" alt="" width="48" height="48">
+        <span>A11y Toast</span>
+      </a>
+      <a class="toast-demo__repo-link" href="https://github.com/vmitsaras/A11y-Toast">
+        View on GitHub
+        <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+    <div class="toast-demo__hero">
+      <div class="toast-demo__hero-copy">
+        <p class="toast-demo__eyebrow">FRAMEWORK-FREE · ACCESSIBILITY-FIRST</p>
+        <h1>Toast feedback.<br><span>Focus stays put.</span></h1>
+        <p class="toast-demo__lead">Use the real package to test content, timing, queueing, announcements, and lifecycle events—without moving focus.</p>
+      </div>
+      <div class="toast-demo__hero-aside">
+        <p>A TypeScript notification plugin built around explicit focus, timing, queue, and announcement ownership.</p>
+        <p class="toast-demo__version">v0.1.0 · TypeScript · No runtime dependencies</p>
+      </div>
+    </div>
+  </header>
+  <main class="toast-demo__main">
+    <p class="toast-demo__boot" data-boot>Loading the playground. Use <code>npm run demo</code> and open the served address, rather than opening this file directly.</p>
+    <noscript><p>This interactive demo requires JavaScript. Important application feedback should also exist as ordinary page content.</p></noscript>
+    <div class="toast-demo__layout">
+      <section class="toast-demo__composer" id="playground" aria-labelledby="composer-title">
+        <div class="toast-demo__section-heading"><h2 id="composer-title">Compose a toast</h2><span>01 / CONTENT</span></div>
+        <form id="toast-form">
+          <fieldset class="toast-demo__fields" data-controls disabled>
+            <legend class="toast-demo__sr-only">Toast content and behavior</legend>
+            <div class="toast-demo__field">
+              <label for="message">Message <span>(required)</span></label>
+              <textarea id="message" name="message" rows="3" required maxlength="2000">Your changes were saved.</textarea>
+            </div>
+            <div class="toast-demo__row">
+              <div class="toast-demo__field"><label for="title">Title <span>(optional)</span></label><input id="title" name="title" maxlength="120" placeholder="For example, Draft saved"></div>
+              <div class="toast-demo__field"><label for="tone">Visual tone</label><select id="tone" name="tone"><option value="neutral">Neutral</option><option value="info">Information</option><option value="success" selected>Success</option><option value="warning">Warning</option><option value="error">Error</option><option value="loading">Loading</option></select></div>
+            </div>
+            <details class="toast-demo__details" open>
+              <summary>Timing &amp; announcements</summary>
+              <div class="toast-demo__detail-body">
+                <div class="toast-demo__row">
+                  <div class="toast-demo__field"><label for="priority">Announcement priority</label><select id="priority" name="priority" aria-describedby="priority-hint"><option value="polite">Polite — wait for a pause</option><option value="assertive">Assertive — interrupt</option><option value="off">Off — another component owns it</option></select></div>
+                  <div class="toast-demo__field"><label for="persistence">Dismissal</label><select id="persistence" name="persistence"><option value="auto">Automatic safe defaults</option><option value="persistent">Keep until dismissed</option><option value="timed">Use a timer</option></select></div>
+                </div>
+                <p class="toast-demo__hint" id="priority-hint">Tone changes appearance, not urgency. Reserve assertive speech for important, time-sensitive information.</p>
+                <div class="toast-demo__row">
+                  <div class="toast-demo__field"><label for="duration">Timed duration <span>(seconds)</span></label><input id="duration" name="duration" type="number" min="1" max="120" step="1" value="5" aria-describedby="duration-hint"></div>
+                  <div class="toast-demo__field"><label for="position">Position</label><select id="position" name="position" aria-describedby="position-hint"><option value="bottom-end">Bottom end</option><option value="bottom-center">Bottom center</option><option value="bottom-start">Bottom start</option><option value="top-end">Top end</option><option value="top-center">Top center</option><option value="top-start">Top start</option></select></div>
+                </div>
+                <p class="toast-demo__hint" id="duration-hint">Loading always stays visible. Actions and assertive messages stay visible with automatic defaults.</p>
+                <label class="toast-demo__check"><input id="show-progress" name="showProgress" type="checkbox" checked aria-describedby="progress-hint"> Show visual timeout progress</label>
+                <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The indicator is visual, non-live, and hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
+                <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
+                <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="gsap">GSAP — optional</option><option value="view-transition">View Transition — experimental</option><option value="none">None</option></select></div>
+                <p class="toast-demo__hint" id="animation-hint">Animation is decorative. GSAP is injected by this development demo. Element-scoped View Transition is experimental and falls back to no motion when unsupported; document-scoped transitions are never used. Reduced-motion preference skips all drivers. Change this option when no notification surface is active.</p>
+                <label class="toast-demo__check"><input id="show-flip-layout" name="showFlipLayout" type="checkbox" aria-describedby="flip-layout-hint"> Animate stack reflow with GSAP Flip</label>
+                <p class="toast-demo__hint" id="flip-layout-hint">Optional layout-only motion for surviving notifications. Entrance and exit remain owned by the selected animation engine. Change this option when no notification surface is active.</p>
+                <div class="toast-demo__field"><label for="announcement-transport">Announcement transport</label><select id="announcement-transport" name="announcementTransport" aria-describedby="announcement-transport-hint"><option value="live-region" selected>Live regions — default</option><option value="aria-notify">ariaNotify — experimental</option></select></div>
+                <p class="toast-demo__hint" id="announcement-transport-hint">Experimental ariaNotify falls back to live regions when the API is unavailable. A Permissions Policy can still block ariaNotify silently, so this is not delivery proof.</p>
+                <div class="toast-demo__field"><label for="announcement">Announcement override <span>(optional)</span></label><input id="announcement" name="announcement" maxlength="2000" placeholder="Otherwise, the visible content is used"></div>
+                <label class="toast-demo__check"><input name="dismissible" type="checkbox" checked> Show a close button</label>
+                <label class="toast-demo__check"><input id="show-tone-label" name="showToneLabel" type="checkbox" checked aria-describedby="tone-label-hint"> Show tone label visually</label>
+                <p class="toast-demo__hint" id="tone-label-hint">When hidden visually, the tone text stays available to assistive technology. Change this option when no notifications are active.</p>
+                <label class="toast-demo__check"><input id="enable-diagnostics" name="enableDiagnostics" type="checkbox" aria-describedby="diagnostics-hint"> Enable development diagnostics</label>
+                <p class="toast-demo__hint" id="diagnostics-hint">Advisory only. Reports are collected silently and appear only when you choose Refresh diagnostics. Change this option when no notifications are active.</p>
+                <div class="toast-demo__field"><label for="toast-skin">Toast styling example</label><select id="toast-skin" name="toastSkin" aria-describedby="toast-skin-hint"><option value="default">Package defaults</option><option value="compact">Compact</option><option value="high-contrast">High-contrast-safe</option></select></div>
+                <p class="toast-demo__hint" id="toast-skin-hint">These demo skins set existing public <code>--a11y-toast-*</code> properties. They do not add a runtime theme API.</p>
+              </div>
+            </details>
+            <details class="toast-demo__details">
+              <summary>Add a demo action</summary>
+              <div class="toast-demo__detail-body">
+                <label class="toast-demo__check"><input id="has-action" name="hasAction" type="checkbox"> Include an action button</label>
+                <div class="toast-demo__field"><label for="action-label">Action label</label><input id="action-label" name="actionLabel" value="Undo demo change" maxlength="80" disabled></div>
+                <p class="toast-demo__hint">The action updates this notification. It does not change or delete real data.</p>
+              </div>
+            </details>
+            <div class="toast-demo__submit-row"><button class="toast-demo__button toast-demo__button--primary" type="submit">Show toast <span aria-hidden="true">↗</span></button><span class="toast-demo__hint">No focus jump. No page reload.</span></div>
+          </fieldset>
+        </form>
+        <p class="toast-demo__feedback" data-feedback hidden></p>
+      </section>
+      <div class="toast-demo__rail">
+        <section class="toast-demo__panel" aria-labelledby="lifecycle-title">
+          <div class="toast-demo__section-heading"><h2 id="lifecycle-title">Try the lifecycle</h2><span>02 / BEHAVIOR</span></div>
+          <p>Use the real API, with three visible notifications and ten queue slots.</p>
+          <div class="toast-demo__button-grid">
+            <button class="toast-demo__button" type="button" data-burst disabled>Show 5 toasts</button>
+            <button class="toast-demo__button" type="button" data-start-loading disabled>Start loading</button>
+            <button class="toast-demo__button" type="button" data-finish-loading disabled>Finish loading</button>
+            <button class="toast-demo__button" type="button" data-retry disabled>Test action retry</button>
+            <button class="toast-demo__button" type="button" data-promise-success disabled>Promise success</button>
+            <button class="toast-demo__button" type="button" data-promise-error disabled>Promise failure</button>
+          </div>
+          <details class="toast-demo__details">
+            <summary>Try a DOM event adapter</summary>
+            <div class="toast-demo__detail-body">
+              <div class="toast-demo__field"><label for="adapter-owner">Announcement owner</label><select id="adapter-owner"><option value="toast">Toast</option><option value="source">Source</option></select></div>
+              <div class="toast-demo__button-grid">
+                <button class="toast-demo__button" type="button" data-adapter-start disabled>Source start</button>
+                <button class="toast-demo__button" type="button" data-adapter-update disabled>Source update</button>
+                <button class="toast-demo__button" type="button" data-adapter-dismiss disabled>Source dismiss</button>
+              </div>
+              <p class="toast-demo__hint">The source and toast never announce the same mapped message at once. Source ownership forces the toast priority to Off.</p>
+              <p class="toast-demo__sr-only" role="status" data-source-status></p>
+            </div>
+          </details>
+          <details class="toast-demo__details">
+            <summary>Try an async form recipe</summary>
+            <div class="toast-demo__detail-body">
+              <form data-async-form>
+                <div class="toast-demo__field"><label for="async-email">Email address</label><input id="async-email" name="email" type="email" value="reader@example.com" required></div>
+                <div class="toast-demo__field"><label for="async-owner">Announcement owner</label><select id="async-owner"><option value="source">Form status</option><option value="toast">Toast</option></select></div>
+                <button class="toast-demo__button" type="submit" data-async-submit disabled>Save demo profile</button>
+                <p class="toast-demo__form-status" data-async-status role="status">Ready to save. No data leaves this page.</p>
+              </form>
+              <p class="toast-demo__hint">The adapter keeps one correlated toast. Form-status ownership makes the toast priority Off; toast ownership makes this visible form status non-live.</p>
+            </div>
+          </details>
+          <div class="toast-demo__field toast-demo__target"><label for="target">Current notification</label><select id="target" disabled><option value="">No notifications</option></select></div>
+          <details class="toast-demo__details">
+            <summary>Try keyed deduplication</summary>
+            <div class="toast-demo__detail-body">
+              <div class="toast-demo__row">
+                <div class="toast-demo__field"><label for="dedupe-key">Key</label><input id="dedupe-key" value="network-status" maxlength="80"></div>
+                <div class="toast-demo__field"><label for="dedupe-policy">Policy</label><select id="dedupe-policy"><option value="update-existing">Update existing</option><option value="drop-new">Drop new</option><option value="replace-existing">Replace existing</option></select></div>
+              </div>
+              <button class="toast-demo__button" type="button" data-dedupe disabled>Show keyed example</button>
+              <p class="toast-demo__hint">Key matching is exact and case-sensitive. Repeated clicks demonstrate the selected policy without message-text deduplication.</p>
+            </div>
+          </details>
+          <div class="toast-demo__button-grid">
+            <button class="toast-demo__button" type="button" data-update disabled>Update selected</button>
+            <button class="toast-demo__button" type="button" data-dismiss disabled>Dismiss selected</button>
+          </div>
+          <button class="toast-demo__button toast-demo__button--quiet" type="button" data-clear disabled>Dismiss all notifications</button>
+          <p class="toast-demo__counts"><span data-visible>0</span> visible <span aria-hidden="true">/</span> <span data-queued>0</span> queued</p>
+        </section>
+        <section class="toast-demo__panel toast-demo__panel--notes" aria-labelledby="notes-title">
+          <h2 id="notes-title">Designed to stay out of the way.</h2>
+          <p><strong>Focus stays put.</strong> Tab into a toast to pause its timer. Hover and a hidden tab pause it too.</p>
+          <p><strong>One announcement owner.</strong> Choose “Off” when another component already announces the result.</p>
+          <p><strong>Do not hide essential information.</strong> Timed feedback must be available elsewhere. Important actions should not expire.</p>
+          <p class="toast-demo__hint">Manual VoiceOver verification is still pending. This playground does not claim universal screen-reader support.</p>
+        </section>
+      </div>
+    </div>
+    <section class="toast-demo__events" aria-labelledby="events-title">
+      <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">03 / OBSERVABILITY</p><h2 id="events-title">Lifecycle events</h2></div><button class="toast-demo__button" data-clear-log type="button" disabled>Clear log</button></div>
+      <p class="toast-demo__hint">Newest first · last 40 events · intentionally not a live region. “Announce” means the selected transport committed an announcement attempt, not proof that speech finished.</p>
+      <ol class="toast-demo__log" data-log tabindex="0" aria-label="Lifecycle event history"></ol>
+    </section>
+    <section class="toast-demo__events" aria-labelledby="diagnostics-title">
+      <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">04 / DEVELOPMENT AID</p><h2 id="diagnostics-title">Diagnostics</h2></div><div class="toast-demo__button-group"><button class="toast-demo__button" data-refresh-diagnostics type="button" disabled>Refresh diagnostics</button><button class="toast-demo__button" data-clear-diagnostics type="button" disabled>Clear diagnostics</button></div></div>
+      <p class="toast-demo__hint">Not a live region. Reports stay silent until manual refresh and are advisory—not WCAG findings or proof of screen-reader delivery.</p>
+      <ol class="toast-demo__log" data-diagnostics-report tabindex="0" aria-label="Diagnostics report"></ol>
+    </section>
+  </main>
+  <footer class="demo-footer" data-demo-footer>
+    <div class="demo-footer__inner">
+      <div class="demo-footer__brand">
+        <p class="demo-footer__eyebrow">Accessibility plugin demo</p>
+        <p class="demo-footer__credit">
+          <span class="demo-footer__plugin">A11y Toast</span>
+          <span class="demo-footer__separator" aria-hidden="true">&middot;</span>
+          Built by
+          <a class="demo-footer__link" href="https://github.com/vmitsaras/">Vasileios Mitsaras</a>
+          <span class="demo-footer__separator" aria-hidden="true">&middot;</span>
+          <a class="demo-footer__link" href="https://linkedin.com/in/vasilis-mitsaras">LinkedIn</a>
+        </p>
+        <p class="demo-footer__meta"><span>a11y-toast</span><span class="demo-footer__separator" aria-hidden="true">&middot;</span><span>MIT License</span></p>
+      </div>
+      <nav class="demo-footer__nav" aria-label="Project links">
+        <ul class="demo-footer__links">
+          <li class="demo-footer__item"><a class="demo-footer__link" href="https://github.com/vmitsaras/A11y-Toast">GitHub repository</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
+  <div data-a11y-toast></div>
+</body>
+</html>

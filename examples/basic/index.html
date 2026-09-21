@@ -4,7 +4,85 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>A11y Toast — Playground</title>
+  <title>Accessible Toast Playground | A11y Toast</title>
+  <meta name="description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://vmitsaras.github.io/A11y-Toast/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vmitsaras.github.io/A11y-Toast/">
+  <meta property="og:site_name" content="A11y Toast">
+  <meta property="og:title" content="Accessible Toast Playground | A11y Toast">
+  <meta property="og:description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta property="og:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="640">
+  <meta property="og:image:alt" content="A11y Toast: accessible toast feedback with predictable focus, timing, and announcements.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Accessible Toast Playground | A11y Toast">
+  <meta name="twitter:description" content="Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.">
+  <meta name="twitter:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <meta name="twitter:image:alt" content="A11y Toast: accessible toast feedback with predictable focus, timing, and announcements.">
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebPage",
+          "@id": "https://vmitsaras.github.io/A11y-Toast/#playground-webpage",
+          "url": "https://vmitsaras.github.io/A11y-Toast/",
+          "name": "Accessible Toast Playground | A11y Toast",
+          "description": "Try framework-free TypeScript toast notifications with bounded queues, safe timers, explicit announcement ownership, and lifecycle event logging.",
+          "isPartOf": {
+            "@id": "https://github.com/vmitsaras/A11y-Toast#repository"
+          },
+          "mainEntity": {
+            "@id": "https://vmitsaras.github.io/A11y-Toast/#software"
+          }
+        },
+        {
+          "@type": "SoftwareSourceCode",
+          "@id": "https://vmitsaras.github.io/A11y-Toast/#software",
+          "name": "A11y Toast",
+          "description": "Framework-free TypeScript toast notifications with explicit announcement ownership and deterministic lifecycle cleanup.",
+          "codeRepository": "https://github.com/vmitsaras/A11y-Toast",
+          "programmingLanguage": [
+            "TypeScript",
+            "JavaScript"
+          ],
+          "runtimePlatform": "Browser",
+          "version": "0.1.0",
+          "license": "MIT",
+          "keywords": [
+            "accessibility",
+            "toast",
+            "typescript",
+            "live-region",
+            "vanilla-js"
+          ],
+          "author": {
+            "@type": "Person",
+            "name": "Vasileios Mitsaras",
+            "url": "https://github.com/vmitsaras/",
+            "sameAs": [
+              "https://github.com/vmitsaras/",
+              "https://linkedin.com/in/vasilis-mitsaras"
+            ]
+          },
+          "targetProduct": {
+            "@type": "SoftwareApplication",
+            "name": "Modern web browsers",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Any",
+            "runtimePlatform": "Browser"
+          },
+          "sameAs": [
+            "https://github.com/vmitsaras/A11y-Toast"
+          ]
+        }
+      ]
+    }
+  </script>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../dist/styles.css">
   <link rel="stylesheet" href="../../dist/addons/progress.css">
@@ -15,16 +93,30 @@
 </head>
 <body class="toast-demo">
   <a class="toast-demo__skip" href="#playground">Skip to playground</a>
-  <header class="toast-demo__header">
-    <a class="toast-demo__brand" href="./">a11y<span> / </span>toast</a>
-    <span class="toast-demo__version">v0.1.0 · TypeScript · No runtime dependencies</span>
+  <header class="toast-demo__masthead">
+    <nav class="toast-demo__nav" aria-label="Primary">
+      <a class="toast-demo__brand" href="./" aria-label="A11y Toast home">
+        <img src="./a11y-toast-mark.svg" alt="" width="48" height="48">
+        <span>A11y Toast</span>
+      </a>
+      <a class="toast-demo__repo-link" href="https://github.com/vmitsaras/A11y-Toast">
+        View on GitHub
+        <span aria-hidden="true">↗</span>
+      </a>
+    </nav>
+    <div class="toast-demo__hero">
+      <div class="toast-demo__hero-copy">
+        <p class="toast-demo__eyebrow">FRAMEWORK-FREE · ACCESSIBILITY-FIRST</p>
+        <h1>Toast feedback.<br><span>Focus stays put.</span></h1>
+        <p class="toast-demo__lead">Use the real package to test content, timing, queueing, announcements, and lifecycle events—without moving focus.</p>
+      </div>
+      <div class="toast-demo__hero-aside">
+        <p>A TypeScript notification plugin built around explicit focus, timing, queue, and announcement ownership.</p>
+        <p class="toast-demo__version">v0.1.0 · TypeScript · No runtime dependencies</p>
+      </div>
+    </div>
   </header>
   <main class="toast-demo__main">
-    <div class="toast-demo__intro">
-      <p class="toast-demo__eyebrow">THE COMPONENT PLAYGROUND</p>
-      <h1>Small messages.<br>Predictable behavior.</h1>
-      <p class="toast-demo__lead">Compose a toast. Inspect its lifecycle. Keep focus where it belongs.</p>
-    </div>
     <p class="toast-demo__boot" data-boot>Loading the playground. Use <code>npm run demo</code> and open the served address, rather than opening this file directly.</p>
     <noscript><p>This interactive demo requires JavaScript. Important application feedback should also exist as ordinary page content.</p></noscript>
     <div class="toast-demo__layout">
@@ -161,8 +253,28 @@
       <p class="toast-demo__hint">Not a live region. Reports stay silent until manual refresh and are advisory—not WCAG findings or proof of screen-reader delivery.</p>
       <ol class="toast-demo__log" data-diagnostics-report tabindex="0" aria-label="Diagnostics report"></ol>
     </section>
-    <footer class="toast-demo__footer"><span>Vanilla DOM · ESM · BEM CSS</span><span>One page. The actual built package.</span></footer>
   </main>
+  <footer class="demo-footer" data-demo-footer>
+    <div class="demo-footer__inner">
+      <div class="demo-footer__brand">
+        <p class="demo-footer__eyebrow">Accessibility plugin demo</p>
+        <p class="demo-footer__credit">
+          <span class="demo-footer__plugin">A11y Toast</span>
+          <span class="demo-footer__separator" aria-hidden="true">&middot;</span>
+          Built by
+          <a class="demo-footer__link" href="https://github.com/vmitsaras/">Vasileios Mitsaras</a>
+          <span class="demo-footer__separator" aria-hidden="true">&middot;</span>
+          <a class="demo-footer__link" href="https://linkedin.com/in/vasilis-mitsaras">LinkedIn</a>
+        </p>
+        <p class="demo-footer__meta"><span>a11y-toast</span><span class="demo-footer__separator" aria-hidden="true">&middot;</span><span>MIT License</span></p>
+      </div>
+      <nav class="demo-footer__nav" aria-label="Project links">
+        <ul class="demo-footer__links">
+          <li class="demo-footer__item"><a class="demo-footer__link" href="https://github.com/vmitsaras/A11y-Toast">GitHub repository</a></li>
+        </ul>
+      </nav>
+    </div>
+  </footer>
   <div data-a11y-toast></div>
 </body>
 </html>

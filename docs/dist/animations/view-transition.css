@@ -1,0 +1,23 @@
+/* Experimental element-scoped View Transition motion.
+   Import only when using a11y-toast/animations/view-transition. */
+.a11y-toast[data-a11y-toast-view-transition-state='offset'] {
+  opacity: 0;
+}
+.a11y-toast[data-a11y-toast-view-transition-state='offset'][data-a11y-toast-view-transition-direction='top'] {
+  translate: 0 calc(var(--a11y-toast-view-transition-distance, 0.25rem) * -1);
+}
+.a11y-toast[data-a11y-toast-view-transition-state='offset'][data-a11y-toast-view-transition-direction='bottom'] {
+  translate: 0 var(--a11y-toast-view-transition-distance, 0.25rem);
+}
+.a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-group(root),
+.a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-old(root),
+.a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-new(root) {
+  animation-duration: var(--a11y-toast-view-transition-enter-duration, 150ms);
+  animation-timing-function: var(--a11y-toast-view-transition-enter-ease, ease-out);
+}
+.a11y-toast[data-a11y-toast-view-transition-phase='exit']::view-transition-group(root),
+.a11y-toast[data-a11y-toast-view-transition-phase='exit']::view-transition-old(root),
+.a11y-toast[data-a11y-toast-view-transition-phase='exit']::view-transition-new(root) {
+  animation-duration: var(--a11y-toast-view-transition-exit-duration, 120ms);
+  animation-timing-function: var(--a11y-toast-view-transition-exit-ease, ease-in);
+}

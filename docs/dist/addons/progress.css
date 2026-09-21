@@ -1,0 +1,29 @@
+/* Optional visual-only timeout progress add-on. */
+.a11y-toast--has-progress { position: relative; }
+.a11y-toast__progress {
+  position: absolute;
+  inset-inline: 1rem 0.75rem;
+  inset-block-end: 0.4rem;
+  block-size: var(--a11y-toast-progress-height, 0.125rem);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--a11y-toast-progress-track, #d7dee2);
+  pointer-events: none;
+}
+.a11y-toast__progress-bar {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  background: var(--a11y-toast-progress-color, var(--_accent, currentColor));
+  transform: scaleX(1);
+  transform-origin: left center;
+  will-change: transform;
+}
+.a11y-toast__progress-bar:dir(rtl) { transform-origin: right center; }
+@media (prefers-reduced-motion: reduce) {
+  .a11y-toast__progress { display: none; }
+}
+@media (forced-colors: active) {
+  .a11y-toast__progress { border: 1px solid CanvasText; background: Canvas; }
+  .a11y-toast__progress-bar { background: CanvasText; }
+}

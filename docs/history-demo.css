@@ -1,0 +1,44 @@
+.toast-history-demo {
+  --_border: #b9c7c1;
+  --_muted: #36514f;
+  margin-block: clamp(3.5rem, 8vw, 6rem) 2rem;
+  padding: 1.5rem 0 0;
+  border: 0;
+  border-block-start: 2px solid #102c2c;
+  border-radius: 0;
+  background: transparent;
+  color: #102c2c;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.toast-history-demo__heading { margin-block: 0 0.75rem; font-size: clamp(1.35rem, 2.5vw, 1.75rem); letter-spacing: -0.035em; }
+.toast-history-demo__hint,
+.toast-history-demo__count { color: var(--_muted); line-height: 1.6; }
+.toast-history-demo__summary { cursor: pointer; padding-block: 0.75rem; font-weight: 650; }
+.toast-history-demo__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem; }
+.toast-history-demo__button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--_border);
+  border-radius: 0.4rem;
+  padding: 0.625rem 1rem;
+  min-block-size: 2.75rem;
+  max-inline-size: 100%;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.toast-history-demo__button:hover { background: #e4efea; }
+.toast-history-demo__button:focus-visible,
+.toast-history-demo__summary:focus-visible { outline: 3px solid #1859ae; outline-offset: 3px; }
+.toast-history-demo__list { padding-inline-start: 1.5rem; }
+.toast-history-demo__entry { padding-block: 0.85rem; border-block-start: 1px solid var(--_border); }
+.toast-history-demo__meta,
+.toast-history-demo__action-label { color: var(--_muted); font-size: 0.9em; line-height: 1.5; }
+.toast-history-demo__message { white-space: pre-wrap; line-height: 1.6; }
+@media (forced-colors: active) {
+  .toast-history-demo { border-color: CanvasText; background: Canvas; color: CanvasText; }
+  .toast-history-demo__button { border-color: ButtonText; color: ButtonText; background: ButtonFace; }
+  .toast-history-demo__button:focus-visible,
+  .toast-history-demo__summary:focus-visible { outline-color: Highlight; }
+}

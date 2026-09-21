@@ -6,6 +6,8 @@ A framework-free, TypeScript-first toast manager with explicit announcement owne
 
 ## Try it immediately
 
+Use the [hosted A11y Toast playground](https://vmitsaras.github.io/A11y-Toast/) or run it locally.
+
 Clone the repository, install development dependencies, build, and run the demo:
 
 ```sh
@@ -17,6 +19,16 @@ npm run demo
 Open `http://127.0.0.1:4173/examples/basic/`. Node.js 22 or later is the declared development baseline. The demo imports generated `dist/` output, so a build is required after a fresh clone. Do not open `index.html` using `file://`: it imports real ES modules.
 
 The demo is one page: content/options form, visible/queued selection, loading/update controls, action retry, six logical positions, and a deliberately non-live event log. No CDN, framework, backend, account, or storage is used.
+
+## GitHub Pages
+
+The committed `docs/` folder is the static GitHub Pages source. Existing Markdown documentation remains there alongside generated playground files. Refresh the package and Pages output together with:
+
+```sh
+npm run pages:build
+```
+
+For the repository's one-time Pages configuration, choose **Settings → Pages → Build and deployment → Deploy from a branch → `main` → `/docs`**. The regular verification workflow does not deploy the site. `npm run build:dist` builds only package artifacts, while `npm run pages:generate` refreshes Pages files from an existing `dist/` build.
 
 ## Optional in-memory history (TOAST-270)
 
