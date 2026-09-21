@@ -345,3 +345,81 @@
   .demo-footer__link { color: LinkText; }
   .demo-footer__link:focus-visible { outline-color: Highlight; }
 }
+
+/* Playground-only effects. The package CSS driver still owns settlement. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) {
+    --a11y-toast-enter-duration: 240ms;
+    --a11y-toast-exit-duration: 160ms;
+    --_demo-effect-x: 0px;
+    --_demo-effect-y: 0px;
+    --_demo-effect-opacity: 0;
+    --_demo-effect-scale: 1;
+    --_demo-effect-distance: 16px;
+  }
+  /* Expand the scrollport, not the toast: keep the resting geometry intact.
+     Gutters stop at the window edge so scrollbars remain reachable. */
+  :where([data-demo-effect]:not([data-demo-effect='default'])) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] {
+    --_demo-gutter: 40px;
+    --_demo-edge: var(--a11y-toast-offset, 1rem);
+    --_demo-spare: max(0px, calc(100vi - var(--a11y-toast-width, 23rem) - 2 * var(--_demo-edge)));
+    --_demo-gutter-start: min(var(--_demo-gutter), calc(var(--_demo-edge) + var(--_demo-spare) / 2));
+    --_demo-gutter-end: var(--_demo-gutter-start);
+    --_demo-gutter-top: var(--_demo-gutter);
+    --_demo-gutter-bottom: var(--_demo-gutter);
+  }
+  [data-demo-effect] .a11y-toast-region__viewport:is(.a11y-toast-region__viewport--top-start, .a11y-toast-region__viewport--bottom-start) {
+    --_demo-gutter-start: min(var(--_demo-gutter), var(--_demo-edge));
+    --_demo-gutter-end: min(var(--_demo-gutter), calc(var(--_demo-edge) + var(--_demo-spare)));
+  }
+  [data-demo-effect] .a11y-toast-region__viewport:is(.a11y-toast-region__viewport--top-end, .a11y-toast-region__viewport--bottom-end) {
+    --_demo-gutter-start: min(var(--_demo-gutter), calc(var(--_demo-edge) + var(--_demo-spare)));
+    --_demo-gutter-end: min(var(--_demo-gutter), var(--_demo-edge));
+  }
+  [data-demo-effect] .a11y-toast-region__viewport:is(.a11y-toast-region__viewport--top-start, .a11y-toast-region__viewport--top-center, .a11y-toast-region__viewport--top-end) {
+    --_demo-gutter-top: min(var(--_demo-gutter), max(var(--_demo-edge), env(safe-area-inset-top, 0px)));
+  }
+  [data-demo-effect] .a11y-toast-region__viewport:is(.a11y-toast-region__viewport--bottom-start, .a11y-toast-region__viewport--bottom-center, .a11y-toast-region__viewport--bottom-end) {
+    --_demo-gutter-bottom: min(var(--_demo-gutter), max(var(--_demo-edge), env(safe-area-inset-bottom, 0px)));
+  }
+  [data-demo-effect]:not([data-demo-effect='default']) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast-region__list:not(:empty) {
+    padding-block: calc(0.25rem + var(--_demo-gutter-top)) calc(0.25rem + var(--_demo-gutter-bottom));
+    padding-inline: calc(0.25rem + var(--_demo-gutter-start)) calc(0.25rem + var(--_demo-gutter-end));
+    margin-block: calc(-1 * var(--_demo-gutter-top)) calc(-1 * var(--_demo-gutter-bottom));
+    margin-inline: calc(-1 * var(--_demo-gutter-start)) calc(-1 * var(--_demo-gutter-end));
+    max-block-size: calc(var(--a11y-toast-max-height, 45vh) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom));
+    max-block-size: calc(var(--a11y-toast-max-height, 45dvh) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom));
+  }
+  [data-demo-effect^='slide-'] {
+    --_demo-effect-distance: 32px;
+    --_demo-effect-opacity: 1;
+  }
+  [data-demo-effect$='-left'] { --_demo-effect-x: calc(-1 * var(--_demo-effect-distance)); }
+  [data-demo-effect$='-right'] { --_demo-effect-x: var(--_demo-effect-distance); }
+  [data-demo-effect$='-top'] { --_demo-effect-y: calc(-1 * var(--_demo-effect-distance)); }
+  [data-demo-effect$='-bottom'] { --_demo-effect-y: var(--_demo-effect-distance); }
+  [data-demo-effect='zoom'] { --_demo-effect-scale: 0.96; }
+  [data-demo-effect='bounce'] { --a11y-toast-enter-duration: 320ms; }
+  [data-demo-effect]:not([data-demo-effect='default']) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-entering {
+    animation-name: toast-demo-effect-enter;
+  }
+  [data-demo-effect]:not([data-demo-effect='default']) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-exiting {
+    animation-name: toast-demo-effect-exit;
+  }
+  [data-demo-effect='bounce'] .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-entering {
+    animation-name: toast-demo-effect-bounce;
+  }
+}
+@keyframes toast-demo-effect-enter {
+  from { opacity: var(--_demo-effect-opacity); translate: var(--_demo-effect-x) var(--_demo-effect-y); scale: var(--_demo-effect-scale); }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes toast-demo-effect-exit {
+  from { opacity: 1; translate: 0 0; scale: 1; }
+  to { opacity: var(--_demo-effect-opacity); translate: var(--_demo-effect-x) var(--_demo-effect-y); scale: var(--_demo-effect-scale); }
+}
+@keyframes toast-demo-effect-bounce {
+  0% { opacity: 0; translate: 0 16px; }
+  70% { opacity: 1; translate: 0 -3px; }
+  100% { opacity: 1; translate: 0 0; }
+}

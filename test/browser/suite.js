@@ -1867,5 +1867,37 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(inner.getAddon('diagnostics'), undefined);
   });
 
+  await test('166 demo directional effects keep motion inside an expanded scrollport', async () => {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet'; style.href = '/examples/basic/demo.css';
+    const loaded = new Promise((resolve, reject) => { style.onload = resolve; style.onerror = reject; });
+    fixture.append(style); await loaded;
+    for (const position of ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end']) {
+      const root = host();
+      const m = create({ position }, root);
+      root.querySelector('section').dataset.a11yToastAnimation = 'css';
+      root.dataset.demoEffect = 'default';
+      const id = m.show({ message: 'Motion clipping regression', persistent: true });
+      const toast = item(m, id), list = toast.parentElement;
+      for (const animation of toast.getAnimations()) animation.finish();
+      await waitMicrotasks();
+      const before = toast.getBoundingClientRect();
+      root.dataset.demoEffect = 'slide-left';
+      const after = toast.getBoundingClientRect(), clip = list.getBoundingClientRect();
+      ok(Math.abs(before.x - after.x) < 1 && Math.abs(before.y - after.y) < 1, `Gutters must preserve toast position: ${position} ${JSON.stringify(before)} ${JSON.stringify(after)}`);
+      ok(Math.abs(before.width - after.width) < 1, 'Gutters must preserve toast width');
+      ok(clip.left >= -1 && clip.right <= innerWidth + 1, 'Scrollport stays within browser width');
+      ok(clip.top >= -1 && clip.bottom <= innerHeight + 1, 'Scrollport stays within browser height');
+      ok(after.left - clip.left >= Math.min(32, after.left) - 1, 'Left motion reaches its full distance or window edge');
+      ok(clip.right - after.right >= Math.min(32, innerWidth - after.right) - 1, 'Right motion reaches its full distance or window edge');
+      ok(after.top - clip.top >= Math.min(32, after.top) - 1, 'Top motion reaches its full distance or window edge');
+      ok(clip.bottom - after.bottom >= Math.min(32, innerHeight - after.bottom) - 1, 'Bottom motion reaches its full distance or window edge');
+      m.update(id, { message: 'Long scrolling notification. '.repeat(300) });
+      list.scrollTop = list.scrollHeight;
+      ok(list.scrollTop > 0, 'Long content remains scrollable');
+      ok(list.clientHeight < list.scrollHeight, 'Content height stays bounded');
+      m.destroy();
+    }
+  }, true);
   return results;
 }

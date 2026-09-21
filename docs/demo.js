@@ -17,6 +17,7 @@ const form = document.querySelector('#toast-form');
 const target = document.querySelector('#target');
 const position = form.elements.position;
 const animation = form.elements.animation;
+const animationEffect = form.elements.animationEffect;
 const announcementTransport = form.elements.announcementTransport;
 const showProgress = form.elements.showProgress;
 const showFlipLayout = form.elements.showFlipLayout;
@@ -69,6 +70,7 @@ function sync(source) {
   const surfaceActive = Boolean(root.querySelector('[data-a11y-toast-id]'));
   position.disabled = surfaceActive;
   animation.disabled = surfaceActive;
+  animationEffect.disabled = surfaceActive || animation.value !== 'css';
   announcementTransport.disabled = surfaceActive;
   showProgress.disabled = surfaceActive;
   showFlipLayout.disabled = surfaceActive;
@@ -166,6 +168,7 @@ function initializeAsyncAdapter() {
 }
 
 function initialize() {
+  root.dataset.demoEffect = animationEffect.value;
   manager = createToast(root, {
     position: position.value,
     animation: animation.value === 'gsap'
@@ -230,6 +233,9 @@ function reinitializeManager() {
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
+animationEffect.addEventListener('change', () => {
+  root.dataset.demoEffect = animationEffect.value;
+});
 announcementTransport.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
 showFlipLayout.addEventListener('change', reinitializeManager);
