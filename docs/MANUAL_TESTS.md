@@ -32,6 +32,9 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-26 | Select GSAP animation in the playground. Show/dismiss top and bottom notifications, dismiss during entrance, test queued promotion, then enable reduced motion and repeat. | Motion direction follows placement; no inline opacity/transform style remains after completion/abort; queue promotion waits for exit; reduced motion skips GSAP entirely; focus and announcement behavior remain unchanged. | Pending |
 | M-27 | Enable “Animate stack reflow with GSAP Flip”. Show several toasts, update one to a much longer message, dismiss a middle/first toast with a queued item waiting, then repeat with reduced motion. | Only surviving siblings glide to their new positions; the updated/entering/leaving toast keeps its normal animation ownership; queue promotion reflow happens after exit; no temporary `data-flip-id` or Flip-owned inline style remains; reduced motion causes no Flip layout motion. | Pending |
 | M-28 | Select experimental View Transition animation in each supported browser. Show/dismiss multiple toasts, dismiss during entrance, test a queued promotion, then repeat with reduced motion and in a browser without element-scoped support. | Supporting browsers use per-toast scoped motion with no page-wide interaction lock; entrance→exit overlap resolves in order; queued promotion waits for exit; reduced motion skips the API; unsupported browsers use no motion without error; no temporary View Transition data attributes remain. | Pending / experimental |
+| M-29 | Enable development diagnostics, create a timed action or timed assertive toast, then inspect the report before and after using Refresh diagnostics; use Clear diagnostics. | No diagnostic is announced or focused automatically. Refresh shows the collected advisory report on demand; Clear empties only that report. Toast rendering, speech, focus and timing are unchanged. | Pending |
+| M-30 | Run the async-form recipe once with Form status ownership and once with Toast ownership. | Exactly one owner announces saving and completion in each run. Form ownership keeps the correlated toast priority Off; toast ownership keeps the visible form status non-live. One toast ID is reused for the operation. | Pending |
+| M-31 | Select Compact and High-contrast-safe styling examples, including with forced colors active. | The examples use existing public custom properties only. Content reflows, controls remain reachable, and borders, text and visible focus remain distinguishable without relying on shadows or tone color alone. | Pending |
 
 ### Stop conditions
 
@@ -44,6 +47,13 @@ The automated 200% **root text size** / 320px smoke test exercises CSS reflow. I
 ### Browser zoom evidence — 2026-09-21
 
 Chrome 153.0.8010.50 on macOS 27.0 (26A428) was reset to 100% and then exercised at Chrome's 200% and 400% browser zoom levels. A persistent toast used a long message and the action label “Undo this unusually long demonstration action safely.” At both levels the message reflowed without horizontal clipping. Keyboard focus brought the action and close controls into view within the scrollable notification region, and focusing the page's Show toast control left that control at least partially visible rather than completely covered by the fixed toast region. This is M-14 Chrome evidence only: Safari zoom, VoiceOver speech/reading order, and H-M06's long-history inspection remain pending.
+
+### Outstanding VoiceOver and zoom evidence
+
+- VoiceOver + Safari: pending for M-01–M-13, M-17–M-25, and M-29–M-31.
+- VoiceOver + Chrome: pending for M-01–M-13, M-17–M-25, and M-29–M-31.
+- Safari at 200% and 400% browser zoom: pending for M-14 and the history inspector's H-M06 case.
+- Chrome zoom has only the M-14 evidence recorded above; the history inspector's H-M06 zoom case remains pending.
 
 
 ## TOAST-270 history acceptance — pending

@@ -43,6 +43,8 @@
 .toast-demo__rail { display: grid; gap: 1.5rem; min-inline-size: 0; }
 .toast-demo__panel > p { font-size: 0.875rem; color: #53636d; margin: -0.5rem 0 1.5rem; }
 .toast-demo__button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.toast-demo__button-group { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.toast-demo__form-status { min-block-size: 1.6em; margin: 1rem 0 0; color: #3c5662; font-size: 0.875rem; }
 .toast-demo__target { margin-block-start: 1.25rem; }
 .toast-demo__panel .toast-demo__counts { border-block-start: 1px solid #dde4e8; padding-block-start: 1rem; margin: 1rem 0 0; font-size: 0.8125rem; display: flex; gap: 0.5rem; }
 .toast-demo__counts [data-visible], .toast-demo__counts [data-queued] { font-variant-numeric: tabular-nums; font-weight: 700; color: #203b48; }
@@ -88,4 +90,25 @@
 .toast-demo__composer, .toast-demo__panel { min-inline-size: 0; overflow-wrap: anywhere; }
 .toast-demo__rail { grid-template-columns: minmax(0, 1fr); }
 .toast-demo__event-heading, .toast-demo__counts { flex-wrap: wrap; }
+.toast-demo-skin--compact {
+  --a11y-toast-width: 19rem;
+  --a11y-toast-gap: 0.35rem;
+  --a11y-toast-radius: 0.35rem;
+  --a11y-toast-offset: 0.5rem;
+  --a11y-toast-max-height: 35dvh;
+}
+.toast-demo-skin--high-contrast {
+  --a11y-toast-background: Canvas;
+  --a11y-toast-color: CanvasText;
+  --a11y-toast-muted: CanvasText;
+  --a11y-toast-border: CanvasText;
+  --a11y-toast-focus: Highlight;
+  --a11y-toast-shadow: none;
+  --a11y-toast-neutral-accent: CanvasText;
+  --a11y-toast-info-accent: LinkText;
+  --a11y-toast-success-accent: CanvasText;
+  --a11y-toast-warning-accent: CanvasText;
+  --a11y-toast-error-accent: CanvasText;
+  --a11y-toast-loading-accent: CanvasText;
+}
 @media (max-width: 53rem) { .toast-demo__layout { grid-template-columns: minmax(0, 1fr); } }

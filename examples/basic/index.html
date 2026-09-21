@@ -67,6 +67,10 @@
                 <label class="toast-demo__check"><input name="dismissible" type="checkbox" checked> Show a close button</label>
                 <label class="toast-demo__check"><input id="show-tone-label" name="showToneLabel" type="checkbox" checked aria-describedby="tone-label-hint"> Show tone label visually</label>
                 <p class="toast-demo__hint" id="tone-label-hint">When hidden visually, the tone text stays available to assistive technology. Change this option when no notifications are active.</p>
+                <label class="toast-demo__check"><input id="enable-diagnostics" name="enableDiagnostics" type="checkbox" aria-describedby="diagnostics-hint"> Enable development diagnostics</label>
+                <p class="toast-demo__hint" id="diagnostics-hint">Advisory only. Reports are collected silently and appear only when you choose Refresh diagnostics. Change this option when no notifications are active.</p>
+                <div class="toast-demo__field"><label for="toast-skin">Toast styling example</label><select id="toast-skin" name="toastSkin" aria-describedby="toast-skin-hint"><option value="default">Package defaults</option><option value="compact">Compact</option><option value="high-contrast">High-contrast-safe</option></select></div>
+                <p class="toast-demo__hint" id="toast-skin-hint">These demo skins set existing public <code>--a11y-toast-*</code> properties. They do not add a runtime theme API.</p>
               </div>
             </details>
             <details class="toast-demo__details">
@@ -107,6 +111,18 @@
               <p class="toast-demo__sr-only" role="status" data-source-status></p>
             </div>
           </details>
+          <details class="toast-demo__details">
+            <summary>Try an async form recipe</summary>
+            <div class="toast-demo__detail-body">
+              <form data-async-form>
+                <div class="toast-demo__field"><label for="async-email">Email address</label><input id="async-email" name="email" type="email" value="reader@example.com" required></div>
+                <div class="toast-demo__field"><label for="async-owner">Announcement owner</label><select id="async-owner"><option value="source">Form status</option><option value="toast">Toast</option></select></div>
+                <button class="toast-demo__button" type="submit" data-async-submit disabled>Save demo profile</button>
+                <p class="toast-demo__form-status" data-async-status role="status">Ready to save. No data leaves this page.</p>
+              </form>
+              <p class="toast-demo__hint">The adapter keeps one correlated toast. Form-status ownership makes the toast priority Off; toast ownership makes this visible form status non-live.</p>
+            </div>
+          </details>
           <div class="toast-demo__field toast-demo__target"><label for="target">Current notification</label><select id="target" disabled><option value="">No notifications</option></select></div>
           <details class="toast-demo__details">
             <summary>Try keyed deduplication</summary>
@@ -139,6 +155,11 @@
       <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">03 / OBSERVABILITY</p><h2 id="events-title">Lifecycle events</h2></div><button class="toast-demo__button" data-clear-log type="button" disabled>Clear log</button></div>
       <p class="toast-demo__hint">Newest first · last 40 events · intentionally not a live region. “Announce” means the selected transport committed an announcement attempt, not proof that speech finished.</p>
       <ol class="toast-demo__log" data-log tabindex="0" aria-label="Lifecycle event history"></ol>
+    </section>
+    <section class="toast-demo__events" aria-labelledby="diagnostics-title">
+      <div class="toast-demo__event-heading"><div><p class="toast-demo__eyebrow">04 / DEVELOPMENT AID</p><h2 id="diagnostics-title">Diagnostics</h2></div><div class="toast-demo__button-group"><button class="toast-demo__button" data-refresh-diagnostics type="button" disabled>Refresh diagnostics</button><button class="toast-demo__button" data-clear-diagnostics type="button" disabled>Clear diagnostics</button></div></div>
+      <p class="toast-demo__hint">Not a live region. Reports stay silent until manual refresh and are advisory—not WCAG findings or proof of screen-reader delivery.</p>
+      <ol class="toast-demo__log" data-diagnostics-report tabindex="0" aria-label="Diagnostics report"></ol>
     </section>
     <footer class="toast-demo__footer"><span>Vanilla DOM · ESM · BEM CSS</span><span>One page. The actual built package.</span></footer>
   </main>

@@ -3,6 +3,7 @@ import { createToast, addToastEventListener, TOAST_EVENTS } from '../../dist/ind
 import { createProgressAddon } from '../../dist/addons/progress.js';
 import { trackToastPromise } from '../../dist/addons/promise.js';
 import { createDedupeController } from '../../dist/addons/dedupe.js';
+import { createDiagnosticsAddon } from '../../dist/addons/diagnostics.js';
 import { createDomEventAdapter } from '../../dist/adapters/dom-events.js';
 import { createAriaNotifyTransport } from '../../dist/transports/aria-notify.js';
 import { createGsapAnimationDriver } from '../../dist/animations/gsap.js';
@@ -20,15 +21,25 @@ const announcementTransport = form.elements.announcementTransport;
 const showProgress = form.elements.showProgress;
 const showFlipLayout = form.elements.showFlipLayout;
 const showToneLabel = form.elements.showToneLabel;
+const enableDiagnostics = form.elements.enableDiagnostics;
+const toastSkin = form.elements.toastSkin;
 const log = document.querySelector('[data-log]');
 const feedback = document.querySelector('[data-feedback]');
 const adapterOwner = document.querySelector('#adapter-owner');
 const sourceStatus = document.querySelector('[data-source-status]');
 const sourceEvents = new EventTarget();
+const asyncForm = document.querySelector('[data-async-form]');
+const asyncOwner = document.querySelector('#async-owner');
+const asyncStatus = document.querySelector('[data-async-status]');
+const asyncEvents = new EventTarget();
+const diagnosticsReport = document.querySelector('[data-diagnostics-report]');
+const diagnostics = [];
 let manager;
 let historyDemo;
 let dedupe;
 let domAdapter;
+let asyncAdapter;
+let asyncTimer;
 let dedupeSequence = 0;
 let loadingId = null;
 const removers = [];
@@ -62,6 +73,7 @@ function sync(source) {
   showProgress.disabled = surfaceActive;
   showFlipLayout.disabled = surfaceActive;
   showToneLabel.disabled = surfaceActive;
+  enableDiagnostics.disabled = surfaceActive;
   for (const selector of ['[data-update]', '[data-dismiss]', '[data-clear]']) document.querySelector(selector).disabled = !records.length;
   if (loadingId && !source.getToast(loadingId)) loadingId = null;
   document.querySelector('[data-finish-loading]').disabled = !loadingId;
@@ -72,6 +84,22 @@ function sync(source) {
       : form.querySelector('[type=submit]');
     if (!next.disabled) next.focus({ preventScroll: true });
   }
+}
+function renderDiagnostics() {
+  const items = diagnostics.map(diagnostic => {
+    const li = document.createElement('li');
+    const time = document.createElement('time');
+    const recorded = new Date(diagnostic.timestamp);
+    time.dateTime = recorded.toISOString();
+    time.textContent = recorded.toLocaleTimeString('en-GB');
+    const code = document.createElement('span');
+    code.textContent = diagnostic.code;
+    const detail = document.createElement('small');
+    detail.textContent = `${diagnostic.severity}${diagnostic.toastId ? ` · ${diagnostic.toastId}` : ''}`;
+    li.append(time, code, detail);
+    return li;
+  });
+  diagnosticsReport.replaceChildren(...items.reverse());
 }
 function observe(event) {
   const { instance, toast, reason, phase, driver, status, transport, fallback } = event.detail;
@@ -109,6 +137,33 @@ function initializeAdapter() {
     }],
   });
 }
+function setAsyncStatus(message) {
+  if (asyncOwner.value === 'source') {
+    asyncStatus.setAttribute('role', 'status');
+    asyncStatus.removeAttribute('aria-live');
+    asyncStatus.textContent = message;
+  } else {
+    asyncStatus.removeAttribute('role');
+    asyncStatus.setAttribute('aria-live', 'off');
+    asyncStatus.textContent = message;
+  }
+}
+function initializeAsyncAdapter() {
+  asyncAdapter?.destroy();
+  asyncAdapter = createDomEventAdapter(manager, {
+    target: asyncEvents,
+    announcementOwner: asyncOwner.value,
+    dismissTrackedOnDestroy: true,
+    bindings: [{
+      event: 'demo:async-form',
+      map(event) {
+        const { state } = event.detail;
+        if (state === 'complete') return { type: 'update', correlationKey: 'profile-save', patch: { message: 'Demo profile saved.', tone: 'success', persistent: false, duration: 5000 } };
+        return { type: 'show', correlationKey: 'profile-save', input: { message: 'Saving demo profile…', tone: 'loading', persistent: true } };
+      },
+    }],
+  });
+}
 
 function initialize() {
   manager = createToast(root, {
@@ -122,6 +177,7 @@ function initialize() {
     addons: [
       ...(showProgress.checked ? [createProgressAddon()] : []),
       ...(showFlipLayout.checked ? [createGsapFlipLayoutAddon(gsap, Flip)] : []),
+      ...(enableDiagnostics.checked ? [createDiagnosticsAddon({ report: diagnostic => diagnostics.push(diagnostic) })] : []),
     ],
     duration: Number(form.elements.duration.value) * 1000,
     showToneLabel: showToneLabel.checked,
@@ -130,6 +186,9 @@ function initialize() {
   historyDemo = createHistoryDemo(manager, document.querySelector('main'));
   dedupe = createDedupeController(manager);
   initializeAdapter();
+  initializeAsyncAdapter();
+  root.classList.toggle('toast-demo-skin--compact', toastSkin.value === 'compact');
+  root.classList.toggle('toast-demo-skin--high-contrast', toastSkin.value === 'high-contrast');
   sync(manager);
 }
 function valid() {
@@ -167,7 +226,7 @@ form.addEventListener('submit', event => {
 form.elements.message.addEventListener('input', () => form.elements.message.setCustomValidity(''));
 form.elements.hasAction.addEventListener('change', () => { form.elements.actionLabel.disabled = !form.elements.hasAction.checked; });
 function reinitializeManager() {
-  safely(() => { domAdapter?.destroy(); dedupe?.destroy(); manager.destroy(); initialize(); });
+  safely(() => { domAdapter?.destroy(); asyncAdapter?.destroy(); dedupe?.destroy(); manager.destroy(); initialize(); });
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
@@ -175,7 +234,30 @@ announcementTransport.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
 showFlipLayout.addEventListener('change', reinitializeManager);
 showToneLabel.addEventListener('change', reinitializeManager);
+enableDiagnostics.addEventListener('change', reinitializeManager);
+toastSkin.addEventListener('change', () => {
+  root.classList.toggle('toast-demo-skin--compact', toastSkin.value === 'compact');
+  root.classList.toggle('toast-demo-skin--high-contrast', toastSkin.value === 'high-contrast');
+});
 adapterOwner.addEventListener('change', () => safely(initializeAdapter));
+asyncOwner.addEventListener('change', () => safely(() => {
+  initializeAsyncAdapter();
+  setAsyncStatus('Ready to save. No data leaves this page.');
+}));
+asyncForm.addEventListener('submit', event => {
+  event.preventDefault();
+  if (!asyncForm.reportValidity()) return;
+  window.clearTimeout(asyncTimer);
+  const button = event.submitter;
+  button.disabled = true;
+  setAsyncStatus('Saving demo profile…');
+  asyncEvents.dispatchEvent(new CustomEvent('demo:async-form', { detail: { state: 'saving' } }));
+  asyncTimer = window.setTimeout(() => {
+    setAsyncStatus('Demo profile saved.');
+    asyncEvents.dispatchEvent(new CustomEvent('demo:async-form', { detail: { state: 'complete' } }));
+    button.disabled = false;
+  }, 900);
+});
 function dispatchSourceStatus(action, message = '') {
   if (adapterOwner.value === 'source' && message) sourceStatus.textContent = message;
   else sourceStatus.textContent = '';
@@ -245,14 +327,21 @@ document.querySelector('[data-update]').addEventListener('click', event => {
 document.querySelector('[data-dismiss]').addEventListener('click', () => safely(() => manager.dismiss(target.value)));
 document.querySelector('[data-clear]').addEventListener('click', () => { manager.dismissAll(); loadingId = null; sync(manager); });
 document.querySelector('[data-clear-log]').addEventListener('click', () => log.replaceChildren());
+document.querySelector('[data-refresh-diagnostics]').addEventListener('click', renderDiagnostics);
+document.querySelector('[data-clear-diagnostics]').addEventListener('click', () => {
+  diagnostics.length = 0;
+  diagnosticsReport.replaceChildren();
+});
 
 initialize();
 document.querySelector('[data-controls]').disabled = false;
-for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-adapter-start]', '[data-adapter-update]', '[data-adapter-dismiss]', '[data-clear-log]']) document.querySelector(selector).disabled = false;
+for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-adapter-start]', '[data-adapter-update]', '[data-adapter-dismiss]', '[data-async-submit]', '[data-clear-log]', '[data-refresh-diagnostics]', '[data-clear-diagnostics]']) document.querySelector(selector).disabled = false;
 document.querySelector('[data-boot]').hidden = true;
 window.addEventListener('pagehide', event => {
   if (event.persisted) return; // BFCache resumes the same live manager; visibility handles its timers.
   domAdapter?.destroy();
+  asyncAdapter?.destroy();
+  window.clearTimeout(asyncTimer);
   dedupe?.destroy();
   manager.destroy();
   for (const remove of removers) remove();
