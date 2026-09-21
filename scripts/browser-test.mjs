@@ -10,6 +10,15 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/examples/basic/`);
+  await page.waitForFunction(() => !document.querySelector('#toast-form [type="submit"]')?.disabled);
+  const demoReady = await page.evaluate(async () => ({
+    loadingNoticeHidden: document.querySelector('[data-boot]')?.hidden === true,
+    historyInspectorPresent: document.querySelector('.toast-history-demo') instanceof HTMLElement,
+    unrelatedDependencyStatus: (await fetch('/node_modules/typescript/package.json')).status,
+  }));
+  if (!demoReady.loadingNoticeHidden || !demoReady.historyInspectorPresent || demoReady.unrelatedDependencyStatus !== 403) {
+    throw new Error(`Playground failed to initialize: ${JSON.stringify(demoReady)}`);
+  }
   // Leave the demo empty and exercise independent fixture hosts using the same built entry.
   const results = await page.evaluate(async () => {
     const api = await import('/dist/index.js');

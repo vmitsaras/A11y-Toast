@@ -38,7 +38,7 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 
 | Task | Status | Next action |
 | --- | --- | --- |
-| TOAST-120 Accessibility verification | Partial | Run `docs/MANUAL_TESTS.md` with VoiceOver + Safari and VoiceOver + Chrome; actual browser 200%/400% zoom. |
+| TOAST-120 Accessibility verification | Partial | Chrome 153 actual 200%/400% zoom passed on macOS 27.0. Run VoiceOver + Safari and VoiceOver + Chrome, finish Safari zoom, and complete the remaining manual rows. |
 | TOAST-130 Documentation/metadata | Complete for this preview | Reconciled with generated-artifact policy and GitHub Actions evidence; keep synchronized after later fixes. |
 | TOAST-140 Package verification | Partial | Lockfile generation/review, clean `npm ci`, and the moderate audit gate pass locally after upgrading the development-only Vitest dependency to 5.0.1; CI now uses `npm ci`. Remaining: validate this refreshed dependency workflow in GitHub Actions. |
 
@@ -62,7 +62,7 @@ A durable notification center remains out of scope. Unimplemented capabilities a
 
 ## Next unblocked slice
 
-Validate TOAST-140-B's new lockfile-based `npm ci` workflow and Vitest 5 upgrade in GitHub Actions. Local clean install and `npm audit --audit-level=moderate` pass with zero vulnerabilities. TOAST-120 macOS VoiceOver and actual browser zoom remain separate manual acceptance gates. Optional enhancements may continue without converting those manual gates into inferred passes. Publication remains a separate explicit decision.
+Validate TOAST-140-B's new lockfile-based `npm ci` workflow and Vitest 5 upgrade in GitHub Actions. Local clean install and `npm audit --audit-level=moderate` pass with zero vulnerabilities. TOAST-120 macOS VoiceOver remains a manual acceptance gate; Chrome M-14 browser zoom now passes, while Safari zoom and H-M06 long-history zoom remain open. Optional enhancements may continue without converting those manual gates into inferred passes. Publication remains a separate explicit decision.
 
 ## Next optional enhancement slice
 

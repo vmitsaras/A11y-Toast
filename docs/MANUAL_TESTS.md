@@ -1,4 +1,4 @@
-# Manual acceptance — not executed in this environment
+# Manual acceptance
 
 Record macOS version, browser/version, VoiceOver version/settings and date. Use the included build via `npm run demo`. Test VoiceOver + Safari and VoiceOver + Chrome separately. Windows NVDA/JAWS/mobile coverage is not assumed from either result.
 
@@ -17,7 +17,7 @@ Record macOS version, browser/version, VoiceOver version/settings and date. Use 
 | M-11 | Focus Close and dismiss. | Focus returns to a meaningful surviving origin. No keyboard trap or unexplained move to document body. | Pending |
 | M-12 | Programmatically update a focused action's message, then remove its action. | The stable control keeps focus for content-only change; a removed control receives a deliberate fallback. | Pending |
 | M-13 | Dismiss all, including queued items, with CSS animation enabled and several visible items. | No flash/announcement of queued items during clear; multiple exits may finish visually, but no cleared item is promoted/revived. Demo focus remains on an enabled useful control. | Pending |
-| M-14 | Browser zoom at 200%, then 400%; long message/action labels. | Content reflows, list scrolls by keyboard, close/action remain reachable, focused page controls are not completely obscured. | Pending |
+| M-14 | Browser zoom at 200%, then 400%; long message/action labels. | Content reflows, list scrolls by keyboard, close/action remain reachable, focused page controls are not completely obscured. | Chrome 153 pass on macOS 27.0 (2026-09-21); Safari pending. |
 | M-15 | Enable reduced motion and OS contrast/appearance settings. | No required movement; visible text, borders and focus remain intelligible. | Pending |
 | M-16 | Put a host in the application's real modal/route scope; dispose/recreate its view. | No inaccessible out-of-scope action, stale speech or leaked callback; surrounding app explicitly owns navigation focus. | Pending / integration-specific |
 | M-17 | Turn off “Show tone label visually”, then create success/warning/error examples and navigate back through them with assistive technology. | No visible tone line is shown, but the tone text remains discoverable to assistive technology and live-announcement wording remains appropriate. | Pending |
@@ -40,6 +40,10 @@ Missing or duplicate speech, a disappearing action, lost focus, inaccessible ove
 ### Important distinction
 
 The automated 200% **root text size** / 320px smoke test exercises CSS reflow. It does not verify browser zoom, OS magnification, the VoiceOver reading cursor, speech completion, or this widget's placement in every host application.
+
+### Browser zoom evidence — 2026-09-21
+
+Chrome 153.0.8010.50 on macOS 27.0 (26A428) was reset to 100% and then exercised at Chrome's 200% and 400% browser zoom levels. A persistent toast used a long message and the action label “Undo this unusually long demonstration action safely.” At both levels the message reflowed without horizontal clipping. Keyboard focus brought the action and close controls into view within the scrollable notification region, and focusing the page's Show toast control left that control at least partially visible rather than completely covered by the fixed toast region. This is M-14 Chrome evidence only: Safari zoom, VoiceOver speech/reading order, and H-M06's long-history inspection remain pending.
 
 
 ## TOAST-270 history acceptance — pending

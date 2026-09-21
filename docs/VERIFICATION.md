@@ -9,6 +9,10 @@ The TypeScript core, default CSS, single demo, typed event/add-on contracts, and
 
 On 2026-09-21, the TOAST-140-B refresh passed a clean `npm ci`, `npm audit --audit-level=moderate` with zero vulnerabilities, tsdown build, source and declaration-consumer typechecks, Vitest 5.0.1 (6 files / 23 tests), all 183 served-browser scenarios with 0 uncaught page errors, package export checks, and `npm pack --dry-run`. CI now enforces the same lockfile install and moderate audit threshold; that workflow change has not yet run remotely.
 
+On 2026-09-21, real-browser continuation found and fixed a local-playground startup blocker: `examples/basic/demo.js` imports caller-injected GSAP modules, but `scripts/serve.mjs` rejected every `node_modules` request. The server now permits only JavaScript modules below the development-only `node_modules/gsap` subtree and continues to reject other `node_modules` paths. The served-browser command now waits for the playground to initialize and asserts that its boot notice is hidden and its history inspector exists before running the 183 shared scenarios. The updated suite passes 183/183 with 0 uncaught page errors.
+
+M-14 actual browser zoom has partial manual evidence: Chrome 153.0.8010.50 on macOS 27.0 passed at 200% and 400% with long notification/action text, keyboard-scrolled action and close controls, and a focused page control not completely obscured. Safari zoom, VoiceOver, and H-M06 long-history zoom remain pending; see `docs/MANUAL_TESTS.md`.
+
 ## Environment
 
 | Item | Observed environment |
@@ -193,6 +197,6 @@ The user reported the plugin tested, working, and verified on 2026-09-20. The ex
 
 ## Open acceptance gates
 
-Run `docs/MANUAL_TESTS.md`, beginning with macOS VoiceOver in Safari and Chrome and actual browser zoom. Fix confirmed announcement/focus findings before enabling an optional integration. TOAST-120 remains partial until VoiceOver and actual browser zoom evidence exists. TOAST-140 remains partial only until GitHub Actions validates the tracked lockfile, `npm ci`, Vitest 5.0.1, and the zero-vulnerability moderate audit gate.
+Run `docs/MANUAL_TESTS.md`, beginning with macOS VoiceOver in Safari and Chrome, then finish Safari browser zoom and H-M06 long-history zoom. Fix confirmed announcement/focus findings before enabling an optional integration. TOAST-120 remains partial: Chrome M-14 zoom now passes, while VoiceOver and the remaining named manual rows stay open. TOAST-140 remains partial only until GitHub Actions validates the tracked lockfile, `npm ci`, Vitest 5.0.1, and the zero-vulnerability moderate audit gate.
 
 No npm publication or Git tag was performed. Repository commits now include the implementation, verification workflow, and synchronized documentation.

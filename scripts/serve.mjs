@@ -5,6 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const mime = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.map': 'application/json', '.md': 'text/plain', '.svg': 'image/svg+xml' };
+const demoModuleRoot = path.join('node_modules', 'gsap');
+
+function isAllowedDemoDependency(relative) {
+  return relative.startsWith(`${demoModuleRoot}${path.sep}`) && path.extname(relative) === '.js';
+}
+
 export function createServer() {
   return http.createServer(async (req, res) => {
     try {
@@ -12,7 +18,8 @@ export function createServer() {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
       const filename = path.resolve(root, `.${pathname === '/' ? '/examples/basic/' : pathname}`);
       const relative = path.relative(root, filename);
-      if (relative.startsWith('..') || path.isAbsolute(relative) || relative.split(path.sep).includes('node_modules')) { res.writeHead(403); res.end(); return; }
+      const includesNodeModules = relative.split(path.sep).includes('node_modules');
+      if (relative.startsWith('..') || path.isAbsolute(relative) || (includesNodeModules && !isAllowedDemoDependency(relative))) { res.writeHead(403); res.end(); return; }
       const info = await stat(filename);
       const target = info.isDirectory() ? path.join(filename, 'index.html') : filename;
       const bytes = await readFile(target);
