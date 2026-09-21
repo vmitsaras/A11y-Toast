@@ -23,6 +23,7 @@ try {
   const results = await page.evaluate(async () => {
     const api = await import('/dist/index.js');
     const { createHistoryController } = await import('/dist/addons/history.js');
+    const { createDiagnosticsAddon } = await import('/dist/addons/diagnostics.js');
     const { createProgressAddon } = await import('/dist/addons/progress.js');
     const { trackToastPromise } = await import('/dist/addons/promise.js');
     const { createDedupeController } = await import('/dist/addons/dedupe.js');
@@ -32,7 +33,7 @@ try {
     const { createGsapFlipLayoutAddon } = await import('/dist/animations/gsap-flip.js');
     const { createElementViewTransitionDriver } = await import('/dist/animations/view-transition.js');
     const { runSuite } = await import('/test/browser/suite.js');
-    return runSuite({ ...api, createHistoryController, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport, createGsapAnimationDriver, createGsapFlipLayoutAddon, createElementViewTransitionDriver });
+    return runSuite({ ...api, createHistoryController, createDiagnosticsAddon, createProgressAddon, trackToastPromise, createDedupeController, createDomEventAdapter, createAriaNotifyTransport, createGsapAnimationDriver, createGsapFlipLayoutAddon, createElementViewTransitionDriver });
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

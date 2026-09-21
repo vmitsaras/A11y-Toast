@@ -1746,5 +1746,126 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(ends[0].status, 'completed');
   }, true);
 
+  await test('159 diagnostics are opt-in and validate options synchronously', () => {
+    const m = create(), reports = [];
+    const addon = api.createDiagnosticsAddon({ report: row => reports.push(row) });
+    m.show({ message: 'Timed action', action: { label: 'Undo' }, duration: 1000 });
+    equal(reports.length, 0);
+    m.registerAddon(addon);
+    m.show({ message: 'Safe persistent action', action: { label: 'Undo' } });
+    equal(reports.length, 0);
+    throws(() => api.createDiagnosticsAddon());
+    throws(() => api.createDiagnosticsAddon({ report: null }));
+    throws(() => api.createDiagnosticsAddon({ report() {}, assertiveCount: 1 }));
+    throws(() => api.createDiagnosticsAddon({ report() {}, assertiveWindowMs: Infinity }));
+    throws(() => api.createDiagnosticsAddon({ report() {}, longMessageLength: 100001 }));
+  });
+
+  await test('160 diagnostics report timed conditions once and re-arm after a safe state', () => {
+    const m = create(), reports = [];
+    m.registerAddon(api.createDiagnosticsAddon({ report: row => reports.push(row), longMessageLength: 3 }));
+    const id = m.show({ message: '😀😀😀😀', priority: 'assertive', action: { label: 'Undo' }, duration: 1200 });
+    equal(reports.map(row => row.code), ['timed-action', 'timed-assertive', 'long-message']);
+    m.update(id, { title: 'Unrelated' });
+    equal(reports.length, 3);
+    m.update(id, { action: null, priority: 'polite', persistent: true, message: 'ok' });
+    m.update(id, { action: { label: 'Retry' }, priority: 'assertive', persistent: false, duration: 2000, message: 'long' });
+    equal(reports.map(row => row.code), [
+      'timed-action', 'timed-assertive', 'long-message',
+      'timed-action', 'timed-assertive', 'long-message',
+    ]);
+    ok(reports.every(row => Object.isFrozen(row) && Object.isFrozen(row.metadata)));
+    equal(Object.keys(reports[0]).sort(), ['code', 'instanceId', 'metadata', 'severity', 'timestamp', 'toastId']);
+    equal('message' in reports[0].metadata, false);
+  });
+
+  await test('161 long-message advice is disabled by default and uses Unicode code points', () => {
+    const m = create(), reports = [];
+    m.registerAddon(api.createDiagnosticsAddon({ report: row => reports.push(row) }));
+    m.show({ message: 'x'.repeat(1000), persistent: true });
+    equal(reports.length, 0);
+    const n = create(), unicode = [];
+    n.registerAddon(api.createDiagnosticsAddon({ report: row => unicode.push(row), longMessageLength: 2 }));
+    n.show({ message: '😀😀', persistent: true });
+    n.show({ message: '😀😀😀', persistent: true });
+    equal(unicode.map(row => [row.code, row.metadata.messageLength]), [['long-message', 3]]);
+  });
+
+  await test('162 assertive burst uses committed events, suppresses, expires and re-arms', () => {
+    const m = create(), reports = [];
+    m.registerAddon(api.createDiagnosticsAddon({ report: row => reports.push(row), assertiveCount: 3, assertiveWindowMs: 1000 }));
+    const id = m.show({ message: 'Probe', persistent: true, priority: 'off' });
+    const commit = (timestamp, priority = 'assertive') => m.root.dispatchEvent(new CustomEvent(api.TOAST_EVENTS.announce, {
+      bubbles: true,
+      detail: { instance: m, root: m.root, instanceId: m.instanceId, timestamp, visibleCount: 1, queuedCount: 0,
+        toast: m.getToast(id), message: 'not retained', priority, transport: 'test', fallback: false },
+    }));
+    commit(0, 'polite'); commit(0); commit(500); equal(reports.length, 0); commit(1000);
+    equal(reports.map(row => row.code), ['assertive-burst']);
+    commit(1000); commit(1000); equal(reports.length, 1);
+    commit(3000); commit(3500); commit(4000);
+    equal(reports.map(row => row.code), ['assertive-burst', 'assertive-burst']);
+    equal(reports[1].metadata, { observedCount: 3, windowMs: 1000, threshold: 3 });
+  });
+
+  await test('163 diagnostics report queue and failure families without error objects', async () => {
+    const reports = [], m = create({ maxVisible: 1, maxQueue: 0, announcementTransport: {
+      name: 'broken', announce() { throw new Error('secret announcement'); },
+    } });
+    m.registerAddon(api.createDiagnosticsAddon({ report: row => reports.push(row) }));
+    m.show({ message: 'Visible', persistent: true });
+    m.show({ message: 'Dropped', persistent: true });
+    const droppedToast = m.getToasts()[0];
+    m.root.dispatchEvent(new CustomEvent(api.TOAST_EVENTS.drop, { bubbles: true, detail: {
+      instance: m, root: m.root, instanceId: m.instanceId, timestamp: Date.now(), visibleCount: 1, queuedCount: 0,
+      toast: { ...droppedToast, id: 'clearing-drop', state: 'dropped' }, reason: 'clearing',
+    } }));
+    const actionId = m.show({ message: 'Action', action: { label: 'Run', onClick() { throw new Error('secret action'); } } });
+    // The action was dropped because this manager has no queue; exercise the other errors on a fresh manager.
+    equal(actionId, null);
+    const n = create({ announcementTransport: { name: 'broken', announce() { throw new Error('secret'); } } });
+    n.registerAddon(api.createDiagnosticsAddon({ report: row => reports.push(row) }));
+    const id = n.show({ message: 'Failures', action: { label: 'Run', onClick() { throw new Error('secret'); } } });
+    item(n, id).querySelector('[data-a11y-toast-action]').click();
+    n.registerAddon({ name: 'bad-source', beforeUpdate() { throw new Error('secret'); } });
+    n.update(id, { message: 'Still safe' });
+    const announcementDetail = { instance: n, root: n.root, instanceId: n.instanceId, timestamp: Date.now(), visibleCount: 1,
+      queuedCount: 0, toast: n.getToast(id), message: 'not retained', priority: 'polite', transport: 'broken', error: new Error('secret') };
+    n.root.dispatchEvent(new CustomEvent(api.TOAST_EVENTS.announcementError, { bubbles: true, detail: announcementDetail }));
+    const animationDetail = { instance: n, root: n.root, instanceId: n.instanceId, timestamp: Date.now(), visibleCount: 1,
+      queuedCount: 0, toast: n.getToast(id), phase: 'enter', driver: 'probe', error: new Error('secret') };
+    n.root.dispatchEvent(new CustomEvent(api.TOAST_EVENTS.animationError, { bubbles: true, detail: animationDetail }));
+    await waitMicrotasks();
+    const codes = reports.map(row => row.code);
+    ok(codes.includes('queue-rejection') && codes.includes('announcement-error') && codes.includes('action-error')
+      && codes.includes('addon-error') && codes.includes('animation-error'));
+    ok(reports.every(row => !('error' in row.metadata)));
+    equal(reports.filter(row => row.code === 'queue-rejection').map(row => row.metadata.reason), ['queue-full', 'clearing', 'queue-full']);
+  });
+
+  await test('164 diagnostics isolate reporter failures without recursive storms', () => {
+    const m = create(), addonErrors = events(m, api.TOAST_EVENTS.addonError), calls = [];
+    m.registerAddon(api.createDiagnosticsAddon({ report(row) { calls.push(row.code); throw new Error('Reporter failed'); } }));
+    const id = m.show({ message: 'Risk', action: { label: 'Undo' }, duration: 1000 });
+    ok(id); equal(calls, ['timed-action']); equal(addonErrors.length, 1); equal(addonErrors[0].addon, 'diagnostics');
+    equal(m.getToast(id).message, 'Risk');
+  });
+
+  await test('165 diagnostics are instance-local, filter nested managers and clean up', () => {
+    const outer = create(), nested = document.createElement('div'); outer.root.append(nested);
+    const inner = create({}, nested), outerReports = [], innerReports = [];
+    outer.registerAddon(api.createDiagnosticsAddon({ report: row => outerReports.push(row) }));
+    inner.registerAddon(api.createDiagnosticsAddon({ report: row => innerReports.push(row) }));
+    inner.show({ message: 'Inner', action: { label: 'Undo' }, duration: 1000 });
+    equal([outerReports.length, innerReports.length], [0, 1]);
+    outer.show({ message: 'Outer', priority: 'assertive', duration: 1000 });
+    equal([outerReports.length, innerReports.length], [1, 1]);
+    equal(outer.unregisterAddon('diagnostics'), true);
+    outer.show({ message: 'Detached', action: { label: 'Undo' }, duration: 1000 });
+    equal(outerReports.length, 1);
+    inner.destroy();
+    equal(inner.getAddon('diagnostics'), undefined);
+  });
+
   return results;
 }

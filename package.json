@@ -32,6 +32,10 @@
       "types": "./dist/addons/history.d.ts",
       "import": "./dist/addons/history.js"
     },
+    "./addons/diagnostics": {
+      "types": "./dist/addons/diagnostics.d.ts",
+      "import": "./dist/addons/diagnostics.js"
+    },
     "./addons/dedupe": {
       "types": "./dist/addons/dedupe.d.ts",
       "import": "./dist/addons/dedupe.js"

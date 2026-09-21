@@ -32,6 +32,27 @@ Attach before producing notifications: existing toasts are not backfilled. Capac
 
 The playground includes an application-owned, non-live inspector with explicit Refresh and Clear controls. This is a bounded event history, not a current-state cache or durable notification center. [History contract](docs/HISTORY.md) · [TOAST-270 evidence and remaining gates](docs/TOAST-270-VERIFICATION.md). This slice has targeted automated evidence; the earlier successful workflow run is not a CI pass for these changes.
 
+## Opt-in development diagnostics
+
+```ts
+import { createDiagnosticsAddon } from 'a11y-toast/addons/diagnostics';
+
+toast.registerAddon(createDiagnosticsAddon({
+  report(diagnostic) {
+    // The application decides where development reports go.
+    developmentReports.push(diagnostic);
+  },
+  // Optional and off by default; counts Unicode code points.
+  longMessageLength: 500,
+}));
+```
+
+The diagnostics add-on observes one manager and reports advisory signals for timed actions, timed assertive messages, queue rejection, repeated assertive commits, announcement/animation/action/add-on errors, and—when configured—exceptionally long visible messages. Assertive bursts default to three committed assertive announcements in a rolling 10-second window. State-based advice reports only on a false-to-true transition.
+
+`report` is required and synchronous. Nothing is written to the console, DOM, telemetry, storage, or network by default. Frozen reports contain only a code, severity, timestamp, instance/toast IDs, and relevant non-content metadata; message text, announcement text, labels, thrown values, DOM nodes, and manager references are excluded. Reporter failures are isolated through the normal add-on error lifecycle.
+
+These heuristics are development aids. They may need application-specific interpretation, do not establish a WCAG failure or conformance, and cannot determine whether a screen reader spoke or completed an announcement. Importing the subpath has no effect until the returned add-on is registered; it is intentionally absent from the core root export.
+
 ## npm publication
 
 Publication to npm is planned alongside the author's other accessibility plugins. Until `a11y-toast` is actually published, use the repository for development and do not assume `npm install a11y-toast` resolves to this project.
@@ -517,15 +538,15 @@ Destroying the Menu Button core disposes the bridge and dismisses its mirrored t
 ## Add-ons and ecosystem integration
 
 ```ts
-const diagnostics = {
-  name: 'diagnostics',
+const logger = {
+  name: 'application-logger',
   setup(context) {
     return context.on(TOAST_EVENTS.show, event => {
       console.log(event.detail.toast.id);
     });
   },
 };
-toast.registerAddon(diagnostics);
+toast.registerAddon(logger);
 ```
 
 `setup` must synchronously return a cleanup function or nothing. Its context provides the public instance, root, an abort signal, and auto-cleaned typed `on()` subscriptions. Selected observer hooks are `beforeShow`, `afterShow`, `beforeUpdate`, `afterUpdate`, `beforeDismiss`, `afterDismiss`. Snapshots are not writable middleware; return values cannot cancel operations. Hooks are not awaited. Accidental returned-promise failures are isolated instead of becoming unhandled rejections.

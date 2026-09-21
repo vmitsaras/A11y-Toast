@@ -11,6 +11,8 @@ import { createAriaNotifyTransport } from 'a11y-toast/transports/aria-notify';
 import { createGsapAnimationDriver } from 'a11y-toast/animations/gsap';
 import { createGsapFlipLayoutAddon } from 'a11y-toast/animations/gsap-flip';
 import { createElementViewTransitionDriver } from 'a11y-toast/animations/view-transition';
+import { createDiagnosticsAddon } from 'a11y-toast/addons/diagnostics';
+import type { ToastDiagnostic } from 'a11y-toast/addons/diagnostics';
 import { gsap } from 'gsap';
 import Flip from 'gsap/Flip';
 declare const root: HTMLElement;
@@ -26,7 +28,14 @@ const animation: ToastAnimationDriver = createGsapAnimationDriver(gsap, {
 });
 const experimentalTransport = createAriaNotifyTransport();
 const toast = createToast(root, {
-  addons: [logger, createProgressAddon(), createGsapFlipLayoutAddon(gsap, Flip)],
+  addons: [logger, createProgressAddon(), createGsapFlipLayoutAddon(gsap, Flip), createDiagnosticsAddon({
+    report(diagnostic: ToastDiagnostic) {
+      const code: string = diagnostic.code;
+      void code;
+      // @ts-expect-error Diagnostic payloads are readonly.
+      diagnostic.metadata.reason = 'changed';
+    },
+  })],
   animation,
   announcementTransport: experimentalTransport,
 });
