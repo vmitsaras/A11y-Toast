@@ -1,6 +1,6 @@
 # TOAST-270 verification record
 
-Date: 2026-09-20. Base commit: `353b27ea7c4fcc313875d0f7e94ed3c12c40291a` (successful Verify run 35534512515). This record concerns the delivered patch, not a newly pushed commit. No push, tag, publication or remote CI run was performed.
+Date: 2026-09-20, updated 2026-09-21. Base commit: `353b27ea7c4fcc313875d0f7e94ed3c12c40291a` (successful Verify run 35534512515). The delivered TOAST-270 commit `1c6edc66ee18704b54215c86582501598b3b6e36` subsequently passed Verify run 35579571709. No tag or publication was performed.
 
 ## Executed evidence
 
@@ -20,7 +20,7 @@ The targeted suite covers default/range validation, immutable entries, late atta
 
 ## Integrated local verification
 
-On 2026-09-21, the patch was applied to the declared baseline and the repository's normal local verification commands passed: tsdown build, strict typecheck, all 6 Vitest files and 23 tests, all 183 served-browser scenarios with 0 uncaught page errors, the package import checks, and `npm pack --dry-run`. The pack check used a temporary npm cache because the user's default npm cache was not writable. No dependency installation, audit, or GitHub Actions run was performed for these changed files.
+On 2026-09-21, the patch was applied to the declared baseline and the repository's normal local verification commands passed: tsdown build, strict typecheck, all 6 Vitest files and 23 tests, all 183 served-browser scenarios with 0 uncaught page errors, the package import checks, and `npm pack --dry-run`. The pack check used a temporary npm cache because the user's default npm cache was not writable. GitHub Actions run 35579571709 then passed installation, build, source and declaration-consumer typechecks, Vitest, Chromium installation, all 183 served-browser scenarios, package exports, package contents, and the configured audit gate for commit `1c6edc66ee18704b54215c86582501598b3b6e36`.
 
 The updated full offline-browser loader is wired for the expanded ESM graph but was not executed against the complete repository in this environment. The older `verify-offline-demo.py` loader already assumes only the original core modules and is not evidence for the modern multi-add-on demo. This slice provides a separately tested targeted ESM inspector runner; full demo acceptance uses the standard served workflow.
 
@@ -37,7 +37,7 @@ npm run test:package
 npm run pack:check
 ```
 
-Also run the repository's declaration-consumer command from its workflow. Install dependencies through the existing project process first; lockfile generation/review and switching to npm ci remain the separate TOAST-140-B task. Do not publish as part of verification.
+Also run the repository's declaration-consumer command from its workflow. Install dependencies with the tracked lockfile through `npm ci`. Do not publish as part of verification.
 
 ## Manual acceptance — pending
 
@@ -50,4 +50,4 @@ Also run the repository's declaration-consumer command from its workflow. Instal
 | H-M05 | Exceed 50 history events in the default demo, refresh, then reload or recreate the manager. | At most 50 entries; oldest observations are evicted; reload/recreation starts empty. | Pending |
 | H-M06 | Navigate a long history at narrow widths and actual 200%/400% browser zoom. | Controls/text remain usable; no loss of essential content; no automatic reading-position reset. | Pending |
 
-TOAST-270 is **implemented with targeted and integrated local automated evidence; remote CI and named manual acceptance are still open**. TOAST-260A/B stay complete; TOAST-260C stays complete and experimental. No new optional feature number is invented. The next action is the six manual history cases and, when requested, a GitHub Actions run, alongside the already-open TOAST-120 and TOAST-140-B gates.
+TOAST-270 is **implemented with targeted, integrated local, and remote CI automated evidence; named manual acceptance is still open**. TOAST-260A/B stay complete; TOAST-260C stays complete and experimental. No new optional feature number is invented. The next action is the six manual history cases alongside the already-open TOAST-120 gate and remote validation of the refreshed TOAST-140-B dependency workflow.

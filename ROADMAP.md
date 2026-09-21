@@ -1,14 +1,14 @@
 # A11y Toast roadmap
 
 Version: 0.1.0 implementation preview
-Status: Core implemented; user functional acceptance reported; local and GitHub Actions package checks pass. Named VoiceOver/zoom coverage and dependency-lock follow-up remain open.
+Status: Core implemented; user functional acceptance reported; local and GitHub Actions package checks pass. A reviewed lockfile, `npm ci`, and a zero-vulnerability Vitest 5 dependency graph are implemented locally; named VoiceOver/zoom coverage and remote validation of the refreshed dependency workflow remain open.
 
 ## Foundation
 
 | Task | Implementation | Verification / remaining gate |
 | --- | --- | --- |
 | TOAST-001 Prototype reconciliation | Complete | Current prototype tree inspected; migration dispositions documented. |
-| TOAST-010 Standard package foundation | Complete | Online install, tsdown build, Vitest, exports, and served-browser workflow pass in GitHub Actions run #1; no lockfile is committed yet. |
+| TOAST-010 Standard package foundation | Complete | Online install, tsdown build, Vitest, exports, and served-browser workflow pass in GitHub Actions. A lockfile is now tracked and CI uses `npm ci`; the refreshed dependency workflow still needs its first remote run. |
 | TOAST-020 Public types/constants | Complete | Strict source and public declaration-consumer checks pass. |
 | TOAST-030 Initialization/teardown | Complete | Automated browser checks pass, including duplicate/re-entrant construction and repeat destroy. |
 
@@ -40,7 +40,7 @@ Status: Core implemented; user functional acceptance reported; local and GitHub 
 | --- | --- | --- |
 | TOAST-120 Accessibility verification | Partial | Run `docs/MANUAL_TESTS.md` with VoiceOver + Safari and VoiceOver + Chrome; actual browser 200%/400% zoom. |
 | TOAST-130 Documentation/metadata | Complete for this preview | Reconciled with generated-artifact policy and GitHub Actions evidence; keep synchronized after later fixes. |
-| TOAST-140 Package verification | Partial | GitHub Actions run #1 passed install, tsdown, typechecks, Vitest, Chromium lifecycle suite, package exports, pack check, and the high-severity audit gate. Remaining: commit/review a lockfile and address or explicitly accept the two moderate Vitest/@vitest-mocker findings. |
+| TOAST-140 Package verification | Partial | Lockfile generation/review, clean `npm ci`, and the moderate audit gate pass locally after upgrading the development-only Vitest dependency to 5.0.1; CI now uses `npm ci`. Remaining: validate this refreshed dependency workflow in GitHub Actions. |
 
 Windows NVDA/JAWS and mobile AT are not claimed verified. Record actual environment coverage rather than inferring it from Chromium DOM behavior.
 
@@ -56,14 +56,14 @@ TOAST-260A: **Complete** — injected GSAP animation driver using the frozen TOA
 TOAST-260B: **Complete** — optional GSAP Flip layout/reflow add-on. It captures surviving toast geometry before show/update/dismiss mutations, coalesces synchronous stack changes, waits through animated exit completion before queue-promotion reflow, excludes entering/leaving toasts, respects reduced motion, and restores temporary Flip/style attributes. Uses the existing optional GSAP peer; no additional runtime dependency.
 TOAST-260C: **Complete — experimental only** — separate element-scoped View Transition driver and CSS export. Each toast element owns its own scoped transition; document-scoped transitions are never used. Unsupported browsers settle immediately with no motion, reduced motion skips the API, abort calls `skipTransition()`, overlapping enter→exit phases serialize per toast, queue slots remain reserved through exit, and motion uses temporary data attributes/CSS rather than inline styles.
 
-TOAST-270: **Implemented — targeted and integrated local verification passed; remote CI/manual acceptance pending** — separate in-memory history controller, 50 lifecycle entries by default (integer 1–1,000), immutable show/update/dismiss snapshots, read/clear access, bounded ring eviction and owned cleanup. No backfill, persistence, announcement replay or action replay. Non-live playground inspector and 25 shared history scenarios added; targeted history/inspector checks and the complete local 183-scenario served-browser suite pass. See `docs/TOAST-270-VERIFICATION.md`.
+TOAST-270: **Implemented — targeted, integrated local, and remote CI verification passed; manual acceptance pending** — separate in-memory history controller, 50 lifecycle entries by default (integer 1–1,000), immutable show/update/dismiss snapshots, read/clear access, bounded ring eviction and owned cleanup. No backfill, persistence, announcement replay or action replay. Non-live playground inspector and 25 shared history scenarios added; targeted history/inspector checks and the complete 183-scenario served-browser suite pass locally and in GitHub Actions run 35579571709. See `docs/TOAST-270-VERIFICATION.md`.
 
 A durable notification center remains out of scope. Unimplemented capabilities are not credited from the old prototype.
 
 ## Next unblocked slice
 
-TOAST-140-B: capture and commit a reviewed npm lockfile, then update/reassess the two moderate development-only Vitest/@vitest-mocker audit findings under `npm ci`. TOAST-120 macOS VoiceOver and actual browser zoom remain separate manual acceptance gates. Optional enhancements may continue without converting those manual gates into inferred passes. Publication remains a separate explicit decision.
+Validate TOAST-140-B's new lockfile-based `npm ci` workflow and Vitest 5 upgrade in GitHub Actions. Local clean install and `npm audit --audit-level=moderate` pass with zero vulnerabilities. TOAST-120 macOS VoiceOver and actual browser zoom remain separate manual acceptance gates. Optional enhancements may continue without converting those manual gates into inferred passes. Publication remains a separate explicit decision.
 
 ## Next optional enhancement slice
 
-TOAST-270 verification gate — the integrated local build/type/Vitest/183-scenario served-browser/package/pack checks pass. Run the history manual cases and, when requested, remote CI. No VoiceOver/zoom pass is inferred from automated checks. TOAST-120 and TOAST-140-B remain open as above. No next optional feature is scheduled by this slice; persistence/replay/full notification-center work requires a separate scope decision.
+TOAST-270 verification gate — the integrated local and remote build/type/Vitest/183-scenario served-browser/package/pack checks pass. Run the history manual cases. No VoiceOver/zoom pass is inferred from automated checks. TOAST-120 and remote validation of the refreshed TOAST-140-B dependency workflow remain open as above. No next optional feature is scheduled by this slice; persistence/replay/full notification-center work requires a separate scope decision.

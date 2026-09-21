@@ -25,7 +25,7 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - name: Install development dependencies
-        run: npm install --no-fund
+        run: npm ci --no-fund
 
       - name: Build package
         run: npm run build
@@ -52,4 +52,4 @@ jobs:
         run: npm run pack:check
 
       - name: Audit dependencies
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate

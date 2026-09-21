@@ -1,6 +1,6 @@
 # TOAST-270 — bounded in-memory notification history
 
-Status: Implemented in the TOAST-270 patch; targeted verification passed. Full integrated CI and manual assistive-technology acceptance are separate gates. Baseline: `353b27ea7c4fcc313875d0f7e94ed3c12c40291a`.
+Status: Implemented in the TOAST-270 patch; targeted, integrated local, and GitHub Actions verification passed. Manual assistive-technology acceptance remains separate. Baseline: `353b27ea7c4fcc313875d0f7e94ed3c12c40291a`.
 
 ## Use
 
