@@ -124,6 +124,20 @@
   pointer-events: none;
 }
 
+.a11y-toast:has(.a11y-toast__tone--visually-hidden) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.a11y-toast:has(.a11y-toast__tone--visually-hidden)::before {
+  content: '';
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin-block-start: 0.125rem;
+  border: 1px solid var(--_accent);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--_accent) 0 0.125rem, transparent 0.1375rem);
+}
+
 .a11y-toast__content {
   min-inline-size: 0;
   align-self: center;
@@ -272,6 +286,11 @@
 
   .a11y-toast__tone,
   .a11y-toast__message { color: CanvasText; }
+
+  .a11y-toast:has(.a11y-toast__tone--visually-hidden)::before {
+    border-color: CanvasText;
+    background: CanvasText;
+  }
 
   .a11y-toast__action,
   .a11y-toast__dismiss { border: 1px solid ButtonText; }
