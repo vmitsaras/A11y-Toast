@@ -443,7 +443,7 @@ Element-scoped View Transitions are still an experimental/limited-availability w
 
 ## Visual timeout progress add-on
 
-The optional progress add-on adds a decorative remaining-time indicator to visible timed notifications without creating another timer or accessibility announcement.
+The optional progress add-on adds a decorative circular remaining-time ring to visible timed notifications without creating another timer or accessibility announcement. The ring occupies the dismiss-control corner, so a dismissible toast visually combines the close button and timeout indicator without changing the button's semantics.
 
 ```ts
 import { createToast } from 'a11y-toast';
@@ -464,9 +464,12 @@ The progress DOM is `aria-hidden`, has no `progressbar` role, and is never a liv
 
 Public styling variables:
 
-- `--a11y-toast-progress-height`
+- `--a11y-toast-progress-size`
+- `--a11y-toast-progress-stroke-width`
 - `--a11y-toast-progress-track`
 - `--a11y-toast-progress-color`
+
+`--a11y-toast-progress-height` remains accepted as a legacy fallback for the ring stroke width.
 
 Unregistering the add-on removes its generated DOM without changing the toast timer or lifecycle.
 

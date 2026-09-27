@@ -607,7 +607,7 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const track = item(m, id).querySelector('[data-a11y-toast-progress]');
     const bar = track.querySelector('[data-a11y-toast-progress-bar]');
     equal(track.dataset.a11yToastProgressState, 'paused');
-    ok(bar.style.transform.includes('0.6'));
+    equal(Number.parseFloat(bar.style.strokeDashoffset), 0.4);
     m.resume(id);
     equal(track.dataset.a11yToastProgressState, 'running');
     equal(Number.parseFloat(bar.style.transitionDuration), 600);
