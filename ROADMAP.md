@@ -58,6 +58,8 @@ TOAST-260C: **Complete — experimental only** — separate element-scoped View 
 
 TOAST-270: **Implemented — targeted, integrated local, and remote CI verification passed; manual acceptance pending** — separate in-memory history controller, 50 lifecycle entries by default (integer 1–1,000), immutable show/update/dismiss snapshots, read/clear access, bounded ring eviction and owned cleanup. No backfill, persistence, announcement replay or action replay. Non-live playground inspector and 25 shared history scenarios added; targeted history/inspector checks and the complete 183-scenario served-browser suite pass locally and in GitHub Actions run 35579571709. See `docs/TOAST-270-VERIFICATION.md`.
 
+TOAST-280: **Implemented on feature branch; CI/manual visual acceptance pending** — compact dark default skin based on the supplied visual reference, plus a circular SVG timeout ring aligned with the dismiss control. The progress add-on remains decorative, lifecycle-driven, non-live, and hidden under reduced motion. Existing public theming hooks remain available; `--a11y-toast-progress-height` is retained as a legacy stroke-width fallback.
+
 A durable notification center remains out of scope. Unimplemented capabilities are not credited from the old prototype.
 
 ## Next unblocked slice
