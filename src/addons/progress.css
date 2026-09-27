@@ -1,6 +1,10 @@
 /* Optional visual-only timeout progress add-on. */
 .a11y-toast--has-progress { position: relative; }
 
+.a11y-toast--has-progress:has(.a11y-toast__dismiss[hidden]) {
+  padding-inline-end: 3.75rem;
+}
+
 .a11y-toast__progress {
   --_progress-size: var(--a11y-toast-progress-size, 2.25rem);
   --_progress-stroke-width: var(
