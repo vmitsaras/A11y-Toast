@@ -1,6 +1,7 @@
 import { createHistoryDemo } from './history-demo.js';
 import { createToast, addToastEventListener, TOAST_EVENTS } from './dist/index.js';
 import { createProgressAddon } from './dist/addons/progress.js';
+import { createSwipeDismissAddon } from './dist/addons/swipe-dismiss.js';
 import { trackToastPromise } from './dist/addons/promise.js';
 import { createDedupeController } from './dist/addons/dedupe.js';
 import { createDiagnosticsAddon } from './dist/addons/diagnostics.js';
@@ -41,6 +42,7 @@ let dedupe;
 let domAdapter;
 let asyncAdapter;
 let asyncTimer;
+let asyncSaving = false;
 let dedupeSequence = 0;
 let loadingId = null;
 const removers = [];
@@ -70,7 +72,7 @@ function sync(source) {
   const surfaceActive = Boolean(root.querySelector('[data-a11y-toast-id]'));
   position.disabled = surfaceActive;
   animation.disabled = surfaceActive;
-  animationEffect.disabled = surfaceActive || animation.value !== 'css';
+  animationEffect.disabled = surfaceActive || animation.value === 'none';
   announcementTransport.disabled = surfaceActive;
   showProgress.disabled = surfaceActive;
   showFlipLayout.disabled = surfaceActive;
@@ -167,12 +169,43 @@ function initializeAsyncAdapter() {
   });
 }
 
+// Adapt the supplied GSAP operations while keeping the package driver's
+// abort, interruption and exact inline-style restoration ownership.
+function createDemoGsapDriver(effect) {
+  if (effect === 'default') return createGsapAnimationDriver(gsap);
+  const distance = effect.startsWith('slide-') ? 32 : 16;
+  const offset = {
+    opacity: effect.startsWith('slide-') ? 1 : 0,
+    x: effect.endsWith('-left') ? -distance : effect.endsWith('-right') ? distance : 0,
+    y: effect.endsWith('-top') ? -distance : effect.endsWith('-bottom') ? distance : 0,
+    scale: effect === 'zoom' ? 0.96 : 1,
+  };
+  const settled = { opacity: 1, x: 0, y: 0, scale: 1 };
+  return createGsapAnimationDriver({
+    fromTo(element, _from, options) {
+      if (effect === 'bounce') {
+        const { paused, onComplete, onInterrupt } = options;
+        return gsap.timeline({ paused, onComplete, onInterrupt })
+          .fromTo(element, { ...settled, opacity: 0, y: 16 }, {
+            ...settled, y: -3, duration: 0.224, ease: 'power1.out',
+          })
+          .to(element, { y: 0, duration: 0.096, ease: 'power1.inOut' });
+      }
+      return gsap.fromTo(element, offset, { ...options, ...settled });
+    },
+    to(element, options) {
+      return gsap.to(element, { ...options, ...offset });
+    },
+  }, { enterDuration: effect === 'bounce' ? 0.32 : 0.24, exitDuration: 0.16 });
+}
+
 function initialize() {
   root.dataset.demoEffect = animationEffect.value;
   manager = createToast(root, {
+    maxVisible: 5,
     position: position.value,
     animation: animation.value === 'gsap'
-      ? createGsapAnimationDriver(gsap)
+      ? createDemoGsapDriver(animationEffect.value)
       : animation.value === 'view-transition'
         ? createElementViewTransitionDriver()
         : animation.value,
@@ -205,6 +238,7 @@ function input(origin) {
     tone: String(values.get('tone')), priority: String(values.get('priority')),
     announcement: String(values.get('announcement') || ''),
     dismissible: form.elements.dismissible.checked, origin, duration: undefined,
+    actionLayout: String(values.get('actionLayout')),
   };
   if (values.get('persistence') === 'persistent') spec.persistent = true;
   else if (values.get('persistence') === 'timed') { spec.persistent = false; spec.duration = Number(values.get('duration')) * 1000; }
@@ -218,8 +252,13 @@ function input(origin) {
 }
 function safely(callback) {
   feedback.hidden = true;
+  feedback.textContent = '';
   try { callback(); }
-  catch (error) { feedback.textContent = error instanceof Error ? error.message : 'The operation failed.'; feedback.hidden = false; }
+  catch (error) { showFeedback(error instanceof Error ? error.message : 'The operation failed.'); }
+}
+function showFeedback(message) {
+  feedback.hidden = false;
+  feedback.textContent = message;
 }
 form.addEventListener('submit', event => {
   event.preventDefault();
@@ -233,9 +272,7 @@ function reinitializeManager() {
 }
 position.addEventListener('change', reinitializeManager);
 animation.addEventListener('change', reinitializeManager);
-animationEffect.addEventListener('change', () => {
-  root.dataset.demoEffect = animationEffect.value;
-});
+animationEffect.addEventListener('change', reinitializeManager);
 announcementTransport.addEventListener('change', reinitializeManager);
 showProgress.addEventListener('change', reinitializeManager);
 showFlipLayout.addEventListener('change', reinitializeManager);
@@ -252,16 +289,18 @@ asyncOwner.addEventListener('change', () => safely(() => {
 }));
 asyncForm.addEventListener('submit', event => {
   event.preventDefault();
+  if (asyncSaving) return;
   if (!asyncForm.reportValidity()) return;
-  window.clearTimeout(asyncTimer);
   const button = event.submitter;
-  button.disabled = true;
+  asyncSaving = true;
+  button.setAttribute('aria-disabled', 'true');
   setAsyncStatus('Saving demo profile…');
   asyncEvents.dispatchEvent(new CustomEvent('demo:async-form', { detail: { state: 'saving' } }));
   asyncTimer = window.setTimeout(() => {
     setAsyncStatus('Demo profile saved.');
     asyncEvents.dispatchEvent(new CustomEvent('demo:async-form', { detail: { state: 'complete' } }));
-    button.disabled = false;
+    asyncSaving = false;
+    button.removeAttribute('aria-disabled');
   }, 900);
 });
 function dispatchSourceStatus(action, message = '') {
@@ -273,7 +312,7 @@ document.querySelector('[data-adapter-start]').addEventListener('click', () => s
 document.querySelector('[data-adapter-update]').addEventListener('click', () => safely(() => dispatchSourceStatus('update', 'Source operation is still running.')));
 document.querySelector('[data-adapter-dismiss]').addEventListener('click', () => safely(() => dispatchSourceStatus('dismiss')));
 document.querySelector('[data-burst]').addEventListener('click', event => safely(() => {
-  for (let i = 1; i <= 5; i++) manager.show({ message: `Queue example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });
+  for (let i = 1; i <= 5; i++) manager.show({ message: `Batch example ${i} of 5.`, tone: 'info', duration: 7000, origin: event.currentTarget });
 }));
 document.querySelector('[data-start-loading]').addEventListener('click', event => safely(() => {
   loadingId = manager.loading('Preparing a demo export…', { title: 'Export', origin: event.currentTarget });
@@ -322,8 +361,7 @@ document.querySelector('[data-dedupe]').addEventListener('click', () => safely((
     tone: 'info',
     duration: 7000,
   }, policy).catch(error => {
-    feedback.textContent = error instanceof Error ? error.message : 'The keyed example failed.';
-    feedback.hidden = false;
+    showFeedback(error instanceof Error ? error.message : 'The keyed example failed.');
   });
 }));
 document.querySelector('[data-update]').addEventListener('click', event => {
@@ -339,6 +377,77 @@ document.querySelector('[data-clear-diagnostics]').addEventListener('click', () 
   diagnosticsReport.replaceChildren();
 });
 
+// Independent, in-page examples use the package renderer and own their managers.
+function classicIcon(kind) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('fill', 'none');
+  svg.setAttribute('stroke', 'currentColor');
+  svg.setAttribute('stroke-width', '2.5');
+  svg.setAttribute('stroke-linecap', 'round');
+  svg.setAttribute('stroke-linejoin', 'round');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', kind === 'success' ? 'M5 12l4 4L19 6' : 'M12 11v6M12 7h.01');
+  if (kind !== 'success') {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '12'); circle.setAttribute('cy', '12'); circle.setAttribute('r', '9');
+    svg.append(circle);
+  }
+  svg.append(path);
+  return svg;
+}
+const classicLight = createToast(document.querySelector('[data-classic-light-root]'), {
+  showToneLabel: false, maxVisible: 1, maxQueue: 0, animation: 'none', labels: { region: 'Classic success preview' },
+});
+const classicDark = createToast(document.querySelector('[data-classic-dark-root]'), {
+  showToneLabel: false, maxVisible: 1, maxQueue: 0, animation: 'none', labels: { region: 'Classic information preview' },
+});
+function showClassic(instance, input) {
+  const existing = instance.getToasts()[0];
+  if (existing) instance.update(existing.id, input);
+  else instance.show(input);
+}
+for (const [selector, instance, input] of [
+  ['[data-classic-light]', classicLight, {
+    message: '2 messages were deleted.', tone: 'success', persistent: true,
+    icon: classicIcon('success'), actionLayout: 'inline',
+    action: { label: 'Undo', onClick: ({ instance, id }) => instance.update(id, {
+      message: '2 messages were restored.', action: null,
+    }) },
+  }],
+  ['[data-classic-dark]', classicDark, {
+    title: 'Your current plan allows one generation at a time.',
+    message: 'Enable parallel generation to run more at once.',
+    tone: 'info', persistent: true, icon: classicIcon('info'),
+  }],
+]) {
+  const button = document.querySelector(selector);
+  const show = () => safely(() => showClassic(instance, { ...input, origin: button }));
+  button.addEventListener('click', show);
+  removers.push(() => button.removeEventListener('click', show));
+  button.disabled = false;
+}
+
+const swipeButton = document.querySelector('[data-swipe-stack]');
+const swipeStack = createToast(document.querySelector('[data-swipe-root]'), {
+  animation: 'none', maxVisible: 5, maxQueue: 0,
+  addons: [createSwipeDismissAddon()],
+  labels: { region: 'Swipe dismissal example' },
+});
+const showSwipeStack = () => safely(() => {
+  swipeStack.dismissAll();
+  for (let index = 1; index <= 5; index++) {
+    swipeStack.show({
+      title: `Stacked notification ${index}`,
+      message: `Drag this notification horizontally to dismiss it, or use its close button.`,
+      tone: 'info', persistent: true, origin: swipeButton,
+    });
+  }
+});
+swipeButton.addEventListener('click', showSwipeStack);
+removers.push(() => swipeButton.removeEventListener('click', showSwipeStack));
+swipeButton.disabled = false;
+
 initialize();
 document.querySelector('[data-controls]').disabled = false;
 for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-adapter-start]', '[data-adapter-update]', '[data-adapter-dismiss]', '[data-async-submit]', '[data-clear-log]', '[data-refresh-diagnostics]', '[data-clear-diagnostics]']) document.querySelector(selector).disabled = false;
@@ -350,6 +459,9 @@ window.addEventListener('pagehide', event => {
   window.clearTimeout(asyncTimer);
   dedupe?.destroy();
   manager.destroy();
+  classicLight.destroy();
+  classicDark.destroy();
+  swipeStack.destroy();
   for (const remove of removers) remove();
 }, { once: false });
 

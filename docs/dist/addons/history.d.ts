@@ -1,4 +1,4 @@
-import { C as ToastInstance, j as ToastSnapshot, y as ToastDismissReason } from "../types-CViYp0UD.js";
+import { M as ToastSnapshot, b as ToastDismissReason, w as ToastInstance } from "../types-MxcqocoB.js";
 
 //#region src/addons/history.d.ts
 declare const TOAST_HISTORY_ADDON_NAME = "history";

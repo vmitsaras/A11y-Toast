@@ -1,3 +1,5 @@
+import { t as TOAST_EVENTS } from "./events-D6MCpthx.js";
+
 //#region src/docs.ts
 /** Pure metadata: importing this module never loads or initializes the DOM runtime. */
 const docs = {
@@ -46,7 +48,7 @@ const docs = {
 		{
 			name: "show(input)",
 			type: "(ToastInput) => string | null",
-			description: "Display or enqueue a toast. null means the bounded queue rejected it."
+			description: "Display or enqueue a toast. Optional icon accepts a trusted passive HTML/SVG element, cloned on ingestion; HTML strings are rejected. actionLayout selects stacked (default) or inline placement. null means the bounded queue rejected it."
 		},
 		{
 			name: "info / success / warning / error / loading",
@@ -76,7 +78,7 @@ const docs = {
 		{
 			name: "getToast(id) / getToasts()",
 			type: "Readonly snapshot accessors",
-			description: "Inspect state without receiving callbacks, origin nodes or mutable collections."
+			description: "Inspect state and actionLayout without receiving callbacks, origin/icon nodes or mutable collections. History also excludes icon DOM."
 		},
 		{
 			name: "registerAddon / unregisterAddon / getAddon / getAddons",
@@ -94,9 +96,155 @@ const docs = {
 			description: "Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries."
 		}
 	],
+	eventContract: {
+		target: "The instance root",
+		options: {
+			bubbles: true,
+			composed: false,
+			cancelable: false
+		},
+		baseDetail: [
+			"instance",
+			"root",
+			"instanceId",
+			"timestamp",
+			"visibleCount",
+			"queuedCount"
+		],
+		events: [
+			{
+				name: TOAST_EVENTS.init,
+				trigger: "Core DOM is installed and the instance is registered, before configured add-ons are set up.",
+				detail: []
+			},
+			{
+				name: TOAST_EVENTS.ready,
+				trigger: "Configured add-on setup has finished; omitted if initialization is destroyed re-entrantly.",
+				detail: []
+			},
+			{
+				name: TOAST_EVENTS.show,
+				trigger: "A toast is committed to the visible list.",
+				detail: ["toast"]
+			},
+			{
+				name: TOAST_EVENTS.queue,
+				trigger: "A toast is added to the bounded queue.",
+				detail: ["toast"]
+			},
+			{
+				name: TOAST_EVENTS.update,
+				trigger: "An existing visible or queued toast is updated, including updates with no effective public change.",
+				detail: ["toast"]
+			},
+			{
+				name: TOAST_EVENTS.announce,
+				trigger: "The selected announcement transport commits an attempt; this is not speech-delivery confirmation.",
+				detail: [
+					"toast",
+					"message",
+					"priority",
+					"transport",
+					"fallback"
+				]
+			},
+			{
+				name: TOAST_EVENTS.announcementError,
+				trigger: "The selected announcement transport throws synchronously.",
+				detail: [
+					"toast",
+					"message",
+					"priority",
+					"transport",
+					"error"
+				]
+			},
+			{
+				name: TOAST_EVENTS.action,
+				trigger: "An action is invoked after pending state is set and before its callback runs.",
+				detail: ["toast"]
+			},
+			{
+				name: TOAST_EVENTS.actionError,
+				trigger: "An action callback throws or its returned promise rejects.",
+				detail: ["toast", "error"]
+			},
+			{
+				name: TOAST_EVENTS.pause,
+				trigger: "A toast transitions from running to paused.",
+				detail: ["toast", "reason"]
+			},
+			{
+				name: TOAST_EVENTS.resume,
+				trigger: "A toast transitions from paused to running.",
+				detail: ["toast", "reason"]
+			},
+			{
+				name: TOAST_EVENTS.dismiss,
+				trigger: "A toast is logically removed, before any exit animation finishes.",
+				detail: ["toast", "reason"]
+			},
+			{
+				name: TOAST_EVENTS.drop,
+				trigger: "A show request is rejected because the queue is full or a clear operation is in progress.",
+				detail: ["toast", "reason"]
+			},
+			{
+				name: TOAST_EVENTS.animationStart,
+				trigger: "An enter or exit animation starts.",
+				detail: [
+					"toast",
+					"phase",
+					"driver"
+				]
+			},
+			{
+				name: TOAST_EVENTS.animationEnd,
+				trigger: "An enter or exit animation completes, is cancelled, or fails.",
+				detail: [
+					"toast",
+					"phase",
+					"driver",
+					"status"
+				]
+			},
+			{
+				name: TOAST_EVENTS.animationError,
+				trigger: "An animation driver throws or rejects; animation-end with failed status follows unless a listener destroys the instance.",
+				detail: [
+					"toast",
+					"phase",
+					"driver",
+					"error"
+				]
+			},
+			{
+				name: TOAST_EVENTS.addonError,
+				trigger: "An add-on setup, observer, hook, or cleanup operation fails while the instance is active.",
+				detail: [
+					"addon",
+					"phase",
+					"error"
+				]
+			},
+			{
+				name: TOAST_EVENTS.destroy,
+				trigger: "Core teardown has cleared generated DOM and state; active animation cancellations are emitted first.",
+				detail: []
+			}
+		],
+		sequencing: [
+			"show emits before animation-start; an announcement commit may happen later or not at all.",
+			"queue emits when enqueued; show emits only when the item is promoted.",
+			"dismissAll emits one dismiss event per removed toast and no aggregate completion event.",
+			"pause and resume emit only when the effective running/paused boundary changes.",
+			"action has no success event; completion is reflected by update or dismissal. Dismissal cancels pending work.",
+			"destroy is terminal: teardown cleanup errors are isolated but do not emit events after it."
+		]
+	},
 	examples: [{
 		name: "Playground",
-		description: "One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, FIFO queue and a non-live event log.",
+		description: "One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, a five-notification swipe-dismiss stack, FIFO queue and a non-live event log.",
 		path: "examples/basic"
 	}],
 	addons: [
@@ -109,6 +257,12 @@ const docs = {
 			name: "In-memory history",
 			export: "a11y-toast/addons/history",
 			description: "Bounded immutable show/update/dismiss entries with read/clear access and lifecycle cleanup. No persistence, announcement replay or action replay; no backfill."
+		},
+		{
+			name: "Swipe dismissal",
+			export: "a11y-toast/addons/swipe-dismiss",
+			stylesheet: "a11y-toast/addons/swipe-dismiss.css",
+			description: "Opt-in per-instance horizontal pointer drag to dismiss visible, dismissible notifications. Retains the native close button; use with none or built-in CSS animation."
 		},
 		{
 			name: "Progress",
@@ -181,6 +335,7 @@ const docs = {
 		focusOnShow: false,
 		priorityDefault: "polite",
 		announcementTransport: "Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.",
+		icon: "Decorative icons are cloned into an inert, aria-hidden wrapper. Only passive icon-font and SVG markup is accepted; active elements, handlers, inline styles, IDs and URL references are rejected. Icons never change announcements.",
 		toneLabel: "Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.",
 		motion: "CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after entrance settles.",
 		limitations: "An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer."

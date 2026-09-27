@@ -1,3 +1,4 @@
+import { cloneToastIcon } from './icon.js';
 import { LIVE_REGION_TRANSPORT, LiveAnnouncer } from './LiveAnnouncer.js';
 import { addToastEventListener, TOAST_EVENTS } from './events.js';
 import type { ToastEventMap, ToastEventName } from './events.js';
@@ -19,6 +20,7 @@ const CLASSES = Object.freeze({
   host: 'a11y-toast-region', viewport: 'a11y-toast-region__viewport', list: 'a11y-toast-region__list',
   empty: 'a11y-toast-region__empty', live: 'a11y-toast-region__announcer', item: 'a11y-toast', content: 'a11y-toast__content',
   tone: 'a11y-toast__tone', toneVisuallyHidden: 'a11y-toast__tone--visually-hidden', title: 'a11y-toast__title', message: 'a11y-toast__message',
+  icon: 'a11y-toast__icon', inlineAction: 'a11y-toast--inline-action',
   actions: 'a11y-toast__actions', action: 'a11y-toast__action', dismiss: 'a11y-toast__dismiss',
   error: 'a11y-toast__action-error', initialized: 'is-initialized', visible: 'is-visible',
   entering: 'is-entering', exiting: 'is-exiting', paused: 'is-paused', pending: 'is-action-pending',
@@ -30,6 +32,7 @@ const ATTR = Object.freeze({
 });
 type Hook = 'beforeShow' | 'afterShow' | 'beforeUpdate' | 'afterUpdate' | 'beforeDismiss' | 'afterDismiss';
 interface ToastView {
+  icon: HTMLElement; renderedIcon: Element | null;
   item: HTMLLIElement; tone: HTMLElement; title: HTMLElement; message: HTMLElement;
   actions: HTMLElement; action: HTMLButtonElement; dismiss: HTMLButtonElement; error: HTMLElement;
 }
@@ -81,6 +84,7 @@ export class A11yToast implements ToastInstance {
   private readonly records = new Map<ToastId, RecordState>();
   private readonly queue: ToastId[] = [];
   private readonly addons = new Map<string, RegisteredAddon>();
+  private readonly gestureHolds = new Map<ToastId, number>();
   private readonly activeAnimations = new Map<ToastId, ActiveAnimation>();
   private readonly exiting = new Map<ToastId, HTMLElement>();
   private readonly addedClasses: string[] = [];
@@ -202,7 +206,8 @@ export class A11yToast implements ToastInstance {
     this.assertActive();
     const record = this.records.get(id);
     if (!record || record.updating || record.dismissing) return false;
-    const nextInput = this.copyInput({ ...record.input, ...patch });
+    const nextInput = this.copyInput({ ...record.input, ...patch }, patch.icon === undefined);
+    if (patch.icon === undefined) nextInput.icon = record.input.icon;
     const next = normalizeToast(nextInput, this.options, this.doc);
     record.updating = true;
     try {
@@ -245,6 +250,7 @@ export class A11yToast implements ToastInstance {
 
     record.state = 'dismissed';
     this.records.delete(id);
+    this.gestureHolds.delete(id);
     const index = this.queue.indexOf(id);
     if (index >= 0) this.queue.splice(index, 1);
     this.list.tabIndex = this.visibleCount > 0 ? 0 : -1;
@@ -307,6 +313,27 @@ export class A11yToast implements ToastInstance {
     const copy = Object.freeze({ ...addon, name });
     const context: ToastAddonContext = Object.freeze({
       instance: this, root: this.root, signal: controller.signal,
+      holdTimer: (id: ToastId): ToastCleanup => {
+        const record = this.records.get(id);
+        if (controller.signal.aborted || !record || record.state !== 'visible') return () => {};
+        const count = this.gestureHolds.get(id) ?? 0;
+        this.gestureHolds.set(id, count + 1);
+        let active = true;
+        const release = () => {
+          if (!active) return;
+          active = false;
+          removers.delete(release);
+          const current = this.gestureHolds.get(id) ?? 0;
+          if (current <= 1) {
+            this.gestureHolds.delete(id);
+            this.setPause(record, 'gesture', false);
+          } else this.gestureHolds.set(id, current - 1);
+        };
+        removers.add(release);
+        if (count === 0) this.setPause(record, 'gesture', true);
+        if (!this.owns(record) || controller.signal.aborted) release();
+        return release;
+      },
       on: <K extends ToastEventName>(type: K, listener: (event: CustomEvent<ToastEventMap[K]>) => void): ToastCleanup => {
         if (controller.signal.aborted) return () => {};
         const remove = addToastEventListener(this.root, type, event => {
@@ -382,9 +409,9 @@ export class A11yToast implements ToastInstance {
     element.className = className;
     return element;
   }
-  private copyInput(input: ToastInput): ToastInput {
+  private copyInput(input: ToastInput, keepIcon = false): ToastInput {
     if (!input || typeof input !== 'object') throw new TypeError('Toast input must be an object.');
-    return { ...input, action: input.action ? { ...input.action } : input.action };
+    return { ...input, icon: keepIcon ? input.icon : cloneToastIcon(input.icon, this.doc), action: input.action ? { ...input.action } : input.action };
   }
   private assertActive(): void {
     if (this.destroyed) throw new Error('A11yToast was destroyed. Create a new instance.');
@@ -404,7 +431,7 @@ export class A11yToast implements ToastInstance {
       remaining: data.persistent ? null : Math.ceil(this.remaining(record)),
       pauseReasons: Object.freeze([...record.pauses]),
       action: data.action ? Object.freeze({ label: data.action.label, dismissOnSuccess: data.action.dismissOnSuccess }) : null,
-      actionPending: record.actionPending, actionError: record.actionError,
+      actionLayout: data.actionLayout, actionPending: record.actionPending, actionError: record.actionError,
     });
   }
   private display(record: RecordState): void {
@@ -444,6 +471,9 @@ export class A11yToast implements ToastInstance {
   private createView(record: RecordState): ToastView {
     const item = this.element('li', CLASSES.item);
     item.setAttribute(ATTR.id, record.id);
+    const icon = this.element('span', CLASSES.icon);
+    icon.setAttribute(ATTR.hidden, 'true');
+    icon.inert = true;
     const content = this.element('div', CLASSES.content);
     const tone = this.element('span', CLASSES.tone);
     const title = this.element('p', CLASSES.title);
@@ -464,8 +494,8 @@ export class A11yToast implements ToastInstance {
     dismiss.setAttribute(ATTR.describedby, message.id);
     actions.append(action);
     content.append(tone, title, message, actions, error);
-    item.append(content, dismiss);
-    return { item, tone, title, message, actions, action, dismiss, error };
+    item.append(icon, content, dismiss);
+    return { item, icon, renderedIcon: null, tone, title, message, actions, action, dismiss, error };
   }
   private render(record: RecordState): void {
     const v = record.view;
@@ -473,6 +503,12 @@ export class A11yToast implements ToastInstance {
     const active = this.doc.activeElement;
     const data = record.data;
     v.item.className = `${CLASSES.item} ${CLASSES.item}--${data.tone} ${CLASSES.visible}`;
+    v.item.classList.toggle(CLASSES.inlineAction, data.actionLayout === 'inline');
+    v.icon.hidden = data.icon === null;
+    if (v.renderedIcon !== data.icon) {
+      v.icon.replaceChildren(...(data.icon ? [data.icon] : []));
+      v.renderedIcon = data.icon;
+    }
     v.item.classList.toggle(CLASSES.entering, record.animationPhase === 'enter');
     v.item.classList.toggle(CLASSES.exiting, record.animationPhase === 'exit');
     v.item.classList.toggle(CLASSES.paused, record.pauses.size > 0);
@@ -793,7 +829,8 @@ export class A11yToast implements ToastInstance {
     } catch (error) { this.addonError(name, phase, error); }
   }
   private addonError(addon: string, phase: string, error: unknown): void {
-    if (this.reportingAddonError) return;
+    // Teardown is a terminal event boundary; cleanup failures cannot emit after destroy.
+    if (this.destroyed || this.reportingAddonError) return;
     this.reportingAddonError = true;
     try { this.emit(TOAST_EVENTS.addonError, { addon, phase, error }); }
     finally { this.reportingAddonError = false; }

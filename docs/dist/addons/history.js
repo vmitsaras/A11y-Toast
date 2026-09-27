@@ -32,6 +32,7 @@ function copySnapshot(toast) {
 			label: toast.action.label,
 			dismissOnSuccess: toast.action.dismissOnSuccess
 		}) : null,
+		actionLayout: toast.actionLayout,
 		actionPending: toast.actionPending,
 		actionError: toast.actionError
 	});

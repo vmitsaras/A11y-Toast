@@ -1,4 +1,4 @@
-import { C as ToastInstance, S as ToastInput, x as ToastId } from "../types-CViYp0UD.js";
+import { C as ToastInput, S as ToastId, w as ToastInstance } from "../types-MxcqocoB.js";
 
 //#region src/addons/dedupe.d.ts
 type ToastDedupePolicy = 'update-existing' | 'drop-new' | 'replace-existing';

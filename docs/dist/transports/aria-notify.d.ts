@@ -1,4 +1,4 @@
-import { m as ToastAnnouncementTransport } from "../types-CViYp0UD.js";
+import { h as ToastAnnouncementTransport } from "../types-MxcqocoB.js";
 
 //#region src/transports/aria-notify.d.ts
 

@@ -1,4 +1,4 @@
-import { C as ToastInstance } from "../types-CViYp0UD.js";
+import { w as ToastInstance } from "../types-MxcqocoB.js";
 
 //#region src/adapters/menu-button-async-state.d.ts
 interface MenuButtonAsyncStateToastAdapter {

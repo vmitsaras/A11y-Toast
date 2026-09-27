@@ -1,4 +1,4 @@
-import type { ResolvedToastOptions, ToastAction, ToastAnimationDriver, ToastAnimationMode, ToastAnnouncementTransport, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
+import type { ResolvedToastOptions, ToastAction, ToastActionLayout, ToastAnimationDriver, ToastAnimationMode, ToastAnnouncementTransport, ToastInput, ToastLabels, ToastOptions, ToastPosition, ToastPriority, ToastTone } from './types.js';
 
 export const TONES = Object.freeze(['neutral', 'info', 'success', 'warning', 'error', 'loading'] as const);
 export const POSITIONS = Object.freeze(['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end'] as const);
@@ -76,6 +76,7 @@ export interface NormalizedToast {
   message: string; title: string; tone: ToastTone; priority: ToastPriority;
   announcement: string; duration: number; persistent: boolean; dismissible: boolean;
   action: Readonly<ToastAction & { dismissOnSuccess: boolean }> | null;
+  icon: HTMLElement | SVGElement | null; actionLayout: ToastActionLayout;
   origin: HTMLElement | null; key: string | null;
 }
 export function isHTMLElement(value: unknown, doc: Document): value is HTMLElement {
@@ -100,6 +101,7 @@ export function normalizeToast(input: ToastInput, options: ResolvedToastOptions,
   const phrase = [title || (tone === 'neutral' ? '' : options.labels.tones[tone]), message, action?.label].filter(Boolean).join('. ');
   return {
     message, title, tone, priority, announcement: text(input.announcement) || phrase,
+    icon: input.icon ?? null, actionLayout: member(input.actionLayout, ['stacked', 'inline'], 'stacked'),
     duration: ms, persistent, dismissible: parseBoolean(input.dismissible, true), action,
     origin: isHTMLElement(input.origin, doc) ? input.origin : null, key: text(input.key) || null,
   };

@@ -20,24 +20,24 @@ export interface ToastEventDetail {
 }
 export interface ToastItemEventDetail extends ToastEventDetail { readonly toast: ToastSnapshot; }
 export interface ToastEventMap {
-  'a11y-toast:init': ToastEventDetail;
-  'a11y-toast:ready': ToastEventDetail;
-  'a11y-toast:show': ToastItemEventDetail;
-  'a11y-toast:queue': ToastItemEventDetail;
-  'a11y-toast:update': ToastItemEventDetail;
-  'a11y-toast:announce': ToastItemEventDetail & { readonly message: string; readonly priority: Exclude<ToastPriority, 'off'>; readonly transport: string; readonly fallback: boolean };
-  'a11y-toast:announcement-error': ToastItemEventDetail & { readonly message: string; readonly priority: Exclude<ToastPriority, 'off'>; readonly transport: string; readonly error: unknown };
-  'a11y-toast:action': ToastItemEventDetail;
-  'a11y-toast:action-error': ToastItemEventDetail & { readonly error: unknown };
-  'a11y-toast:pause': ToastItemEventDetail & { readonly reason: ToastPauseReason };
-  'a11y-toast:resume': ToastItemEventDetail & { readonly reason: ToastPauseReason };
-  'a11y-toast:dismiss': ToastItemEventDetail & { readonly reason: ToastDismissReason };
-  'a11y-toast:drop': ToastItemEventDetail & { readonly reason: 'queue-full' | 'clearing' };
-  'a11y-toast:animation-start': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string };
-  'a11y-toast:animation-end': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly status: ToastAnimationStatus };
-  'a11y-toast:animation-error': ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly error: unknown };
-  'a11y-toast:addon-error': ToastEventDetail & { readonly addon: string; readonly phase: string; readonly error: unknown };
-  'a11y-toast:destroy': ToastEventDetail;
+  [TOAST_EVENTS.init]: ToastEventDetail;
+  [TOAST_EVENTS.ready]: ToastEventDetail;
+  [TOAST_EVENTS.show]: ToastItemEventDetail;
+  [TOAST_EVENTS.queue]: ToastItemEventDetail;
+  [TOAST_EVENTS.update]: ToastItemEventDetail;
+  [TOAST_EVENTS.announce]: ToastItemEventDetail & { readonly message: string; readonly priority: Exclude<ToastPriority, 'off'>; readonly transport: string; readonly fallback: boolean };
+  [TOAST_EVENTS.announcementError]: ToastItemEventDetail & { readonly message: string; readonly priority: Exclude<ToastPriority, 'off'>; readonly transport: string; readonly error: unknown };
+  [TOAST_EVENTS.action]: ToastItemEventDetail;
+  [TOAST_EVENTS.actionError]: ToastItemEventDetail & { readonly error: unknown };
+  [TOAST_EVENTS.pause]: ToastItemEventDetail & { readonly reason: ToastPauseReason };
+  [TOAST_EVENTS.resume]: ToastItemEventDetail & { readonly reason: ToastPauseReason };
+  [TOAST_EVENTS.dismiss]: ToastItemEventDetail & { readonly reason: ToastDismissReason };
+  [TOAST_EVENTS.drop]: ToastItemEventDetail & { readonly reason: 'queue-full' | 'clearing' };
+  [TOAST_EVENTS.animationStart]: ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string };
+  [TOAST_EVENTS.animationEnd]: ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly status: ToastAnimationStatus };
+  [TOAST_EVENTS.animationError]: ToastItemEventDetail & { readonly phase: ToastAnimationPhase; readonly driver: string; readonly error: unknown };
+  [TOAST_EVENTS.addonError]: ToastEventDetail & { readonly addon: string; readonly phase: string; readonly error: unknown };
+  [TOAST_EVENTS.destroy]: ToastEventDetail;
 }
 export type ToastEventName = keyof ToastEventMap;
 export type ToastCustomEvent<K extends ToastEventName = ToastEventName> = CustomEvent<ToastEventMap[K]>;

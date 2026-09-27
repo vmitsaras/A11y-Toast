@@ -24,6 +24,11 @@
       "import": "./dist/addons/progress.js"
     },
     "./addons/progress.css": "./dist/addons/progress.css",
+    "./addons/swipe-dismiss": {
+      "types": "./dist/addons/swipe-dismiss.d.ts",
+      "import": "./dist/addons/swipe-dismiss.js"
+    },
+    "./addons/swipe-dismiss.css": "./dist/addons/swipe-dismiss.css",
     "./addons/promise": {
       "types": "./dist/addons/promise.d.ts",
       "import": "./dist/addons/promise.js"

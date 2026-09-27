@@ -30,6 +30,25 @@ npm run pages:build
 
 For the repository's one-time Pages configuration, choose **Settings → Pages → Build and deployment → Deploy from a branch → `main` → `/docs`**. The regular verification workflow does not deploy the site. `npm run build:dist` builds only package artifacts, while `npm run pages:generate` refreshes Pages files from an existing `dist/` build.
 
+## Optional swipe dismissal
+
+The swipe add-on lets pointer users drag a visible, dismissible notification horizontally to dismiss it. It is registered per manager, does not run on import, and leaves the labeled close button available for keyboard and assistive-technology users. The playground has a separate five-notification stack for trying both methods.
+
+```ts
+import { createToast } from 'a11y-toast';
+import { createSwipeDismissAddon } from 'a11y-toast/addons/swipe-dismiss';
+import 'a11y-toast/styles.css';
+import 'a11y-toast/addons/swipe-dismiss.css';
+
+const toast = createToast(root, {
+  animation: 'none',
+  maxVisible: 5,
+  addons: [createSwipeDismissAddon()],
+});
+```
+
+Use the add-on with `animation: 'none'` or the built-in CSS animation driver. The drag is supplementary: keep `dismissible: true` for notifications that should be swipeable, and keep essential information or actions available elsewhere. Touch users can scroll the stack vertically. Reduced-motion preferences and target screen readers still need direct testing in the host application.
+
 ## Optional in-memory history (TOAST-270)
 
 ```ts
@@ -119,13 +138,41 @@ Options, labels, and exposed snapshots are frozen. No configure/set-options API 
 
 ## Toast input
 
-`message` is a required non-empty string. Optional fields are `title`, `tone`, `priority`, `announcement`, `duration`, `persistent`, `dismissible`, `action`, `origin`, and `key`.
+`message` is a required non-empty string. Optional fields are `title`, `tone`, `priority`, `announcement`, `duration`, `persistent`, `dismissible`, `action`, `actionLayout`, `icon`, `origin`, and `key`.
 
 Tones: `neutral`, `info`, `success`, `warning`, `error`, `loading`.
 
 Messages, labels, and titles are rendered as text. HTML strings are not interpreted. In core, `key` remains caller correlation metadata and does **not** automatically deduplicate. The optional dedupe controller can apply explicit key-based policies. All direct core toasts otherwise receive independently generated IDs; queue rejection returns `null`.
 
 `announcement` can supply concise alternative wording. Null/blank restores generated wording. `priority: 'off'` suppresses the plugin's live-region writes; it does not hide the visible notification from assistive technology.
+
+### Decorative icons and inline actions
+
+Pass a trusted, application-created HTML or SVG element as `icon`. Icon-font classes and inline SVG paths are supported; the package supplies no icon font or icon library. HTML strings are not accepted, and this option is not a rich-content renderer or a sanitizer for untrusted markup.
+
+Supported HTML elements are `span`, `i`, `b`, and `em`. Supported SVG elements are `svg`, `g`, `path`, `circle`, `ellipse`, `rect`, `line`, `polyline`, `polygon`, `title`, and `desc`. Use classes, presentation attributes and `currentColor`. Unsupported markup throws `TypeError` before a toast is shown or updated: this includes `use`, images, links, controls, custom elements, scripts, event-handler attributes, IDs, inline `style`, focus/editability attributes, `role`, live-region attributes, resource references (`href`, `src`, `url(...)`), and reserved `data-a11y-toast*` attributes. SVG `focusable="false"` is accepted. Existing event listeners are not copied.
+
+```ts
+const icon = document.createElement('i');
+icon.className = 'fa-solid fa-check'; // Load your icon font's CSS separately.
+
+const toast = createToast(root, { showToneLabel: false });
+const id = toast.show({
+  message: '2 messages were deleted.',
+  tone: 'success',
+  icon,
+  actionLayout: 'inline',
+  action: { label: 'Undo', onClick: undoDeletion },
+});
+
+if (id) toast.update(id, { icon: null }); // Remove the decoration.
+```
+
+The icon is cloned when supplied to `show` or `update`; the original stays with the caller. Later changes to the original do not change an existing or queued toast. Pass it again in an update to replace the icon. Icons remain outside announcements, snapshots and history, inside an owned, noninteractive `.a11y-toast__icon` wrapper hidden from assistive technology. Message and tone text must convey the meaning independently.
+
+`actionLayout` is a per-toast option: `stacked` (default) or `inline`. Inline layout places the action beside the text when space permits and wraps it below on narrow surfaces. Updates preserve the existing action and close buttons and their focus. The playground includes light success/Undo and dark information examples using these options and application-scoped CSS skins.
+
+The shipped CSS uses inline placement at viewport container widths of at least `32rem`; the default `23rem` toast width keeps actions stacked. Set `--a11y-toast-width: 52rem` on your host for a wider classic toast. Browsers without container queries retain the stacked layout.
 
 ### Timing contract
 
@@ -201,6 +248,30 @@ const stop = addToastEventListener(root, TOAST_EVENTS.dismiss, event => {
 ```
 
 Details include `instance`, `root`, `instanceId`, `timestamp`, visible/queued counts, and an event-specific frozen `toast` snapshot where relevant. `pause`/`resume` report effective paused/running boundaries, not every internal reason-set edit.
+
+Every event is dispatched on the instance root with `{ bubbles: true, composed: false, cancelable: false }`. The detail object is frozen; any `toast` value is a frozen dispatch-time snapshot. `error` values retain the original thrown/rejected value and are typed `unknown`.
+
+| Event | Trigger and event-specific detail | Ordering and limits |
+| --- | --- | --- |
+| `init` | Core DOM is installed and the instance is registered; base detail only. | Synchronous and before configured add-ons are set up. A re-entrant destroy can prevent `ready`. |
+| `ready` | Configured add-on setup has finished; base detail only. | Synchronous initialization boundary. |
+| `show` | Toast is committed to the visible list; `toast`. | Before `animation-start`; means display commitment, not animation or announcement completion. |
+| `queue` | Toast is added to the bounded queue; `toast`. | `show` is emitted later if the item is promoted. |
+| `update` | An existing visible or queued toast is updated; `toast`. | Emitted even when the resulting public state is unchanged. |
+| `announce` | Announcement transport commits an attempt; `toast`, `message`, `priority`, `transport`, `fallback`. | May happen asynchronously after `show`/`update`, or not at all. Never confirms speech delivery. |
+| `announcement-error` | The transport throws synchronously; `toast`, `message`, `priority`, `transport`, `error`. | Async transport rejections are outside this synchronous error event contract. |
+| `action` | Action is invoked after pending state is set; `toast`. | Before its callback runs. Event-only actions also emit this event. |
+| `action-error` | Action callback throws or its promise rejects; `toast`, `error`. | There is no action-success event; completion is reflected through update or dismissal. |
+| `pause` / `resume` | Effective running/paused state changes; `toast`, `reason`. | Only the outer pause/resume boundary emits; snapshot `pauseReasons` contains the full current set. |
+| `dismiss` | Toast is logically removed; `toast`, `reason`. | Before exit animation completion. `dismissAll()` emits one event per removed toast and no aggregate event. |
+| `drop` | Show request is rejected because the queue is full or clearing is in progress; `toast`, `reason`. | Reasons are `queue-full` or `clearing`; the dropped record is not retained. |
+| `animation-start` | Enter or exit motion starts; `toast`, `phase`, `driver`. | Decorative lifecycle, independent of semantic show/dismiss. |
+| `animation-error` | Animation driver throws or rejects; `toast`, `phase`, `driver`, `error`. | Normally followed by `animation-end` with `status: 'failed'`; destroying from the error listener suppresses that follow-up. |
+| `animation-end` | Motion completes, is cancelled, or fails; `toast`, `phase`, `driver`, `status`. | Destroy cancels active motion and emits its cancelled end before `destroy`. |
+| `addon-error` | Add-on setup, observer, hook, or cleanup fails while the instance is active; `addon`, `phase`, `error`. | Recursive reporting is suppressed. Cleanup failures during destruction are isolated without dispatching after the terminal event. |
+| `destroy` | Core state and generated DOM have been cleared; base detail only. | Terminal event. Add-on cleanup follows; cleanup errors cannot emit later events. |
+
+`dismissAll()` and other batch work have item-level events only. Nested synchronous listeners can cause re-entrant event sequences; no ordering is promised between independent asynchronous operations. Typed event names/details are keyed directly from `TOAST_EVENTS` in the public source map. Structured event metadata is also available from `a11y-toast/docs`.
 
 **`announce` records an announcement-transport commit attempt, not evidence that a screen reader spoke or finished speaking.** Pending commits are serialized independently for polite/assertive channels, coalesced per toast, and canceled on dismissal/destruction. Already delivered speech cannot be recalled. Multiple independent managers do not share a document-global speech coordinator.
 
@@ -563,7 +634,7 @@ toast.registerAddon(logger);
 
 `setup` must synchronously return a cleanup function or nothing. Its context provides the public instance, root, an abort signal, and auto-cleaned typed `on()` subscriptions. Selected observer hooks are `beforeShow`, `afterShow`, `beforeUpdate`, `afterUpdate`, `beforeDismiss`, `afterDismiss`. Snapshots are not writable middleware; return values cannot cancel operations. Hooks are not awaited. Accidental returned-promise failures are isolated instead of becoming unhandled rejections.
 
-Unregister removes subscriptions and aborts the add-on signal; destroy cleans up in reverse registration order. Setup/hook/cleanup failures emit bounded `addon-error` diagnostics. One failed add-on does not stop core cleanup.
+Unregister removes subscriptions and aborts the add-on signal; destroy cleans up in reverse registration order. Setup/hook/cleanup failures while the instance is active emit bounded `addon-error` diagnostics. Failures during destruction are isolated without dispatching after the terminal `destroy` event. One failed add-on does not stop core cleanup.
 
 For interoperability, subscribe to the **source package's actual exported events**, map useful outcomes to `show`/`update`/`dismiss`, and retain toast IDs. Do not inspect another component's private collections. If the source already announces a result, use `priority: 'off'` on the toast. Only one component should own each announcement.
 
@@ -577,10 +648,13 @@ Public variables include:
 
 - Surface/layout: `--a11y-toast-background`, `--a11y-toast-color`, `--a11y-toast-muted`, `--a11y-toast-border`, `--a11y-toast-radius`, `--a11y-toast-shadow`, `--a11y-toast-gap`, `--a11y-toast-offset`, `--a11y-toast-width`, `--a11y-toast-max-height`, `--a11y-toast-z-index`, `--a11y-toast-font`.
 - Interaction: `--a11y-toast-focus`, `--a11y-toast-hover-background`.
+- Icons/actions: `--a11y-toast-icon-size`, `--a11y-toast-icon-glyph-size`, `--a11y-toast-icon-gap`, `--a11y-toast-icon-radius`, `--a11y-toast-icon-background`, `--a11y-toast-icon-color`, `--a11y-toast-action-gap`.
 - Motion: `--a11y-toast-enter-duration`, `--a11y-toast-exit-duration`, `--a11y-toast-enter-ease`, `--a11y-toast-exit-ease`, `--a11y-toast-motion-distance`.
 - Tone accents: `--a11y-toast-neutral-accent`, `--a11y-toast-info-accent`, `--a11y-toast-success-accent`, `--a11y-toast-warning-accent`, `--a11y-toast-error-accent`, `--a11y-toast-loading-accent`.
 
 Private `--_` variables are implementation details, not a supported customization API. Changing colors remains the integrator's contrast responsibility.
+
+The notification list grows to fit its visible toasts up to the available viewport height (minus the configured offset). It scrolls vertically only when the stack or a long message needs more space. `--a11y-toast-max-height` can set a smaller host-specific limit. The package default remains three visible toasts; the playground opts into five for its batch example.
 
 The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated announcement wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
 

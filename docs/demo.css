@@ -19,6 +19,7 @@
 .toast-demo *, .toast-demo *::before, .toast-demo *::after { box-sizing: border-box; }
 .toast-demo button, .toast-demo input, .toast-demo select, .toast-demo textarea { font: inherit; }
 .toast-demo :focus-visible { outline: 3px solid #087e6a; outline-offset: 3px; }
+.toast-demo__masthead :focus-visible { outline-color: #68d7bd; }
 .toast-demo [hidden] { display: none !important; }
 .toast-demo a { color: inherit; }
 
@@ -200,7 +201,7 @@
 .toast-demo__button:hover:not(:disabled) { background: var(--demo-tint); border-color: var(--demo-accent); }
 .toast-demo__button--primary { background: var(--demo-accent); color: #fff; border-color: var(--demo-accent); padding-inline: 1.2rem; }
 .toast-demo__button--primary:hover:not(:disabled) { background: var(--demo-accent-strong); color: #fff; }
-.toast-demo__button:disabled { background: #e9ece9; color: #586762; border-color: #c4ccc8; cursor: not-allowed; }
+.toast-demo__button:disabled, .toast-demo__button[aria-disabled="true"] { background: #e9ece9; color: #586762; border-color: #c4ccc8; cursor: not-allowed; }
 .toast-demo__button--quiet { background: transparent; border-color: transparent; margin-block-start: 0.65rem; inline-size: 100%; }
 .toast-demo__panel > p { font-size: 0.875rem; color: var(--demo-ink-soft); margin: -0.5rem 0 1.5rem; }
 .toast-demo__button-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr)); gap: 0.65rem; }
@@ -256,7 +257,6 @@
   --a11y-toast-gap: 0.35rem;
   --a11y-toast-radius: 0.35rem;
   --a11y-toast-offset: 0.5rem;
-  --a11y-toast-max-height: 35dvh;
 }
 .toast-demo-skin--high-contrast {
   --a11y-toast-background: Canvas;
@@ -346,7 +346,7 @@
   .demo-footer__link:focus-visible { outline-color: Highlight; }
 }
 
-/* Playground-only effects. The package CSS driver still owns settlement. */
+/* Playground-only effects. Package drivers still own settlement. */
 @media (prefers-reduced-motion: no-preference) {
   [data-demo-effect]:where(:not([data-demo-effect='default'])) {
     --a11y-toast-enter-duration: 240ms;
@@ -359,7 +359,7 @@
   }
   /* Expand the scrollport, not the toast: keep the resting geometry intact.
      Gutters stop at the window edge so scrollbars remain reachable. */
-  :where([data-demo-effect]:not([data-demo-effect='default'])) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] {
+  :where([data-demo-effect]:not([data-demo-effect='default'])) .a11y-toast-region__viewport:is([data-a11y-toast-animation='css'], [data-a11y-toast-animation='custom']) {
     --_demo-gutter: 40px;
     --_demo-edge: var(--a11y-toast-offset, 1rem);
     --_demo-spare: max(0px, calc(100vi - var(--a11y-toast-width, 23rem) - 2 * var(--_demo-edge)));
@@ -382,13 +382,13 @@
   [data-demo-effect] .a11y-toast-region__viewport:is(.a11y-toast-region__viewport--bottom-start, .a11y-toast-region__viewport--bottom-center, .a11y-toast-region__viewport--bottom-end) {
     --_demo-gutter-bottom: min(var(--_demo-gutter), max(var(--_demo-edge), env(safe-area-inset-bottom, 0px)));
   }
-  [data-demo-effect]:not([data-demo-effect='default']) .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast-region__list:not(:empty) {
+  [data-demo-effect]:not([data-demo-effect='default']) .a11y-toast-region__viewport:is([data-a11y-toast-animation='css'], [data-a11y-toast-animation='custom']) .a11y-toast-region__list:not(:empty) {
     padding-block: calc(0.25rem + var(--_demo-gutter-top)) calc(0.25rem + var(--_demo-gutter-bottom));
     padding-inline: calc(0.25rem + var(--_demo-gutter-start)) calc(0.25rem + var(--_demo-gutter-end));
     margin-block: calc(-1 * var(--_demo-gutter-top)) calc(-1 * var(--_demo-gutter-bottom));
     margin-inline: calc(-1 * var(--_demo-gutter-start)) calc(-1 * var(--_demo-gutter-end));
-    max-block-size: calc(var(--a11y-toast-max-height, 45vh) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom));
-    max-block-size: calc(var(--a11y-toast-max-height, 45dvh) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom));
+    max-block-size: min(calc(var(--a11y-toast-max-height, calc(100vh - 2 * var(--_demo-edge))) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom)), 100vh);
+    max-block-size: min(calc(var(--a11y-toast-max-height, calc(100dvh - 2 * var(--_demo-edge))) + var(--_demo-gutter-top) + var(--_demo-gutter-bottom)), 100dvh);
   }
   [data-demo-effect^='slide-'] {
     --_demo-effect-distance: 32px;
@@ -409,6 +409,38 @@
   [data-demo-effect='bounce'] .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-entering {
     animation-name: toast-demo-effect-bounce;
   }
+  /* Both snapshots use the resting box. Animate a single snapshot so slides
+     do not inherit the platform crossfade or its geometry interpolation. */
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast[data-a11y-toast-view-transition-state='offset'] {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast::view-transition-group(root) {
+    animation: none;
+    overflow: visible;
+  }
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast::view-transition-image-pair(root) {
+    isolation: auto;
+    overflow: visible;
+  }
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-old(root),
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast[data-a11y-toast-view-transition-phase='exit']::view-transition-new(root) {
+    animation: none;
+    opacity: 0;
+  }
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-new(root) {
+    animation: toast-demo-effect-enter var(--a11y-toast-enter-duration) ease-out both;
+    mix-blend-mode: normal;
+  }
+  [data-demo-effect]:where(:not([data-demo-effect='default'])) .a11y-toast[data-a11y-toast-view-transition-phase='exit']::view-transition-old(root) {
+    animation: toast-demo-effect-exit var(--a11y-toast-exit-duration) ease-in both;
+    mix-blend-mode: normal;
+  }
+  [data-demo-effect='bounce'] .a11y-toast[data-a11y-toast-view-transition-phase='enter']::view-transition-new(root) {
+    animation-name: toast-demo-effect-bounce;
+  }
+
 }
 @keyframes toast-demo-effect-enter {
   from { opacity: var(--_demo-effect-opacity); translate: var(--_demo-effect-x) var(--_demo-effect-y); scale: var(--_demo-effect-scale); }
@@ -423,3 +455,34 @@
   70% { opacity: 1; translate: 0 -3px; }
   100% { opacity: 1; translate: 0 0; }
 }
+
+/* Reference-inspired skins; local hosts keep these examples in the page flow. */
+.toast-demo__classic { margin-block-end: 1.5rem; }
+.toast-demo__classic > .toast-demo__hint { margin-block-start: 1.25rem; }
+.toast-demo__classic pre { overflow-x: auto; max-inline-size: 100%; padding: 1rem; background: var(--demo-paper); }
+.toast-demo-classic { margin-block-start: 1rem; --a11y-toast-max-height: 24rem; --a11y-toast-radius: 1rem; --a11y-toast-icon-size: 2.5rem; --a11y-toast-icon-glyph-size: 1.5rem; }
+.toast-demo-classic .a11y-toast-region__viewport { position: static; inline-size: 100%; max-inline-size: 100%; margin: 0; }
+.toast-demo-classic .a11y-toast { align-items: center; border-inline-start: 1px solid var(--a11y-toast-border); padding: 1rem; gap: 0.5rem; }
+.toast-demo-classic .a11y-toast__message, .toast-demo-classic .a11y-toast__title { margin-block-start: 0; }
+.toast-demo-classic .a11y-toast__title + .a11y-toast__message { margin-block-start: 0.4rem; }
+.toast-demo-classic .a11y-toast__title[hidden] + .a11y-toast__message { margin-block-start: 0; }
+.toast-demo-classic--light { --a11y-toast-background: #fff; --a11y-toast-color: #222; --a11y-toast-border: #d4d4d4; --a11y-toast-icon-background: #008557; --a11y-toast-icon-color: #fff; --a11y-toast-shadow: 0 0.2rem 0.6rem #0002; }
+.toast-demo-classic--light .a11y-toast__message { font-size: 1.125rem; font-weight: 650; }
+.toast-demo-classic--light .a11y-toast__action { color: #565656; border-radius: 0.65rem; }
+.toast-demo-classic--dark { --a11y-toast-background: #222321; --a11y-toast-color: #f5f5f5; --a11y-toast-muted: #b4b4b4; --a11y-toast-border: #46483e; --a11y-toast-icon-background: #472a27; --a11y-toast-icon-color: #ff6152; --a11y-toast-hover-background: #383b3e; --a11y-toast-focus: #89d9ff; --a11y-toast-shadow: 0 0.3rem 0.8rem #0002; --a11y-toast-icon-size: 3rem; }
+.toast-demo-classic--dark .a11y-toast { align-items: flex-start; }
+.toast-demo-classic--dark .a11y-toast__message { color: var(--a11y-toast-muted); }
+.toast-demo-classic--dark .a11y-toast__dismiss { background: #20252b; border-color: #3c4248; border-radius: 0.7rem; }
+@media (forced-colors: active) {
+  .toast-demo-classic .a11y-toast { border-color: CanvasText; }
+  .toast-demo-classic .a11y-toast__icon { background: Canvas; color: CanvasText; }
+  .toast-demo-classic .a11y-toast__action, .toast-demo-classic .a11y-toast__dismiss { background: ButtonFace; color: ButtonText; border-color: ButtonText; }
+  .toast-demo-classic--dark .a11y-toast__message { color: CanvasText; }
+}
+
+/* In-page opt-in swipe example. The add-on owns active drag styles. */
+.toast-demo__swipe { margin-block-end: 1.5rem; }
+.toast-demo__swipe > .toast-demo__button { margin-block-end: 0.75rem; }
+.toast-demo-swipe { --a11y-toast-max-height: 25rem; }
+.toast-demo-swipe .a11y-toast-region__viewport { position: static; inline-size: 100%; max-inline-size: 100%; margin: 0; }
+.toast-demo-swipe .a11y-toast-region__list { max-block-size: 25rem; }

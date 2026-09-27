@@ -34,7 +34,7 @@ declare const docs: {
   }, {
     readonly name: "show(input)";
     readonly type: "(ToastInput) => string | null";
-    readonly description: "Display or enqueue a toast. null means the bounded queue rejected it.";
+    readonly description: "Display or enqueue a toast. Optional icon accepts a trusted passive HTML/SVG element, cloned on ingestion; HTML strings are rejected. actionLayout selects stacked (default) or inline placement. null means the bounded queue rejected it.";
   }, {
     readonly name: "info / success / warning / error / loading";
     readonly type: "(string, ToastShorthandOptions?) => string | null";
@@ -58,7 +58,7 @@ declare const docs: {
   }, {
     readonly name: "getToast(id) / getToasts()";
     readonly type: "Readonly snapshot accessors";
-    readonly description: "Inspect state without receiving callbacks, origin nodes or mutable collections.";
+    readonly description: "Inspect state and actionLayout without receiving callbacks, origin/icon nodes or mutable collections. History also excludes icon DOM.";
   }, {
     readonly name: "registerAddon / unregisterAddon / getAddon / getAddons";
     readonly type: "ToastAddon lifecycle";
@@ -72,9 +72,92 @@ declare const docs: {
     readonly type: "Typed DOM-event helper returning cleanup";
     readonly description: "Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.";
   }];
+  readonly eventContract: {
+    readonly target: "The instance root";
+    readonly options: {
+      readonly bubbles: true;
+      readonly composed: false;
+      readonly cancelable: false;
+    };
+    readonly baseDetail: readonly ["instance", "root", "instanceId", "timestamp", "visibleCount", "queuedCount"];
+    readonly events: readonly [{
+      readonly name: "a11y-toast:init";
+      readonly trigger: "Core DOM is installed and the instance is registered, before configured add-ons are set up.";
+      readonly detail: readonly [];
+    }, {
+      readonly name: "a11y-toast:ready";
+      readonly trigger: "Configured add-on setup has finished; omitted if initialization is destroyed re-entrantly.";
+      readonly detail: readonly [];
+    }, {
+      readonly name: "a11y-toast:show";
+      readonly trigger: "A toast is committed to the visible list.";
+      readonly detail: readonly ["toast"];
+    }, {
+      readonly name: "a11y-toast:queue";
+      readonly trigger: "A toast is added to the bounded queue.";
+      readonly detail: readonly ["toast"];
+    }, {
+      readonly name: "a11y-toast:update";
+      readonly trigger: "An existing visible or queued toast is updated, including updates with no effective public change.";
+      readonly detail: readonly ["toast"];
+    }, {
+      readonly name: "a11y-toast:announce";
+      readonly trigger: "The selected announcement transport commits an attempt; this is not speech-delivery confirmation.";
+      readonly detail: readonly ["toast", "message", "priority", "transport", "fallback"];
+    }, {
+      readonly name: "a11y-toast:announcement-error";
+      readonly trigger: "The selected announcement transport throws synchronously.";
+      readonly detail: readonly ["toast", "message", "priority", "transport", "error"];
+    }, {
+      readonly name: "a11y-toast:action";
+      readonly trigger: "An action is invoked after pending state is set and before its callback runs.";
+      readonly detail: readonly ["toast"];
+    }, {
+      readonly name: "a11y-toast:action-error";
+      readonly trigger: "An action callback throws or its returned promise rejects.";
+      readonly detail: readonly ["toast", "error"];
+    }, {
+      readonly name: "a11y-toast:pause";
+      readonly trigger: "A toast transitions from running to paused.";
+      readonly detail: readonly ["toast", "reason"];
+    }, {
+      readonly name: "a11y-toast:resume";
+      readonly trigger: "A toast transitions from paused to running.";
+      readonly detail: readonly ["toast", "reason"];
+    }, {
+      readonly name: "a11y-toast:dismiss";
+      readonly trigger: "A toast is logically removed, before any exit animation finishes.";
+      readonly detail: readonly ["toast", "reason"];
+    }, {
+      readonly name: "a11y-toast:drop";
+      readonly trigger: "A show request is rejected because the queue is full or a clear operation is in progress.";
+      readonly detail: readonly ["toast", "reason"];
+    }, {
+      readonly name: "a11y-toast:animation-start";
+      readonly trigger: "An enter or exit animation starts.";
+      readonly detail: readonly ["toast", "phase", "driver"];
+    }, {
+      readonly name: "a11y-toast:animation-end";
+      readonly trigger: "An enter or exit animation completes, is cancelled, or fails.";
+      readonly detail: readonly ["toast", "phase", "driver", "status"];
+    }, {
+      readonly name: "a11y-toast:animation-error";
+      readonly trigger: "An animation driver throws or rejects; animation-end with failed status follows unless a listener destroys the instance.";
+      readonly detail: readonly ["toast", "phase", "driver", "error"];
+    }, {
+      readonly name: "a11y-toast:addon-error";
+      readonly trigger: "An add-on setup, observer, hook, or cleanup operation fails while the instance is active.";
+      readonly detail: readonly ["addon", "phase", "error"];
+    }, {
+      readonly name: "a11y-toast:destroy";
+      readonly trigger: "Core teardown has cleared generated DOM and state; active animation cancellations are emitted first.";
+      readonly detail: readonly [];
+    }];
+    readonly sequencing: readonly ["show emits before animation-start; an announcement commit may happen later or not at all.", "queue emits when enqueued; show emits only when the item is promoted.", "dismissAll emits one dismiss event per removed toast and no aggregate completion event.", "pause and resume emit only when the effective running/paused boundary changes.", "action has no success event; completion is reflected by update or dismissal. Dismissal cancels pending work.", "destroy is terminal: teardown cleanup errors are isolated but do not emit events after it."];
+  };
   readonly examples: readonly [{
     readonly name: "Playground";
-    readonly description: "One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, FIFO queue and a non-live event log.";
+    readonly description: "One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, a five-notification swipe-dismiss stack, FIFO queue and a non-live event log.";
     readonly path: "examples/basic";
   }];
   readonly addons: readonly [{
@@ -85,6 +168,11 @@ declare const docs: {
     readonly name: "In-memory history";
     readonly export: "a11y-toast/addons/history";
     readonly description: "Bounded immutable show/update/dismiss entries with read/clear access and lifecycle cleanup. No persistence, announcement replay or action replay; no backfill.";
+  }, {
+    readonly name: "Swipe dismissal";
+    readonly export: "a11y-toast/addons/swipe-dismiss";
+    readonly stylesheet: "a11y-toast/addons/swipe-dismiss.css";
+    readonly description: "Opt-in per-instance horizontal pointer drag to dismiss visible, dismissible notifications. Retains the native close button; use with none or built-in CSS animation.";
   }, {
     readonly name: "Progress";
     readonly export: "a11y-toast/addons/progress";
@@ -148,6 +236,7 @@ declare const docs: {
     readonly focusOnShow: false;
     readonly priorityDefault: "polite";
     readonly announcementTransport: "Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.";
+    readonly icon: "Decorative icons are cloned into an inert, aria-hidden wrapper. Only passive icon-font and SVG markup is accepted; active elements, handlers, inline styles, IDs and URL references are rejected. Icons never change announcements.";
     readonly toneLabel: "Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.";
     readonly motion: "CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after entrance settles.";
     readonly limitations: "An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.";

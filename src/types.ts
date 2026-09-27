@@ -1,12 +1,13 @@
 import type { ToastEventMap, ToastEventName, ToastCustomEvent } from './events.js';
 
 export type ToastId = string;
+export type ToastActionLayout = 'stacked' | 'inline';
 export type ToastTone = 'neutral' | 'info' | 'success' | 'warning' | 'error' | 'loading';
 export type ToastPriority = 'off' | 'polite' | 'assertive';
 export type ToastPosition = 'top-start' | 'top-center' | 'top-end' | 'bottom-start' | 'bottom-center' | 'bottom-end';
 export type ToastState = 'queued' | 'visible' | 'dismissed' | 'dropped';
-export type ToastPauseReason = 'hover' | 'focus' | 'document-hidden' | 'api' | 'action';
-export type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' | 'clear';
+export type ToastPauseReason = 'hover' | 'focus' | 'document-hidden' | 'api' | 'action' | 'gesture';
+export type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' | 'clear' | 'swipe';
 export type ToastAnimationPhase = 'enter' | 'exit';
 export type ToastAnimationStatus = 'completed' | 'cancelled' | 'failed';
 export type ToastAnimationMode = 'css' | 'none';
@@ -68,6 +69,10 @@ export interface ToastInput {
   persistent?: boolean;
   dismissible?: boolean;
   action?: ToastAction | null;
+  /** Trusted decorative HTML/SVG element; copied on ingestion. HTML strings are rejected. */
+  icon?: HTMLElement | SVGElement | null;
+  /** Visual action placement. Defaults to stacked. */
+  actionLayout?: ToastActionLayout;
   origin?: HTMLElement | null;
   /** Opaque caller correlation key. No implicit deduplication. */
   key?: string | null;
@@ -123,6 +128,7 @@ export interface ToastSnapshot {
   readonly remaining: number | null;
   readonly pauseReasons: readonly ToastPauseReason[];
   readonly action: Readonly<{ label: string; dismissOnSuccess: boolean }> | null;
+  readonly actionLayout: ToastActionLayout;
   readonly actionPending: boolean;
   readonly actionError: string | null;
 }
@@ -157,6 +163,8 @@ export interface ToastAddonContext {
   readonly instance: ToastInstance;
   readonly root: HTMLElement;
   readonly signal: AbortSignal;
+  /** Hold a visible toast's timer independently of the caller's API pause. Release is idempotent. */
+  holdTimer(id: ToastId): ToastCleanup;
   /** Subscriptions are automatically removed on unregister/destroy; exceptions are isolated. */
   on<K extends ToastEventName>(type: K, listener: (event: ToastCustomEvent<K>) => void): ToastCleanup;
 }

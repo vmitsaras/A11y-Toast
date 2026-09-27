@@ -1,6 +1,6 @@
 import './history-consumer.js';
 import { createToast, addToastEventListener, TOAST_EVENTS } from 'a11y-toast';
-import type { ToastInput, ToastAddon, ToastAnimationDriver } from 'a11y-toast';
+import type { ToastInput, ToastAddon, ToastAnimationDriver, ToastEventMap, ToastEventName } from 'a11y-toast';
 import { docs } from 'a11y-toast/docs';
 import { createProgressAddon } from 'a11y-toast/addons/progress';
 import { trackToastPromise } from 'a11y-toast/addons/promise';
@@ -16,6 +16,10 @@ import type { ToastDiagnostic } from 'a11y-toast/addons/diagnostics';
 import { gsap } from 'gsap';
 import Flip from 'gsap/Flip';
 declare const root: HTMLElement;
+type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
+type Assert<T extends true> = T;
+export type ToastEventNamesMatchConstants = Assert<Equal<ToastEventName, (typeof TOAST_EVENTS)[keyof typeof TOAST_EVENTS]>>;
+export type ToastEventMapKeysMatchNames = Assert<Equal<keyof ToastEventMap, ToastEventName>>;
 const logger: ToastAddon = {
   name: 'consumer-test',
   setup(context) {
@@ -74,3 +78,16 @@ void docs;
 
 const experimentalViewTransition = createElementViewTransitionDriver();
 void experimentalViewTransition;
+
+// Decorative icon and action layout declarations.
+const fontIcon: HTMLElement = document.createElement('i');
+const vectorIcon: SVGElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+toast.show({ message: 'Saved', icon: fontIcon, actionLayout: 'inline' });
+toast.show({ message: 'Saved', icon: vectorIcon, actionLayout: 'stacked' });
+if (id !== null) toast.update(id, { icon: null, actionLayout: 'inline' });
+// @ts-expect-error HTML strings are not accepted as icons.
+toast.show({ message: 'Saved', icon: '<svg></svg>' });
+// @ts-expect-error The action layout vocabulary is bounded.
+toast.show({ message: 'Saved', actionLayout: 'floating' });
+// @ts-expect-error Snapshots never expose icon DOM.
+toast.getToast('id')?.icon;

@@ -1,4 +1,4 @@
-import { C as ToastInstance, S as ToastInput, x as ToastId } from "../types-CViYp0UD.js";
+import { C as ToastInput, S as ToastId, w as ToastInstance } from "../types-MxcqocoB.js";
 
 //#region src/addons/promise.d.ts
 type ToastPromiseLoadingState = string | Omit<ToastInput, 'tone' | 'persistent' | 'duration'>;

@@ -31,59 +31,59 @@ interface ToastItemEventDetail extends ToastEventDetail {
   readonly toast: ToastSnapshot;
 }
 interface ToastEventMap {
-  'a11y-toast:init': ToastEventDetail;
-  'a11y-toast:ready': ToastEventDetail;
-  'a11y-toast:show': ToastItemEventDetail;
-  'a11y-toast:queue': ToastItemEventDetail;
-  'a11y-toast:update': ToastItemEventDetail;
-  'a11y-toast:announce': ToastItemEventDetail & {
+  [TOAST_EVENTS.init]: ToastEventDetail;
+  [TOAST_EVENTS.ready]: ToastEventDetail;
+  [TOAST_EVENTS.show]: ToastItemEventDetail;
+  [TOAST_EVENTS.queue]: ToastItemEventDetail;
+  [TOAST_EVENTS.update]: ToastItemEventDetail;
+  [TOAST_EVENTS.announce]: ToastItemEventDetail & {
     readonly message: string;
     readonly priority: Exclude<ToastPriority, 'off'>;
     readonly transport: string;
     readonly fallback: boolean;
   };
-  'a11y-toast:announcement-error': ToastItemEventDetail & {
+  [TOAST_EVENTS.announcementError]: ToastItemEventDetail & {
     readonly message: string;
     readonly priority: Exclude<ToastPriority, 'off'>;
     readonly transport: string;
     readonly error: unknown;
   };
-  'a11y-toast:action': ToastItemEventDetail;
-  'a11y-toast:action-error': ToastItemEventDetail & {
+  [TOAST_EVENTS.action]: ToastItemEventDetail;
+  [TOAST_EVENTS.actionError]: ToastItemEventDetail & {
     readonly error: unknown;
   };
-  'a11y-toast:pause': ToastItemEventDetail & {
+  [TOAST_EVENTS.pause]: ToastItemEventDetail & {
     readonly reason: ToastPauseReason;
   };
-  'a11y-toast:resume': ToastItemEventDetail & {
+  [TOAST_EVENTS.resume]: ToastItemEventDetail & {
     readonly reason: ToastPauseReason;
   };
-  'a11y-toast:dismiss': ToastItemEventDetail & {
+  [TOAST_EVENTS.dismiss]: ToastItemEventDetail & {
     readonly reason: ToastDismissReason;
   };
-  'a11y-toast:drop': ToastItemEventDetail & {
+  [TOAST_EVENTS.drop]: ToastItemEventDetail & {
     readonly reason: 'queue-full' | 'clearing';
   };
-  'a11y-toast:animation-start': ToastItemEventDetail & {
+  [TOAST_EVENTS.animationStart]: ToastItemEventDetail & {
     readonly phase: ToastAnimationPhase;
     readonly driver: string;
   };
-  'a11y-toast:animation-end': ToastItemEventDetail & {
+  [TOAST_EVENTS.animationEnd]: ToastItemEventDetail & {
     readonly phase: ToastAnimationPhase;
     readonly driver: string;
     readonly status: ToastAnimationStatus;
   };
-  'a11y-toast:animation-error': ToastItemEventDetail & {
+  [TOAST_EVENTS.animationError]: ToastItemEventDetail & {
     readonly phase: ToastAnimationPhase;
     readonly driver: string;
     readonly error: unknown;
   };
-  'a11y-toast:addon-error': ToastEventDetail & {
+  [TOAST_EVENTS.addonError]: ToastEventDetail & {
     readonly addon: string;
     readonly phase: string;
     readonly error: unknown;
   };
-  'a11y-toast:destroy': ToastEventDetail;
+  [TOAST_EVENTS.destroy]: ToastEventDetail;
 }
 type ToastEventName = keyof ToastEventMap;
 type ToastCustomEvent<K extends ToastEventName = ToastEventName> = CustomEvent<ToastEventMap[K]>;
@@ -92,12 +92,13 @@ declare function addToastEventListener<K extends ToastEventName>(target: EventTa
 //#endregion
 //#region src/types.d.ts
 type ToastId = string;
+type ToastActionLayout = 'stacked' | 'inline';
 type ToastTone = 'neutral' | 'info' | 'success' | 'warning' | 'error' | 'loading';
 type ToastPriority = 'off' | 'polite' | 'assertive';
 type ToastPosition = 'top-start' | 'top-center' | 'top-end' | 'bottom-start' | 'bottom-center' | 'bottom-end';
 type ToastState = 'queued' | 'visible' | 'dismissed' | 'dropped';
-type ToastPauseReason = 'hover' | 'focus' | 'document-hidden' | 'api' | 'action';
-type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' | 'clear';
+type ToastPauseReason = 'hover' | 'focus' | 'document-hidden' | 'api' | 'action' | 'gesture';
+type ToastDismissReason = 'api' | 'timeout' | 'close-button' | 'action' | 'clear' | 'swipe';
 type ToastAnimationPhase = 'enter' | 'exit';
 type ToastAnimationStatus = 'completed' | 'cancelled' | 'failed';
 type ToastAnimationMode = 'css' | 'none';
@@ -156,6 +157,10 @@ interface ToastInput {
   persistent?: boolean;
   dismissible?: boolean;
   action?: ToastAction | null;
+  /** Trusted decorative HTML/SVG element; copied on ingestion. HTML strings are rejected. */
+  icon?: HTMLElement | SVGElement | null;
+  /** Visual action placement. Defaults to stacked. */
+  actionLayout?: ToastActionLayout;
   origin?: HTMLElement | null;
   /** Opaque caller correlation key. No implicit deduplication. */
   key?: string | null;
@@ -216,6 +221,7 @@ interface ToastSnapshot {
     label: string;
     dismissOnSuccess: boolean;
   }> | null;
+  readonly actionLayout: ToastActionLayout;
   readonly actionPending: boolean;
   readonly actionError: string | null;
 }
@@ -250,6 +256,8 @@ interface ToastAddonContext {
   readonly instance: ToastInstance;
   readonly root: HTMLElement;
   readonly signal: AbortSignal;
+  /** Hold a visible toast's timer independently of the caller's API pause. Release is idempotent. */
+  holdTimer(id: ToastId): ToastCleanup;
   /** Subscriptions are automatically removed on unregister/destroy; exceptions are isolated. */
   on<K extends ToastEventName>(type: K, listener: (event: ToastCustomEvent<K>) => void): ToastCleanup;
 }
@@ -268,5 +276,5 @@ interface ToastAddon {
 }
 type ToastEventListener<K extends ToastEventName> = (event: CustomEvent<ToastEventMap[K]>) => void;
 //#endregion
-export { ToastShorthandOptions as A, addToastEventListener as B, ToastInstance as C, ToastPauseReason as D, ToastPatch as E, ToastCustomEvent as F, ToastEventDetail as I, ToastEventMap as L, ToastState as M, ToastTone as N, ToastPosition as O, TOAST_EVENTS as P, ToastEventName as R, ToastInput as S, ToastOptions as T, ToastAnnouncementTransportResult as _, ToastAddonContext as a, ToastEventListener as b, ToastAnimationDriver as c, ToastAnimationPhase as d, ToastAnimationStatus as f, ToastAnnouncementTransportOption as g, ToastAnnouncementTransportContext as h, ToastAddon as i, ToastSnapshot as j, ToastPriority as k, ToastAnimationMode as l, ToastAnnouncementTransport as m, ToastAction as n, ToastAddonHookContext as o, ToastAnnouncementPriority as p, ToastActionContext as r, ToastAnimationContext as s, ResolvedToastOptions as t, ToastAnimationOption as u, ToastCleanup as v, ToastLabels as w, ToastId as x, ToastDismissReason as y, ToastItemEventDetail as z };
-//# sourceMappingURL=types-CViYp0UD.d.ts.map
+export { ToastPriority as A, ToastItemEventDetail as B, ToastInput as C, ToastPatch as D, ToastOptions as E, TOAST_EVENTS as F, ToastCustomEvent as I, ToastEventDetail as L, ToastSnapshot as M, ToastState as N, ToastPauseReason as O, ToastTone as P, ToastEventMap as R, ToastId as S, ToastLabels as T, addToastEventListener as V, ToastAnnouncementTransportOption as _, ToastAddon as a, ToastDismissReason as b, ToastAnimationContext as c, ToastAnimationOption as d, ToastAnimationPhase as f, ToastAnnouncementTransportContext as g, ToastAnnouncementTransport as h, ToastActionLayout as i, ToastShorthandOptions as j, ToastPosition as k, ToastAnimationDriver as l, ToastAnnouncementPriority as m, ToastAction as n, ToastAddonContext as o, ToastAnimationStatus as p, ToastActionContext as r, ToastAddonHookContext as s, ResolvedToastOptions as t, ToastAnimationMode as u, ToastAnnouncementTransportResult as v, ToastInstance as w, ToastEventListener as x, ToastCleanup as y, ToastEventName as z };
+//# sourceMappingURL=types-MxcqocoB.d.ts.map

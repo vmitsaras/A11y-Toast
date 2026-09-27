@@ -71,6 +71,35 @@ export async function runSuite(api, capabilities = { layout: true }) {
     fixture.addEventListener(api.TOAST_EVENTS.ready, () => order.push('ready'));
     const m = create({}, root); equal(reused === m, true); equal(order, ['init', 'ready']);
   });
+  await test('03a lifecycle details dispatch from the root with frozen snapshots', () => {
+    const m = create(), seen = [];
+    m.root.addEventListener(api.TOAST_EVENTS.show, event => seen.push(['root', event]));
+    fixture.addEventListener(api.TOAST_EVENTS.show, event => seen.push(['parent', event]));
+    const id = m.show({ message: 'Saved', persistent: true });
+    equal(seen.map(([where]) => where), ['root', 'parent']);
+    const [rootEvent, parentEvent] = seen.map(([, event]) => event);
+    ok(rootEvent.target === m.root && parentEvent.target === m.root);
+    ok(rootEvent.bubbles && !rootEvent.composed && !rootEvent.cancelable);
+    ok(Object.isFrozen(rootEvent.detail) && Object.isFrozen(rootEvent.detail.toast));
+    ok(rootEvent.detail.instance === m && rootEvent.detail.root === m.root);
+    equal(rootEvent.detail.toast.id, id); equal(rootEvent.detail.toast.state, 'visible');
+    equal(rootEvent.detail.visibleCount, 1); equal(rootEvent.detail.queuedCount, 0);
+  });
+  await test('03b show, animation cancellation and destroy ordering is explicit', () => {
+    const order = [];
+    const m = create({ animation: { name: 'pending', enter: () => new Promise(() => {}) } });
+    m.root.addEventListener(api.TOAST_EVENTS.show, () => order.push('show'));
+    m.root.addEventListener(api.TOAST_EVENTS.animationStart, event => order.push(`animation-start:${event.detail.phase}`));
+    m.root.addEventListener(api.TOAST_EVENTS.animationEnd, event => order.push(`animation-end:${event.detail.status}`));
+    m.root.addEventListener(api.TOAST_EVENTS.destroy, event => {
+      order.push('destroy');
+      equal(event.detail.visibleCount, 0); equal(event.detail.queuedCount, 0);
+      ok(m.isDestroyed && !m.root.querySelector('.a11y-toast-region__viewport'));
+    });
+    m.show({ message: 'Saved', persistent: true });
+    m.destroy();
+    equal(order, ['show', 'animation-start:enter', 'animation-end:cancelled', 'destroy']);
+  });
   await test('04 authored DOM, styles and existing classes survive destroy', () => {
     const root = host(); root.className = 'author a11y-toast-region'; root.setAttribute('style', 'color: purple');
     const p = document.createElement('p'); p.textContent = 'Server-rendered status'; root.append(p);
@@ -123,8 +152,8 @@ export async function runSuite(api, capabilities = { layout: true }) {
   await test('18 maxQueue zero supports no waiting queue', () => { const m=create({maxVisible:1,maxQueue:0});m.show({message:'A'});equal(m.show({message:'B'}),null);equal(m.queuedCount,0); });
   await test('19 dismissAll never briefly shows or announces queued items', () => {
     const c=fakeClock(),m=create({maxVisible:1});m.show({message:'A'});m.show({message:'B'});m.show({message:'C'});
-    const shows=events(m,api.TOAST_EVENTS.show),announces=events(m,api.TOAST_EVENTS.announce);
-    equal(m.dismissAll(),3);c.tick(10000);equal(shows.length,0);equal(announces.length,0);equal(m.getToasts().length,0);
+    const shows=events(m,api.TOAST_EVENTS.show),announces=events(m,api.TOAST_EVENTS.announce),dismisses=events(m,api.TOAST_EVENTS.dismiss);
+    equal(m.dismissAll(),3);c.tick(10000);equal(shows.length,0);equal(announces.length,0);equal(dismisses.length,3);equal(m.getToasts().length,0);
   });
   await test('20 re-entrant additions during clear are explicitly dropped', () => {
     const m=create({maxVisible:1});m.show({message:'A'});m.show({message:'B'}); const returned=[];
@@ -185,6 +214,19 @@ export async function runSuite(api, capabilities = { layout: true }) {
   await test('50 setup failure automatically removes add-on subscriptions', () => {const m=create();let called=0;const errs=events(m,api.TOAST_EVENTS.addonError);m.registerAddon({name:'bad',setup(ctx){ctx.on(api.TOAST_EVENTS.show,()=>called++);throw new Error('Setup');}});m.show({message:'A'});equal(called,0);equal(m.getAddon('bad'),undefined);equal(errs.length,1);});
   await test('51 observer-hook failure does not prevent display', () => {const m=create();const errs=events(m,api.TOAST_EVENTS.addonError);m.registerAddon({name:'bad',beforeShow(){throw new Error('Hook');}});const id=m.show({message:'A'});ok(item(m,id));equal(errs[0].phase,'beforeShow');});
   await test('52 add-on cleanup runs in reverse order despite errors', () => {const m=create();const order=[];m.registerAddon({name:'first',setup(){return()=>order.push('first');}});m.registerAddon({name:'second',setup(){return()=>{order.push('second');throw new Error('Cleanup');};}});m.destroy();equal(order,['second','first']);});
+  await test('52a destroy is terminal even when add-on cleanup throws', () => {
+    const m = create(), order = []; let cleanup = 0;
+    m.root.addEventListener(api.TOAST_EVENTS.addonError, () => order.push('addon-error'));
+    m.root.addEventListener(api.TOAST_EVENTS.destroy, () => order.push('destroy'));
+    m.registerAddon({ name: 'bad-cleanup', setup: () => () => { cleanup++; throw new Error('Cleanup'); } });
+    m.destroy();
+    equal(order, ['destroy']); equal(cleanup, 1);
+
+    const active = create(), activeErrors = events(active, api.TOAST_EVENTS.addonError);
+    active.registerAddon({ name: 'active-cleanup', setup: () => () => { throw new Error('Cleanup'); } });
+    active.unregisterAddon('active-cleanup');
+    equal(activeErrors.length, 1); equal(activeErrors[0].phase, 'cleanup');
+  });
   await test('53 unregistering another add-on does not skip remaining hooks', () => {const m=create();const order=[];m.registerAddon({name:'a',beforeShow(){m.unregisterAddon('b');order.push('a');}});m.registerAddon({name:'b',beforeShow(){order.push('b');}});m.registerAddon({name:'c',beforeShow(){order.push('c');}});m.show({message:'A'});equal(order,['a','c']);});
   await test('54 self-unregister during setup still runs returned cleanup once', () => {const m=create();let cleanup=0;m.registerAddon({name:'a',setup(){m.unregisterAddon('a');return()=>cleanup++;}});m.destroy();equal(cleanup,1);});
   await test('55 typed event helper returns a working disposer', () => {const m=create();let n=0;const off=api.addToastEventListener(m.root,api.TOAST_EVENTS.show,()=>n++);m.show({message:'A'});off();m.show({message:'B'});equal(n,1);});
@@ -1872,32 +1914,291 @@ export async function runSuite(api, capabilities = { layout: true }) {
     style.rel = 'stylesheet'; style.href = '/examples/basic/demo.css';
     const loaded = new Promise((resolve, reject) => { style.onload = resolve; style.onerror = reject; });
     fixture.append(style); await loaded;
-    for (const position of ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end']) {
-      const root = host();
-      const m = create({ position }, root);
-      root.querySelector('section').dataset.a11yToastAnimation = 'css';
-      root.dataset.demoEffect = 'default';
-      const id = m.show({ message: 'Motion clipping regression', persistent: true });
-      const toast = item(m, id), list = toast.parentElement;
-      for (const animation of toast.getAnimations()) animation.finish();
-      await waitMicrotasks();
-      const before = toast.getBoundingClientRect();
-      root.dataset.demoEffect = 'slide-left';
-      const after = toast.getBoundingClientRect(), clip = list.getBoundingClientRect();
-      ok(Math.abs(before.x - after.x) < 1 && Math.abs(before.y - after.y) < 1, `Gutters must preserve toast position: ${position} ${JSON.stringify(before)} ${JSON.stringify(after)}`);
-      ok(Math.abs(before.width - after.width) < 1, 'Gutters must preserve toast width');
-      ok(clip.left >= -1 && clip.right <= innerWidth + 1, 'Scrollport stays within browser width');
-      ok(clip.top >= -1 && clip.bottom <= innerHeight + 1, 'Scrollport stays within browser height');
-      ok(after.left - clip.left >= Math.min(32, after.left) - 1, 'Left motion reaches its full distance or window edge');
-      ok(clip.right - after.right >= Math.min(32, innerWidth - after.right) - 1, 'Right motion reaches its full distance or window edge');
-      ok(after.top - clip.top >= Math.min(32, after.top) - 1, 'Top motion reaches its full distance or window edge');
-      ok(clip.bottom - after.bottom >= Math.min(32, innerHeight - after.bottom) - 1, 'Bottom motion reaches its full distance or window edge');
-      m.update(id, { message: 'Long scrolling notification. '.repeat(300) });
-      list.scrollTop = list.scrollHeight;
-      ok(list.scrollTop > 0, 'Long content remains scrollable');
-      ok(list.clientHeight < list.scrollHeight, 'Content height stays bounded');
-      m.destroy();
+    for (const engine of ['css', 'custom']) {
+      for (const position of ['top-start', 'top-center', 'top-end', 'bottom-start', 'bottom-center', 'bottom-end']) {
+        const root = host();
+        const m = create({ position }, root);
+        root.querySelector('section').dataset.a11yToastAnimation = engine;
+        root.dataset.demoEffect = 'default';
+        const id = m.show({ message: 'Motion clipping regression', persistent: true });
+        const toast = item(m, id), list = toast.parentElement;
+        for (const animation of toast.getAnimations()) animation.finish();
+        await waitMicrotasks();
+        const before = toast.getBoundingClientRect();
+        root.dataset.demoEffect = 'slide-left';
+        const after = toast.getBoundingClientRect(), clip = list.getBoundingClientRect();
+        ok(Math.abs(before.x - after.x) < 1 && Math.abs(before.y - after.y) < 1, `Gutters must preserve toast position: ${position} ${JSON.stringify(before)} ${JSON.stringify(after)}`);
+        ok(Math.abs(before.width - after.width) < 1, 'Gutters must preserve toast width');
+        ok(clip.left >= -1 && clip.right <= innerWidth + 1, 'Scrollport stays within browser width');
+        ok(clip.top >= -1 && clip.bottom <= innerHeight + 1, 'Scrollport stays within browser height');
+        ok(after.left - clip.left >= Math.min(32, after.left) - 1, 'Left motion reaches its full distance or window edge');
+        ok(clip.right - after.right >= Math.min(32, innerWidth - after.right) - 1, 'Right motion reaches its full distance or window edge');
+        ok(after.top - clip.top >= Math.min(32, after.top) - 1, 'Top motion reaches its full distance or window edge');
+        ok(clip.bottom - after.bottom >= Math.min(32, innerHeight - after.bottom) - 1, 'Bottom motion reaches its full distance or window edge');
+        m.update(id, { message: 'Long scrolling notification. '.repeat(300) });
+        list.scrollTop = list.scrollHeight;
+        ok(list.scrollTop > 0, 'Long content remains scrollable');
+        ok(list.clientHeight < list.scrollHeight, 'Content height stays bounded');
+        m.destroy();
+      }
     }
+  }, true);
+  await test('167 decorative icons are cloned and omitted from snapshots and history', () => {
+    const m = create(), history = api.createHistoryController(m);
+    const icon = document.createElement('i'); icon.className = 'icon-check'; icon.textContent = 'check';
+    fixture.append(icon);
+    const id = m.show({ message: 'Saved', icon, persistent: true, actionLayout: 'inline', action: { label: 'Undo' } });
+    const toast = item(m, id), wrapper = toast.querySelector('.a11y-toast__icon');
+    ok(wrapper.firstElementChild !== icon && icon.parentElement === fixture, 'Caller node is not moved');
+    equal(wrapper.getAttribute('aria-hidden'), 'true'); ok(wrapper.inert);
+    ok(toast.classList.contains('a11y-toast--inline-action'));
+    icon.textContent = 'Caller mutation'; equal(wrapper.textContent, 'check');
+    ok(!('icon' in m.getToast(id))); ok(!JSON.stringify(history.getEntries()).includes('icon-check'));
+    equal(m.getToast(id).actionLayout, 'inline');
+    const clone = wrapper.firstElementChild, action = toast.querySelector('button[data-a11y-toast-action]');
+    action.focus(); m.update(id, { message: 'Updated' });
+    ok(wrapper.firstElementChild === clone, 'Unrelated updates preserve icon identity');
+    ok(document.activeElement === action, 'Updates preserve focus');
+    m.update(id, { icon: null, actionLayout: 'stacked' });
+    ok(wrapper.hidden && !wrapper.firstChild); ok(document.activeElement === action);
+    ok(!toast.classList.contains('a11y-toast--inline-action'));
+  });
+  await test('168 SVG icons are copied at enqueue and replacement preserves controls', () => {
+    const m = create({ maxVisible: 1 }); const first = m.show({ message: 'First', persistent: true });
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const path = document.createElementNS(svg.namespaceURI, 'path'); path.setAttribute('d', 'M0 0L10 10'); svg.append(path);
+    const id = m.show({ message: 'Queued', icon: svg, persistent: true });
+    path.setAttribute('d', 'M5 5'); m.update(id, { message: 'Still queued' }); m.dismiss(first);
+    const toast = item(m, id), close = toast.querySelector('[data-a11y-toast-dismiss]');
+    equal(toast.querySelector('path').getAttribute('d'), 'M0 0L10 10');
+    close.focus(); m.update(id, { icon: svg });
+    equal(toast.querySelector('path').getAttribute('d'), 'M5 5'); ok(document.activeElement === close);
+    equal(m.getToast(id).actionLayout, 'stacked');
+    m.update(id, { actionLayout: 'unknown' }); equal(m.getToast(id).actionLayout, 'stacked');
+  });
+  await test('169 icon markup rejects active content and invalid updates are atomic', () => {
+    const m = create(); const id = m.show({ message: 'Original', persistent: true });
+    throws(() => m.show({ message: 'String', icon: '<svg></svg>' }));
+    for (const tag of ['button', 'a', 'input', 'script', 'iframe', 'img', 'custom-icon']) {
+      const icon = document.createElement('span'); icon.append(document.createElement(tag));
+      throws(() => m.update(id, { message: 'Invalid', icon }));
+    }
+    for (const [name, value] of [['onclick', 'alert(1)'], ['tabindex', '-1'], ['style', 'color:red'], ['role', 'status'], ['aria-live', 'polite'], ['id', 'duplicate'], ['contenteditable', 'false'], ['fill', 'url(https://example.com/icon)']]) {
+      const icon = document.createElement('i'); icon.setAttribute(name, value);
+      throws(() => m.update(id, { message: 'Invalid', icon }));
+    }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    for (const tag of ['foreignObject', 'use', 'animate', 'script']) {
+      svg.replaceChildren(document.createElementNS(svg.namespaceURI, tag));
+      throws(() => m.show({ message: 'Invalid', icon: svg }));
+    }
+    equal(m.getToast(id).message, 'Original'); equal(m.visibleCount, 1);
+  });
+  await test('170 icons from another document are imported and do not clone event listeners', () => {
+    const m = create(); const frame = document.createElement('iframe'); fixture.append(frame);
+    const foreign = frame.contentDocument.createElement('span'); foreign.className = 'foreign-icon';
+    let clicks = 0; foreign.addEventListener('click', () => clicks++);
+    const id = m.show({ message: 'Foreign', icon: foreign, persistent: true });
+    const clone = item(m, id).querySelector('.foreign-icon');
+    ok(clone.ownerDocument === document && clone !== foreign);
+    clone.dispatchEvent(new Event('click', { bubbles: true })); equal(clicks, 0);
+    const detached = document.implementation.createHTMLDocument().createElement('i');
+    m.update(id, { icon: detached }); ok(item(m, id).querySelector('.a11y-toast__icon > i'));
+  });
+  await test('171 decorative icon text never enters live commits or adds announcements', () => {
+    const c = fakeClock(), m = create({ showToneLabel: false });
+    const seen = events(m, api.TOAST_EVENTS.announce);
+    const icon = document.createElement('i'); icon.textContent = 'ICON WORDING';
+    const id = m.show({ message: 'Saved', tone: 'success', icon, action: { label: 'Undo' } });
+    c.tick(100);
+    equal(seen.map(row => row.message), ['Success. Saved. Undo']);
+    equal(m.root.querySelector('[role=status]').textContent, 'Success. Saved. Undo');
+    equal(m.root.querySelector('[role=alert]').textContent, '');
+    icon.textContent = 'REPLACEMENT ICON'; m.update(id, { icon, actionLayout: 'inline' });
+    c.tick(1500); equal(seen.length, 1);
+    m.update(id, { icon: null }); c.tick(1500); equal(seen.length, 1);
+    m.update(id, { message: 'Updated', icon, priority: 'assertive' }); c.tick(100);
+    equal(seen.map(row => row.message), ['Success. Saved. Undo', 'Success. Updated. Undo']);
+    equal(m.root.querySelector('[role=alert]').textContent, 'Success. Updated. Undo');
+    ok(![...m.root.querySelectorAll('[aria-live]')].some(region => region.textContent.includes('ICON')));
+  });
+  await test('172 queued icon replacement and removal use only the latest owned icon', () => {
+    const m = create({ maxVisible: 1 });
+    const blocker = m.show({ message: 'First', persistent: true });
+    const icon = document.createElement('span'); icon.textContent = 'Old';
+    const replaced = m.show({ message: 'Replaced', icon, persistent: true });
+    const removed = m.show({ message: 'Removed', icon, persistent: true });
+    icon.textContent = 'New'; m.update(replaced, { icon }); icon.textContent = 'Later caller mutation';
+    m.update(removed, { icon: null });
+    m.dismiss(blocker);
+    equal(item(m, replaced).querySelector('.a11y-toast__icon').textContent, 'New');
+    m.dismiss(replaced);
+    const wrapper = item(m, removed).querySelector('.a11y-toast__icon');
+    ok(wrapper.hidden && !wrapper.firstChild);
+  });
+  await test('173 inline icon toasts wrap actions at narrow container widths without losing focus', () => {
+    const root = host(); root.style.setProperty('--a11y-toast-width', '52rem');
+    const m = create({ showToneLabel: false }, root);
+    const icon = document.createElement('i'); icon.textContent = '✓';
+    const id = m.show({
+      message: 'Two messages were deleted. You can restore these messages to their original folders.',
+      icon, actionLayout: 'inline', action: { label: 'Restore the deleted messages' },
+    });
+    const toast = item(m, id), viewport = root.querySelector('.a11y-toast-region__viewport');
+    const message = toast.querySelector('.a11y-toast__message'), action = toast.querySelector('[data-a11y-toast-action]');
+    const noOverflow = () => {
+      for (const element of [viewport, toast, toast.querySelector('.a11y-toast__content'), action]) {
+        ok(element.scrollWidth <= element.clientWidth + 1, `No horizontal overflow in ${element.className}`);
+      }
+      const box = toast.getBoundingClientRect(), button = action.getBoundingClientRect();
+      ok(button.left >= box.left && button.right <= box.right, 'The action stays inside the toast');
+    };
+    let textBox = message.getBoundingClientRect(), actionBox = action.getBoundingClientRect();
+    ok(actionBox.left >= textBox.right, 'Wide action sits beside text');
+    ok(actionBox.top < textBox.bottom && actionBox.bottom > textBox.top, 'Wide action overlaps text vertically');
+    noOverflow(); action.focus();
+    m.update(id, { actionLayout: 'stacked' });
+    ok(document.activeElement === action, 'Changing the layout preserves the focused action');
+    textBox = message.getBoundingClientRect(); actionBox = action.getBoundingClientRect();
+    ok(actionBox.top >= textBox.bottom, 'Explicit stacked layout places the action below text');
+    m.update(id, { actionLayout: 'inline' });
+    root.style.setProperty('--a11y-toast-width', '18rem');
+    textBox = message.getBoundingClientRect(); actionBox = action.getBoundingClientRect();
+    ok(actionBox.top >= textBox.bottom, 'Narrow inline layout places the action below text');
+    ok(document.activeElement === action, 'Responsive reflow preserves action focus');
+    noOverflow();
+  }, true);
+  await test('174 five short toasts fit before the stack needs vertical scrolling', () => {
+    const m = create({ maxVisible: 5 });
+    for (let index = 1; index <= 5; index++) m.show({ message: `Notification ${index}`, persistent: true });
+    const list = m.root.querySelector('.a11y-toast-region__list');
+    equal(m.visibleCount, 5); equal(m.queuedCount, 0);
+    ok(list.scrollHeight <= list.clientHeight + 1, 'Five short toasts should fit in a normal browser viewport');
+    ok(list.scrollWidth <= list.clientWidth + 1, 'The stack should not need horizontal scrolling');
+    m.update(m.getToasts()[0].id, { message: 'Long notification text. '.repeat(300) });
+    ok(list.scrollHeight > list.clientHeight, 'Long content still has bounded vertical scrolling');
+  }, true);
+  await test('175 entrance overflow does not flash a scrollbar or resize the stack', async () => {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet'; style.href = '/examples/basic/demo.css';
+    const loaded = new Promise((resolve, reject) => { style.onload = resolve; style.onerror = reject; });
+    fixture.append(style); await loaded;
+    const root = host(); root.dataset.demoEffect = 'slide-bottom';
+    root.style.setProperty('--a11y-toast-max-height', '464px');
+    const m = create({ animation: 'css', maxVisible: 5 }, root);
+    for (let index = 1; index <= 5; index++) m.show({ message: `Batch example ${index} of 5.`, persistent: true });
+    const list = root.querySelector('.a11y-toast-region__list');
+    const first = list.firstElementChild;
+    await new Promise(requestAnimationFrame);
+    ok(list.scrollHeight > list.clientHeight, 'The entrance briefly creates scrollable overflow at the height boundary');
+    equal(getComputedStyle(list).scrollbarGutter, 'stable');
+    ok(getComputedStyle(list).scrollbarColor.startsWith('rgba(0, 0, 0, 0)'), 'The transient scrollbar is visually suppressed');
+    const enteringWidth = first.getBoundingClientRect().width;
+    for (const toast of list.children) for (const animation of toast.getAnimations()) animation.finish();
+    await new Promise(requestAnimationFrame);
+    await waitMicrotasks();
+    ok(!list.querySelector('.is-entering, .is-exiting'), 'Entrance has settled');
+    ok(list.scrollHeight <= list.clientHeight + 1, 'The settled stack fits without scrolling');
+    equal(getComputedStyle(list).scrollbarColor, 'auto');
+    ok(Math.abs(first.getBoundingClientRect().width - enteringWidth) < 1, 'The stack width stays stable');
+  }, true);
+  await test('176 swipe dismisses one visible toast and promotes the queue', () => {
+    const m = create({ maxVisible: 2, addons: [api.createSwipeDismissAddon()] });
+    const a = m.show({ message: 'First', persistent: true });
+    const b = m.show({ message: 'Second', persistent: true });
+    const c = m.show({ message: 'Queued', persistent: true });
+    const reasons = events(m, api.TOAST_EVENTS.dismiss);
+    const target = item(m, a).querySelector('.a11y-toast__message');
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 1, pointerType: 'touch', clientX: 20, clientY: 20 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 1, pointerType: 'touch', clientX: 130, clientY: 22, cancelable: true }));
+    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: 1, pointerType: 'touch', clientX: 130, clientY: 22 }));
+    equal(m.getToast(a), undefined); equal(reasons[0].reason, 'swipe');
+    equal(m.getToast(b).state, 'visible'); equal(m.getToast(c).state, 'visible');
+  }, true);
+  await test('177 vertical movement, controls and short drags do not swipe', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Keep', persistent: true });
+    const toast = item(m, id);
+    const down = target => target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 2, pointerType: 'touch', clientX: 10, clientY: 10 }));
+    const move = (x, y) => window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 2, pointerType: 'touch', clientX: x, clientY: y, cancelable: true }));
+    const up = () => window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: 2, pointerType: 'touch' }));
+    down(toast.querySelector('.a11y-toast__message')); move(12, 90); up();
+    down(toast.querySelector('[data-a11y-toast-dismiss]')); move(120, 10); up();
+    down(toast.querySelector('.a11y-toast__message')); move(25, 10); up();
+    ok(m.getToast(id)); equal(toast.style.translate, '');
+  }, true);
+  await test('178 swipe timer hold preserves caller pause and releases on cancel', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Timed', duration: 10000 });
+    const target = item(m, id).querySelector('.a11y-toast__message');
+    m.pause(id);
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 3, pointerType: 'touch', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 3, pointerType: 'touch', clientX: 80, clientY: 10, cancelable: true }));
+    ok(m.getToast(id).pauseReasons.includes('gesture'));
+    window.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, isPrimary: true, pointerId: 3, pointerType: 'touch' }));
+    equal(m.getToast(id).pauseReasons, ['api']);
+    equal(item(m, id).style.translate, '');
+    m.unregisterAddon('swipe-dismiss');
+    ok(!m.root.hasAttribute('data-a11y-toast-swipe-enabled'));
+  }, true);
+  await test('179 a timed toast survives an active drag and resumes after cancellation', () => {
+    const c = fakeClock();
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Timed', duration: 1000 });
+    const target = item(m, id).querySelector('.a11y-toast__message');
+    c.tick(400);
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 4, pointerType: 'touch', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 4, pointerType: 'touch', clientX: 40, clientY: 10, cancelable: true }));
+    c.tick(2000);
+    ok(m.getToast(id), 'The gesture should hold the timer');
+    m.unregisterAddon('swipe-dismiss');
+    equal(item(m, id).style.translate, '');
+    c.tick(600);
+    equal(m.getToast(id), undefined);
+  }, true);
+  await test('180 a second touch cancels an active swipe', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Keep', persistent: true });
+    const target = item(m, id).querySelector('.a11y-toast__message');
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 5, pointerType: 'touch', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 5, pointerType: 'touch', clientX: 120, clientY: 10, cancelable: true }));
+    fixture.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: false, pointerId: 6, pointerType: 'touch', clientX: 20, clientY: 20 }));
+    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: 5, pointerType: 'touch', clientX: 120, clientY: 10 }));
+    ok(m.getToast(id)); equal(item(m, id).style.translate, '');
+  }, true);
+  await test('181 releasing below threshold does not dismiss after a long move', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Keep', persistent: true });
+    const target = item(m, id).querySelector('.a11y-toast__message');
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 7, pointerType: 'mouse', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 7, pointerType: 'mouse', clientX: 120, clientY: 10, cancelable: true }));
+    window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: 7, pointerType: 'mouse', clientX: 15, clientY: 10 }));
+    ok(m.getToast(id));
+  }, true);
+  await test('182 unregister during gesture pause cleans up without a stuck hold', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Keep', duration: 10000 });
+    const target = item(m, id).querySelector('.a11y-toast__message');
+    m.root.addEventListener(api.TOAST_EVENTS.pause, event => {
+      if (event.detail.reason === 'gesture') m.unregisterAddon('swipe-dismiss');
+    });
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 8, pointerType: 'touch', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 8, pointerType: 'touch', clientX: 80, clientY: 10, cancelable: true }));
+    equal(m.getAddon('swipe-dismiss'), undefined);
+    equal(m.getToast(id).pauseReasons, []);
+    equal(item(m, id).style.translate, '');
+  }, true);
+  await test('183 cancelled gesture restores the prior inline translate', () => {
+    const m = create({ addons: [api.createSwipeDismissAddon()] });
+    const id = m.show({ message: 'Keep', persistent: true });
+    const toast = item(m, id);
+    toast.style.translate = '3px 0';
+    const priorTranslate = toast.style.translate;
+    const target = toast.querySelector('.a11y-toast__message');
+    target.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 9, pointerType: 'mouse', clientX: 10, clientY: 10 }));
+    window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 9, pointerType: 'mouse', clientX: 35, clientY: 10, cancelable: true }));
+    window.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, isPrimary: true, pointerId: 9, pointerType: 'mouse' }));
+    equal(toast.style.translate, priorTranslate);
   }, true);
   return results;
 }

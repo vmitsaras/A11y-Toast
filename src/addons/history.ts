@@ -54,7 +54,7 @@ function copySnapshot(toast: ToastSnapshot): ToastSnapshot {
     action: toast.action ? Object.freeze({
       label: toast.action.label, dismissOnSuccess: toast.action.dismissOnSuccess,
     }) : null,
-    actionPending: toast.actionPending, actionError: toast.actionError,
+    actionLayout: toast.actionLayout, actionPending: toast.actionPending, actionError: toast.actionError,
   });
 }
 

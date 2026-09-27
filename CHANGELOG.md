@@ -2,6 +2,7 @@
 
 ## 0.1.0 — Unreleased implementation preview
 
+- Added optional per-toast decorative HTML/SVG element icons with owned clones, validation, update/removal support, and no icon DOM in snapshots or announcements. Added opt-in responsive inline actions and light success/dark information playground examples.
 - Added TOAST-280 as the separate `a11y-toast/addons/diagnostics` export. It reports frozen, content-free advisory signals for risky timing, assertive bursts, queue rejection and lifecycle failures through a required caller callback, with no default output or conformance claim.
 - Added TOAST-270 as the separate `a11y-toast/addons/history` export: bounded frozen lifecycle entries, explicit read/clear access, owned teardown, and no persistence, announcement replay or action replay.
 - Added an application-owned non-live history inspector, H01–H25 shared behavioral scenarios, declaration/package coverage, and a targeted offline ESM verification route. Targeted and integrated local automation pass; remote CI and named manual acceptance for this slice remain pending.

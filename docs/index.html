@@ -86,6 +86,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="./dist/styles.css">
   <link rel="stylesheet" href="./dist/addons/progress.css">
+  <link rel="stylesheet" href="./dist/addons/swipe-dismiss.css">
   <link rel="stylesheet" href="./dist/animations/view-transition.css">
   <link rel="stylesheet" href="./demo.css">
   <link rel="stylesheet" href="./history-demo.css">
@@ -119,6 +120,43 @@
   <main class="toast-demo__main">
     <p class="toast-demo__boot" data-boot>Loading the playground. Use <code>npm run demo</code> and open the served address, rather than opening this file directly.</p>
     <noscript><p>This interactive demo requires JavaScript. Important application feedback should also exist as ordinary page content.</p></noscript>
+    <section class="toast-demo__panel toast-demo__classic" aria-labelledby="classic-title">
+      <div class="toast-demo__section-heading"><h2 id="classic-title">Classic toast designs</h2><span>ICONS + LAYOUT</span></div>
+      <p>Try an inline Undo action or a dark notification with supporting text. These previews use the real toast API and stay here in the page.</p>
+      <div class="toast-demo__button-group">
+        <button class="toast-demo__button" type="button" data-classic-light disabled>Show success + Undo</button>
+        <button class="toast-demo__button" type="button" data-classic-dark disabled>Show dark information</button>
+      </div>
+      <div class="toast-demo-classic toast-demo-classic--light" data-classic-light-root></div>
+      <div class="toast-demo-classic toast-demo-classic--dark" data-classic-dark-root></div>
+      <p class="toast-demo__hint">Icons are decorative SVG elements created by the demo. The same icon slot accepts trusted icon-font elements. Text remains plain text; inline actions stack when space is limited.</p>
+      <details class="toast-demo__details"><summary>Use an icon and inline action</summary><div class="toast-demo__detail-body"><pre><code>const icon = document.createElement('i');
+icon.className = 'your-icon-font your-check-icon';
+manager.show({
+  message: '2 messages were deleted.',
+  tone: 'success',
+  icon,
+  actionLayout: 'inline',
+  action: { label: 'Undo', onClick: undoDeletion },
+});</code></pre><p class="toast-demo__hint">Load your icon font separately. Icons are cloned; use application-authored, non-interactive elements. HTML strings are not accepted. Create the manager with <code>showToneLabel: false</code> for these styles.</p></div></details>
+    </section>
+    <section class="toast-demo__panel toast-demo__swipe" aria-labelledby="swipe-title">
+      <div class="toast-demo__section-heading"><h2 id="swipe-title">Swipe to dismiss a stack</h2><span>OPTIONAL ADD-ON</span></div>
+      <p>Show five persistent notifications, then drag one horizontally with a pointer to dismiss it. The labeled close button works without dragging.</p>
+      <button class="toast-demo__button" type="button" data-swipe-stack disabled>Show 5 swipeable notifications</button>
+      <div class="toast-demo-swipe" data-swipe-root></div>
+      <p class="toast-demo__hint">Try horizontal dragging and vertical scrolling on touch. Keyboard and assistive-technology users can use each notification’s close button. This example uses the package renderer with animation set to none.</p>
+      <details class="toast-demo__details"><summary>Use the swipe add-on</summary><div class="toast-demo__detail-body"><pre><code>import { createToast } from 'a11y-toast';
+import { createSwipeDismissAddon } from 'a11y-toast/addons/swipe-dismiss';
+import 'a11y-toast/styles.css';
+import 'a11y-toast/addons/swipe-dismiss.css';
+
+const toast = createToast(root, {
+  animation: 'none',
+  maxVisible: 5,
+  addons: [createSwipeDismissAddon()],
+});</code></pre></div></details>
+    </section>
     <div class="toast-demo__layout">
       <section class="toast-demo__composer" id="playground" aria-labelledby="composer-title">
         <div class="toast-demo__section-heading"><h2 id="composer-title">Compose a toast</h2><span>01 / CONTENT</span></div>
@@ -150,8 +188,8 @@
                 <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The indicator is visual, non-live, and hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
                 <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
                 <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="gsap">GSAP — optional</option><option value="view-transition">View Transition — experimental</option><option value="none">None</option></select></div>
-                <div class="toast-demo__field"><label for="animation-effect">CSS effect</label><select id="animation-effect" name="animationEffect" aria-describedby="animation-effect-hint"><option value="default">Default</option><option value="fade">Fade</option><option value="fade-left">Fade in from left</option><option value="fade-right">Fade in from right</option><option value="fade-top">Fade in from top</option><option value="fade-bottom">Fade in from bottom</option><option value="slide-left">Slide in from left</option><option value="slide-right">Slide in from right</option><option value="slide-top">Slide in from top</option><option value="slide-bottom">Slide in from bottom</option><option value="zoom">Zoom in</option><option value="bounce">Gentle bounce</option></select></div>
-                <p class="toast-demo__hint" id="animation-effect-hint">CSS examples only. Directions name the entrance origin: from top moves down; from bottom moves up. Directional effects exit toward the same origin. Choose an effect when no notification surface is active. Reduced motion skips every effect.</p>
+                <div class="toast-demo__field"><label for="animation-effect">Animation effect</label><select id="animation-effect" name="animationEffect" aria-describedby="animation-effect-hint"><option value="default">Default</option><option value="fade">Fade</option><option value="fade-left">Fade in from left</option><option value="fade-right">Fade in from right</option><option value="fade-top">Fade in from top</option><option value="fade-bottom">Fade in from bottom</option><option value="slide-left">Slide in from left</option><option value="slide-right">Slide in from right</option><option value="slide-top">Slide in from top</option><option value="slide-bottom">Slide in from bottom</option><option value="zoom">Zoom in</option><option value="bounce">Gentle bounce</option></select></div>
+                <p class="toast-demo__hint" id="animation-effect-hint">Effects work with CSS, GSAP, and supported element View Transitions. None skips motion. Directions name the entrance origin: from top moves down; from bottom moves up. Directional effects exit toward the same origin. Choose an effect when no notification surface is active. Reduced motion skips every effect.</p>
                 <p class="toast-demo__hint" id="animation-hint">Animation is decorative. GSAP is injected by this development demo. Element-scoped View Transition is experimental and falls back to no motion when unsupported; document-scoped transitions are never used. Reduced-motion preference skips all drivers. Change this option when no notification surface is active.</p>
                 <label class="toast-demo__check"><input id="show-flip-layout" name="showFlipLayout" type="checkbox" aria-describedby="flip-layout-hint"> Animate stack reflow with GSAP Flip</label>
                 <p class="toast-demo__hint" id="flip-layout-hint">Optional layout-only motion for surviving notifications. Entrance and exit remain owned by the selected animation engine. Change this option when no notification surface is active.</p>
@@ -171,6 +209,7 @@
               <summary>Add a demo action</summary>
               <div class="toast-demo__detail-body">
                 <label class="toast-demo__check"><input id="has-action" name="hasAction" type="checkbox"> Include an action button</label>
+                <div class="toast-demo__field"><label for="action-layout">Action layout</label><select id="action-layout" name="actionLayout"><option value="stacked">Stacked</option><option value="inline">Inline when space permits</option></select></div>
                 <div class="toast-demo__field"><label for="action-label">Action label</label><input id="action-label" name="actionLabel" value="Undo demo change" maxlength="80" disabled></div>
                 <p class="toast-demo__hint">The action updates this notification. It does not change or delete real data.</p>
               </div>
@@ -178,12 +217,12 @@
             <div class="toast-demo__submit-row"><button class="toast-demo__button toast-demo__button--primary" type="submit">Show toast <span aria-hidden="true">↗</span></button><span class="toast-demo__hint">No focus jump. No page reload.</span></div>
           </fieldset>
         </form>
-        <p class="toast-demo__feedback" data-feedback hidden></p>
+        <p class="toast-demo__feedback" data-feedback role="alert" hidden></p>
       </section>
       <div class="toast-demo__rail">
         <section class="toast-demo__panel" aria-labelledby="lifecycle-title">
           <div class="toast-demo__section-heading"><h2 id="lifecycle-title">Try the lifecycle</h2><span>02 / BEHAVIOR</span></div>
-          <p>Use the real API, with three visible notifications and ten queue slots.</p>
+          <p>Use the real API, with five visible notifications and ten queue slots. Extra notifications wait for a slot.</p>
           <div class="toast-demo__button-grid">
             <button class="toast-demo__button" type="button" data-burst disabled>Show 5 toasts</button>
             <button class="toast-demo__button" type="button" data-start-loading disabled>Start loading</button>

@@ -1,6 +1,60 @@
 import { n as addToastEventListener, t as TOAST_EVENTS } from "./events-D6MCpthx.js";
 import { n as waitForCssAnimation, t as prefersReducedMotion } from "./animation-DqMS0Z8l.js";
 
+//#region src/icon.ts
+const HTML_TAGS = new Set([
+	"span",
+	"i",
+	"b",
+	"em"
+]);
+const SVG_TAGS = new Set([
+	"svg",
+	"g",
+	"path",
+	"circle",
+	"ellipse",
+	"rect",
+	"line",
+	"polyline",
+	"polygon",
+	"title",
+	"desc"
+]);
+const HTML_NS = "http://www.w3.org/1999/xhtml";
+const SVG_NS = "http://www.w3.org/2000/svg";
+/** Copy trusted, passive icon markup into the manager's document before retaining it. */
+function cloneToastIcon(value, doc) {
+	if (value == null) return null;
+	const ctor = value.ownerDocument?.defaultView?.Element ?? doc.defaultView?.Element;
+	if (!ctor || !(value instanceof ctor)) throw new TypeError("Toast icon must be an HTML or SVG element, not HTML text.");
+	for (const element of [value, ...value.querySelectorAll("*")]) {
+		if (!(element.namespaceURI === HTML_NS ? HTML_TAGS : element.namespaceURI === SVG_NS ? SVG_TAGS : null)?.has(element.localName)) throw new TypeError("Toast icon contains an unsupported element.");
+		for (const attribute of element.attributes) {
+			const name = attribute.name.toLowerCase();
+			if (name.startsWith("on") || name.startsWith("data-a11y-toast") || [
+				"id",
+				"is",
+				"style",
+				"tabindex",
+				"contenteditable",
+				"autofocus",
+				"role",
+				"aria-live",
+				"aria-atomic",
+				"aria-relevant",
+				"aria-busy",
+				"href",
+				"xlink:href",
+				"src",
+				"srcset"
+			].includes(name) || name === "focusable" && attribute.value !== "false" || /url\s*\(/i.test(attribute.value)) throw new TypeError("Toast icon contains an unsupported attribute or reference.");
+		}
+	}
+	return doc.importNode(value, true);
+}
+
+//#endregion
 //#region src/LiveAnnouncer.ts
 const LIVE_REGION_TRANSPORT = Object.freeze({
 	name: "live-region",
@@ -274,6 +328,8 @@ function normalizeToast(input, options, doc) {
 		tone,
 		priority,
 		announcement: text(input.announcement) || phrase,
+		icon: input.icon ?? null,
+		actionLayout: member(input.actionLayout, ["stacked", "inline"], "stacked"),
 		duration: ms,
 		persistent,
 		dismissible: parseBoolean(input.dismissible, true),
@@ -304,6 +360,8 @@ const CLASSES = Object.freeze({
 	toneVisuallyHidden: "a11y-toast__tone--visually-hidden",
 	title: "a11y-toast__title",
 	message: "a11y-toast__message",
+	icon: "a11y-toast__icon",
+	inlineAction: "a11y-toast--inline-action",
 	actions: "a11y-toast__actions",
 	action: "a11y-toast__action",
 	dismiss: "a11y-toast__dismiss",
@@ -343,6 +401,7 @@ var A11yToast = class A11yToast {
 	records = /* @__PURE__ */ new Map();
 	queue = [];
 	addons = /* @__PURE__ */ new Map();
+	gestureHolds = /* @__PURE__ */ new Map();
 	activeAnimations = /* @__PURE__ */ new Map();
 	exiting = /* @__PURE__ */ new Map();
 	addedClasses = [];
@@ -516,7 +575,8 @@ var A11yToast = class A11yToast {
 		const nextInput = this.copyInput({
 			...record.input,
 			...patch
-		});
+		}, patch.icon === void 0);
+		if (patch.icon === void 0) nextInput.icon = record.input.icon;
 		const next = normalizeToast(nextInput, this.options, this.doc);
 		record.updating = true;
 		try {
@@ -559,6 +619,7 @@ var A11yToast = class A11yToast {
 		if (willExit && view) this.exiting.set(id, view.item);
 		record.state = "dismissed";
 		this.records.delete(id);
+		this.gestureHolds.delete(id);
 		const index = this.queue.indexOf(id);
 		if (index >= 0) this.queue.splice(index, 1);
 		this.list.tabIndex = this.visibleCount > 0 ? 0 : -1;
@@ -625,6 +686,27 @@ var A11yToast = class A11yToast {
 			instance: this,
 			root: this.root,
 			signal: controller.signal,
+			holdTimer: (id) => {
+				const record = this.records.get(id);
+				if (controller.signal.aborted || !record || record.state !== "visible") return () => {};
+				const count = this.gestureHolds.get(id) ?? 0;
+				this.gestureHolds.set(id, count + 1);
+				let active = true;
+				const release = () => {
+					if (!active) return;
+					active = false;
+					removers.delete(release);
+					const current = this.gestureHolds.get(id) ?? 0;
+					if (current <= 1) {
+						this.gestureHolds.delete(id);
+						this.setPause(record, "gesture", false);
+					} else this.gestureHolds.set(id, current - 1);
+				};
+				removers.add(release);
+				if (count === 0) this.setPause(record, "gesture", true);
+				if (!this.owns(record) || controller.signal.aborted) release();
+				return release;
+			},
 			on: (type, listener) => {
 				if (controller.signal.aborted) return () => {};
 				const remove = addToastEventListener(this.root, type, (event) => {
@@ -713,10 +795,11 @@ var A11yToast = class A11yToast {
 		element.className = className;
 		return element;
 	}
-	copyInput(input) {
+	copyInput(input, keepIcon = false) {
 		if (!input || typeof input !== "object") throw new TypeError("Toast input must be an object.");
 		return {
 			...input,
+			icon: keepIcon ? input.icon : cloneToastIcon(input.icon, this.doc),
 			action: input.action ? { ...input.action } : input.action
 		};
 	}
@@ -754,6 +837,7 @@ var A11yToast = class A11yToast {
 				label: data.action.label,
 				dismissOnSuccess: data.action.dismissOnSuccess
 			}) : null,
+			actionLayout: data.actionLayout,
 			actionPending: record.actionPending,
 			actionError: record.actionError
 		});
@@ -795,6 +879,9 @@ var A11yToast = class A11yToast {
 	createView(record) {
 		const item = this.element("li", CLASSES.item);
 		item.setAttribute(ATTR.id, record.id);
+		const icon = this.element("span", CLASSES.icon);
+		icon.setAttribute(ATTR.hidden, "true");
+		icon.inert = true;
 		const content = this.element("div", CLASSES.content);
 		const tone = this.element("span", CLASSES.tone);
 		const title = this.element("p", CLASSES.title);
@@ -815,9 +902,11 @@ var A11yToast = class A11yToast {
 		dismiss.setAttribute(ATTR.describedby, message.id);
 		actions.append(action);
 		content.append(tone, title, message, actions, error);
-		item.append(content, dismiss);
+		item.append(icon, content, dismiss);
 		return {
 			item,
+			icon,
+			renderedIcon: null,
 			tone,
 			title,
 			message,
@@ -833,6 +922,12 @@ var A11yToast = class A11yToast {
 		const active = this.doc.activeElement;
 		const data = record.data;
 		v.item.className = `${CLASSES.item} ${CLASSES.item}--${data.tone} ${CLASSES.visible}`;
+		v.item.classList.toggle(CLASSES.inlineAction, data.actionLayout === "inline");
+		v.icon.hidden = data.icon === null;
+		if (v.renderedIcon !== data.icon) {
+			v.icon.replaceChildren(...data.icon ? [data.icon] : []);
+			v.renderedIcon = data.icon;
+		}
 		v.item.classList.toggle(CLASSES.entering, record.animationPhase === "enter");
 		v.item.classList.toggle(CLASSES.exiting, record.animationPhase === "exit");
 		v.item.classList.toggle(CLASSES.paused, record.pauses.size > 0);
@@ -1199,7 +1294,7 @@ var A11yToast = class A11yToast {
 		}
 	}
 	addonError(addon, phase, error) {
-		if (this.reportingAddonError) return;
+		if (this.destroyed || this.reportingAddonError) return;
 		this.reportingAddonError = true;
 		try {
 			this.emit(TOAST_EVENTS.addonError, {

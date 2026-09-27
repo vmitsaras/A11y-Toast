@@ -1,4 +1,4 @@
-import { i as ToastAddon } from "../types-CViYp0UD.js";
+import { a as ToastAddon } from "../types-MxcqocoB.js";
 
 //#region src/animations/gsap-flip.d.ts
 interface GsapPluginRegistrarLike {

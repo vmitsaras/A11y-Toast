@@ -24,6 +24,7 @@
 .a11y-toast-region *, .a11y-toast-region *::before, .a11y-toast-region *::after { box-sizing: border-box; }
 .a11y-toast-region__viewport {
   position: fixed;
+  container-type: inline-size;
   z-index: var(--a11y-toast-z-index, 1000);
   inline-size: min(var(--_width), calc(100% - 2 * var(--_offset)));
   max-inline-size: calc(100% - 2 * var(--_offset));
@@ -55,14 +56,20 @@
   list-style: none;
   margin: 0;
   padding: 0.25rem;
-  max-block-size: var(--a11y-toast-max-height, 45vh);
-  max-block-size: var(--a11y-toast-max-height, 45dvh);
+  max-block-size: var(--a11y-toast-max-height, calc(100vh - 2 * var(--_offset)));
+  max-block-size: var(--a11y-toast-max-height, calc(100dvh - 2 * var(--_offset)));
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
   pointer-events: auto;
 }
 .a11y-toast-region__list:empty { padding: 0; }
+/* A translated toast can briefly create scrollable overflow during motion. */
+.a11y-toast-region__list:has(.is-entering, .is-exiting) {
+  scrollbar-color: transparent transparent;
+}
 .a11y-toast-region__empty { margin: 0; padding: 1rem; background: var(--_background); color: var(--_color); border: 1px solid var(--_border); border-radius: var(--_radius); pointer-events: auto; }
 .a11y-toast {
   --_accent: var(--a11y-toast-neutral-accent, #53616a);
@@ -92,6 +99,41 @@
 .a11y-toast-region__viewport[data-a11y-toast-animation='css'] .a11y-toast.is-exiting {
   animation: a11y-toast-exit var(--_exit-duration) var(--_exit-ease) both;
   pointer-events: none;
+}
+.a11y-toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--a11y-toast-icon-size, 2rem);
+  inline-size: var(--a11y-toast-icon-size, 2rem);
+  block-size: var(--a11y-toast-icon-size, 2rem);
+  margin-inline-end: var(--a11y-toast-icon-gap, 0.75rem);
+  border-radius: var(--a11y-toast-icon-radius, 50%);
+  background: var(--a11y-toast-icon-background, transparent);
+  color: var(--a11y-toast-icon-color, var(--_accent));
+  font-size: var(--a11y-toast-icon-glyph-size, 1.25rem);
+  line-height: 1;
+}
+.a11y-toast__icon > * { max-inline-size: 100%; max-block-size: 100%; }
+.a11y-toast__icon > svg { inline-size: 1em; block-size: 1em; }
+/* Narrow containers and browsers without container queries keep stacked actions. */
+@container (min-width: 32rem) {
+  .a11y-toast--inline-action { align-items: center; }
+  .a11y-toast--inline-action .a11y-toast__content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) fit-content(45%);
+    align-items: center;
+    column-gap: var(--a11y-toast-action-gap, 1rem);
+  }
+  .a11y-toast--inline-action .a11y-toast__tone,
+  .a11y-toast--inline-action .a11y-toast__title,
+  .a11y-toast--inline-action .a11y-toast__message { grid-column: 1; }
+  .a11y-toast--inline-action .a11y-toast__actions { grid-column: 2; grid-row: 1 / 4; margin-block-start: 0; }
+  /* Span only rendered text rows, so absent title/tone cannot create empty tracks. */
+  .a11y-toast--inline-action .a11y-toast__tone--visually-hidden ~ .a11y-toast__actions,
+  .a11y-toast--inline-action .a11y-toast__title[hidden] ~ .a11y-toast__actions { grid-row: 1 / 3; }
+  .a11y-toast--inline-action .a11y-toast__tone--visually-hidden + .a11y-toast__title[hidden] ~ .a11y-toast__actions { grid-row: 1; }
+  .a11y-toast--inline-action .a11y-toast__action-error { grid-column: 1 / -1; }
 }
 .a11y-toast__content { flex: 1; min-inline-size: 0; }
 .a11y-toast__tone { display: block; color: var(--_accent); font-size: 0.8125rem; font-weight: 650; }
@@ -148,6 +190,7 @@
 @media (forced-colors: active) {
   .a11y-toast { border: 1px solid CanvasText; box-shadow: none; background: Canvas; color: CanvasText; }
   .a11y-toast__tone { color: CanvasText; }
+  .a11y-toast__icon { background: Canvas; color: CanvasText; border: 1px solid CanvasText; }
   .a11y-toast__action, .a11y-toast__dismiss { border: 1px solid ButtonText; }
   .a11y-toast-region :focus-visible { outline-color: Highlight; }
 }
