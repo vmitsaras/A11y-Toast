@@ -86,7 +86,6 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../dist/styles.css">
   <link rel="stylesheet" href="../../dist/addons/progress.css">
-  <link rel="stylesheet" href="../../dist/addons/swipe-dismiss.css">
   <link rel="stylesheet" href="../../dist/animations/view-transition.css">
   <link rel="stylesheet" href="./demo.css">
   <link rel="stylesheet" href="./history-demo.css">
@@ -140,23 +139,6 @@ manager.show({
   action: { label: 'Undo', onClick: undoDeletion },
 });</code></pre><p class="toast-demo__hint">Load your icon font separately. Icons are cloned; use application-authored, non-interactive elements. HTML strings are not accepted. Create the manager with <code>showToneLabel: false</code> for these styles.</p></div></details>
     </section>
-    <section class="toast-demo__panel toast-demo__swipe" aria-labelledby="swipe-title">
-      <div class="toast-demo__section-heading"><h2 id="swipe-title">Swipe to dismiss a stack</h2><span>OPTIONAL ADD-ON</span></div>
-      <p>Show five persistent notifications, then drag one horizontally with a pointer to dismiss it. The labeled close button works without dragging.</p>
-      <button class="toast-demo__button" type="button" data-swipe-stack disabled>Show 5 swipeable notifications</button>
-      <div class="toast-demo-swipe" data-swipe-root></div>
-      <p class="toast-demo__hint">Try horizontal dragging and vertical scrolling on touch. Keyboard and assistive-technology users can use each notification’s close button. This example uses the package renderer with animation set to none.</p>
-      <details class="toast-demo__details"><summary>Use the swipe add-on</summary><div class="toast-demo__detail-body"><pre><code>import { createToast } from 'a11y-toast';
-import { createSwipeDismissAddon } from 'a11y-toast/addons/swipe-dismiss';
-import 'a11y-toast/styles.css';
-import 'a11y-toast/addons/swipe-dismiss.css';
-
-const toast = createToast(root, {
-  animation: 'none',
-  maxVisible: 5,
-  addons: [createSwipeDismissAddon()],
-});</code></pre></div></details>
-    </section>
     <div class="toast-demo__layout">
       <section class="toast-demo__composer" id="playground" aria-labelledby="composer-title">
         <div class="toast-demo__section-heading"><h2 id="composer-title">Compose a toast</h2><span>01 / CONTENT</span></div>
@@ -185,7 +167,7 @@ const toast = createToast(root, {
                 </div>
                 <p class="toast-demo__hint" id="duration-hint">Loading always stays visible. Actions and assertive messages stay visible with automatic defaults.</p>
                 <label class="toast-demo__check"><input id="show-progress" name="showProgress" type="checkbox" checked aria-describedby="progress-hint"> Show visual timeout progress</label>
-                <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The circular ring sits around the close-control position, is visual and non-live, and is hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
+                <p class="toast-demo__hint" id="progress-hint">Timed notifications only. The classic horizontal bar is visual and non-live, and is hidden when reduced motion is requested. Change this option when no notification surface is active.</p>
                 <p class="toast-demo__hint" id="position-hint">Position can change after all current notifications are dismissed.</p>
                 <div class="toast-demo__field"><label for="animation">Animation</label><select id="animation" name="animation" aria-describedby="animation-hint"><option value="css" selected>CSS entrance + exit</option><option value="gsap">GSAP — optional</option><option value="view-transition">View Transition — experimental</option><option value="none">None</option></select></div>
                 <div class="toast-demo__field"><label for="animation-effect">Animation effect</label><select id="animation-effect" name="animationEffect" aria-describedby="animation-effect-hint"><option value="default">Default</option><option value="fade">Fade</option><option value="fade-left">Fade in from left</option><option value="fade-right">Fade in from right</option><option value="fade-top">Fade in from top</option><option value="fade-bottom">Fade in from bottom</option><option value="slide-left">Slide in from left</option><option value="slide-right">Slide in from right</option><option value="slide-top">Slide in from top</option><option value="slide-bottom">Slide in from bottom</option><option value="zoom">Zoom in</option><option value="bounce">Gentle bounce</option></select></div>
@@ -201,8 +183,8 @@ const toast = createToast(root, {
                 <p class="toast-demo__hint" id="tone-label-hint">When hidden visually, the tone text stays available to assistive technology. Change this option when no notifications are active.</p>
                 <label class="toast-demo__check"><input id="enable-diagnostics" name="enableDiagnostics" type="checkbox" aria-describedby="diagnostics-hint"> Enable development diagnostics</label>
                 <p class="toast-demo__hint" id="diagnostics-hint">Advisory only. Reports are collected silently and appear only when you choose Refresh diagnostics. Change this option when no notifications are active.</p>
-                <div class="toast-demo__field"><label for="toast-skin">Toast styling example</label><select id="toast-skin" name="toastSkin" aria-describedby="toast-skin-hint"><option value="default">Package defaults</option><option value="compact">Compact</option><option value="high-contrast">High-contrast-safe</option></select></div>
-                <p class="toast-demo__hint" id="toast-skin-hint">These demo skins set existing public <code>--a11y-toast-*</code> properties. They do not add a runtime theme API.</p>
+                <div class="toast-demo__field"><label for="toast-skin">Toast styling example</label><select id="toast-skin" name="toastSkin" aria-describedby="toast-skin-hint"><option value="default">Package defaults</option><option value="compact">Compact</option><option value="compact-dark">Compact dark (TOAST-280)</option><option value="high-contrast">High-contrast-safe</option></select></div>
+                <p class="toast-demo__hint" id="toast-skin-hint">Demo-only CSS themes show how to style the notifications with the existing public <code>--a11y-toast-*</code> properties and component selectors. The compact dark theme is optional; package defaults remain light.</p>
               </div>
             </details>
             <details class="toast-demo__details">

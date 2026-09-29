@@ -2,4 +2,4 @@
 "a11y-toast": patch
 ---
 
-Refresh the default toast skin to a compact dark treatment and render optional timeout progress as a circular ring aligned with the dismiss control.
+Restore the light default toast skin and add the compact dark treatment as an optional demo styling example. Optional timeout progress uses the classic horizontal bar.

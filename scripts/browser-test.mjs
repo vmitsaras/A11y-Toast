@@ -119,19 +119,17 @@ try {
       throw new Error(`Five-toast stack: ${JSON.stringify(stack)}`);
     }
   });
-  await demoTest('D05 in-page swipe stack dismisses a notification', async () => {
-    await page.locator('[data-swipe-stack]').click();
-    const result = await page.evaluate(() => {
-      const root = document.querySelector('[data-swipe-root]');
-      const items = root.querySelectorAll('[data-a11y-toast-id]');
-      const message = items[0]?.querySelector('.a11y-toast__message');
-      if (!message) return { before: items.length, after: -1 };
-      message.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, isPrimary: true, pointerId: 91, pointerType: 'touch', clientX: 10, clientY: 10 }));
-      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, isPrimary: true, pointerId: 91, pointerType: 'touch', clientX: 120, clientY: 10, cancelable: true }));
-      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, isPrimary: true, pointerId: 91, pointerType: 'touch', clientX: 120, clientY: 10 }));
-      return { before: items.length, after: root.querySelectorAll('[data-a11y-toast-id]').length };
-    });
-    if (result.before !== 5 || result.after !== 4) throw new Error(`In-page swipe stack: ${JSON.stringify(result)}`);
+  await demoTest('D06 compact dark skin is optional and switches on the active notifications', async () => {
+    const skin = page.locator('#toast-skin');
+    const notification = page.locator('[data-a11y-toast] .a11y-toast').first();
+    const initialBackground = await notification.evaluate(element => getComputedStyle(element).backgroundColor);
+    await skin.selectOption('compact-dark');
+    const darkBackground = await notification.evaluate(element => getComputedStyle(element).backgroundColor);
+    await skin.selectOption('default');
+    const restoredBackground = await notification.evaluate(element => getComputedStyle(element).backgroundColor);
+    if (initialBackground !== 'rgb(255, 255, 255)' || darkBackground !== 'rgb(40, 40, 40)' || restoredBackground !== initialBackground) {
+      throw new Error(`Theme backgrounds: ${initialBackground} -> ${darkBackground} -> ${restoredBackground}`);
+    }
   });
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));

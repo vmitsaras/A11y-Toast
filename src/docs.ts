@@ -60,7 +60,7 @@ export const docs = {
       'destroy is terminal: teardown cleanup errors are isolated but do not emit events after it.',
     ],
   },
-  examples: [{ name: 'Playground', description: 'One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, a five-notification swipe-dismiss stack, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  examples: [{ name: 'Playground', description: 'One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, FIFO queue and a non-live event log.', path: 'examples/basic' }],
   addons: [
     { name: 'Development diagnostics', export: 'a11y-toast/addons/diagnostics', description: 'Opt-in advisory reports for risky timing, assertive bursts, queue rejection and lifecycle failures. Content-free payloads; no default output or conformance claims.' },
     { name: 'In-memory history', export: 'a11y-toast/addons/history', description: 'Bounded immutable show/update/dismiss entries with read/clear access and lifecycle cleanup. No persistence, announcement replay or action replay; no backfill.' },

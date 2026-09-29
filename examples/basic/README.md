@@ -7,15 +7,9 @@ After editing TypeScript, rebuild before testing the demo.
 This page imports `../../dist/index.js` and `../../dist/styles.css`. It does not contain a second toast implementation, use a framework, or load a CDN.
 
 Use the content form, the queue/loading/retry controls, the async-form announcement-ownership recipe, and the non-live event log. Development diagnostics are opt-in and stay silent until you use the report panel's Refresh button; Clear removes the demo's collected reports without changing notifications.
-The compact and high-contrast-safe styling examples use only the package's existing public `--a11y-toast-*` custom properties and do not represent a runtime theme API.
+The compact, compact dark, and high-contrast-safe styling examples use the package's existing public `--a11y-toast-*` custom properties and component selectors. They are demo-only styles, not a runtime theme API; package defaults remain light.
 Position is intentionally unavailable while notifications exist; changing it safely recreates an empty manager.
 Manual assistive-technology checks are described in `docs/MANUAL_TESTS.md`.
-
-## Swipe-dismiss stack
-
-The **Swipe to dismiss a stack** section creates a separate in-page manager with five persistent notifications and the opt-in `createSwipeDismissAddon()`. Click **Show 5 swipeable notifications**, drag a notification horizontally with a pointer, then use a close button for the keyboard path. The stack also scrolls vertically on touch. This example imports the add-on's CSS and uses `animation: 'none'` so the gesture does not compete with another transform animation. The main composer and its optional GSAP Flip layout are separate managers.
-
-Keep each notification's close button as the accessible dismissal path. Check touch scrolling, keyboard focus, screen reader interaction, and reduced motion on your target devices; automated DOM checks alone cannot establish assistive-technology behavior.
 
 ## Classic animation examples
 

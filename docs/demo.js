@@ -1,7 +1,6 @@
 import { createHistoryDemo } from './history-demo.js';
 import { createToast, addToastEventListener, TOAST_EVENTS } from './dist/index.js';
 import { createProgressAddon } from './dist/addons/progress.js';
-import { createSwipeDismissAddon } from './dist/addons/swipe-dismiss.js';
 import { trackToastPromise } from './dist/addons/promise.js';
 import { createDedupeController } from './dist/addons/dedupe.js';
 import { createDiagnosticsAddon } from './dist/addons/diagnostics.js';
@@ -224,6 +223,7 @@ function initialize() {
   initializeAdapter();
   initializeAsyncAdapter();
   root.classList.toggle('toast-demo-skin--compact', toastSkin.value === 'compact');
+  root.classList.toggle('toast-demo-skin--compact-dark', toastSkin.value === 'compact-dark');
   root.classList.toggle('toast-demo-skin--high-contrast', toastSkin.value === 'high-contrast');
   sync(manager);
 }
@@ -280,6 +280,7 @@ showToneLabel.addEventListener('change', reinitializeManager);
 enableDiagnostics.addEventListener('change', reinitializeManager);
 toastSkin.addEventListener('change', () => {
   root.classList.toggle('toast-demo-skin--compact', toastSkin.value === 'compact');
+  root.classList.toggle('toast-demo-skin--compact-dark', toastSkin.value === 'compact-dark');
   root.classList.toggle('toast-demo-skin--high-contrast', toastSkin.value === 'high-contrast');
 });
 adapterOwner.addEventListener('change', () => safely(initializeAdapter));
@@ -428,26 +429,6 @@ for (const [selector, instance, input] of [
   button.disabled = false;
 }
 
-const swipeButton = document.querySelector('[data-swipe-stack]');
-const swipeStack = createToast(document.querySelector('[data-swipe-root]'), {
-  animation: 'none', maxVisible: 5, maxQueue: 0,
-  addons: [createSwipeDismissAddon()],
-  labels: { region: 'Swipe dismissal example' },
-});
-const showSwipeStack = () => safely(() => {
-  swipeStack.dismissAll();
-  for (let index = 1; index <= 5; index++) {
-    swipeStack.show({
-      title: `Stacked notification ${index}`,
-      message: `Drag this notification horizontally to dismiss it, or use its close button.`,
-      tone: 'info', persistent: true, origin: swipeButton,
-    });
-  }
-});
-swipeButton.addEventListener('click', showSwipeStack);
-removers.push(() => swipeButton.removeEventListener('click', showSwipeStack));
-swipeButton.disabled = false;
-
 initialize();
 document.querySelector('[data-controls]').disabled = false;
 for (const selector of ['[data-burst]', '[data-start-loading]', '[data-retry]', '[data-promise-success]', '[data-promise-error]', '[data-dedupe]', '[data-adapter-start]', '[data-adapter-update]', '[data-adapter-dismiss]', '[data-async-submit]', '[data-clear-log]', '[data-refresh-diagnostics]', '[data-clear-diagnostics]']) document.querySelector(selector).disabled = false;
@@ -461,7 +442,6 @@ window.addEventListener('pagehide', event => {
   manager.destroy();
   classicLight.destroy();
   classicDark.destroy();
-  swipeStack.destroy();
   for (const remove of removers) remove();
 }, { once: false });
 

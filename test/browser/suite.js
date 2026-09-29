@@ -582,6 +582,8 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const timed = m.show({ message: 'Timed', duration: 5000 });
     const track = item(m, timed).querySelector('[data-a11y-toast-progress]');
     ok(track);
+    equal(track.tagName, 'SPAN');
+    ok(track.querySelector('[data-a11y-toast-progress-bar]'));
     equal(track.getAttribute('aria-hidden'), 'true');
     equal(track.getAttribute('role'), null);
     equal(track.getAttribute('aria-live'), null);
@@ -607,7 +609,7 @@ export async function runSuite(api, capabilities = { layout: true }) {
     const track = item(m, id).querySelector('[data-a11y-toast-progress]');
     const bar = track.querySelector('[data-a11y-toast-progress-bar]');
     equal(track.dataset.a11yToastProgressState, 'paused');
-    equal(Number.parseFloat(bar.style.strokeDashoffset), 0.4);
+    ok(bar.style.transform.includes('0.6'));
     m.resume(id);
     equal(track.dataset.a11yToastProgressState, 'running');
     equal(Number.parseFloat(bar.style.transitionDuration), 600);

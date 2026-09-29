@@ -2,7 +2,7 @@
 
 A framework-free, TypeScript-first toast manager with explicit announcement ownership, bounded queueing, predictable timers, and removable lifecycle integrations.
 
-**Version 0.1.0 — implementation preview.** The repository contains source, tests, docs, and build configuration; generated `dist/` output is intentionally ignored. The standard npm/tsdown/Vitest/served-Chromium workflow now passes in GitHub Actions. Manual VoiceOver checks, actual browser zoom verification, and lockfile/dependency follow-up remain open; see `docs/VERIFICATION.md`.
+**Version 0.1.0 — implementation preview.** The repository contains source, tests, docs, and build configuration; generated `dist/` output is intentionally ignored. The earlier GitHub Actions workflow passed; the tracked-lockfile refresh, clean `npm ci`, and moderate audit gate pass locally, while remote validation of the refreshed workflow remains open. Chrome 200%/400% zoom has recorded evidence; Safari zoom, long-history zoom, and manual VoiceOver checks remain open. See `docs/VERIFICATION.md`.
 
 ## Try it immediately
 
@@ -32,20 +32,7 @@ For the repository's one-time Pages configuration, choose **Settings → Pages �
 
 ## Optional swipe dismissal
 
-The swipe add-on lets pointer users drag a visible, dismissible notification horizontally to dismiss it. It is registered per manager, does not run on import, and leaves the labeled close button available for keyboard and assistive-technology users. The playground has a separate five-notification stack for trying both methods.
-
-```ts
-import { createToast } from 'a11y-toast';
-import { createSwipeDismissAddon } from 'a11y-toast/addons/swipe-dismiss';
-import 'a11y-toast/styles.css';
-import 'a11y-toast/addons/swipe-dismiss.css';
-
-const toast = createToast(root, {
-  animation: 'none',
-  maxVisible: 5,
-  addons: [createSwipeDismissAddon()],
-});
-```
+The swipe add-on lets pointer users drag a visible, dismissible notification horizontally to dismiss it. It is registered per manager, does not run on import, and leaves the labeled close button available for keyboard and assistive-technology users.
 
 Use the add-on with `animation: 'none'` or the built-in CSS animation driver. The drag is supplementary: keep `dismissible: true` for notifications that should be swipeable, and keep essential information or actions available elsewhere. Touch users can scroll the stack vertically. Reduced-motion preferences and target screen readers still need direct testing in the host application.
 
@@ -443,7 +430,7 @@ Element-scoped View Transitions are still an experimental/limited-availability w
 
 ## Visual timeout progress add-on
 
-The optional progress add-on adds a decorative circular remaining-time ring to visible timed notifications without creating another timer or accessibility announcement. The ring occupies the dismiss-control corner, so a dismissible toast visually combines the close button and timeout indicator without changing the button's semantics.
+The optional progress add-on adds a decorative horizontal remaining-time bar to visible timed notifications without creating another timer or accessibility announcement.
 
 ```ts
 import { createToast } from 'a11y-toast';
@@ -464,12 +451,9 @@ The progress DOM is `aria-hidden`, has no `progressbar` role, and is never a liv
 
 Public styling variables:
 
-- `--a11y-toast-progress-size`
-- `--a11y-toast-progress-stroke-width`
+- `--a11y-toast-progress-height`
 - `--a11y-toast-progress-track`
 - `--a11y-toast-progress-color`
-
-`--a11y-toast-progress-height` remains accepted as a legacy fallback for the ring stroke width.
 
 Unregistering the add-on removes its generated DOM without changing the toast timer or lifecycle.
 
@@ -651,7 +635,7 @@ Public variables include:
 
 - Surface/layout: `--a11y-toast-background`, `--a11y-toast-color`, `--a11y-toast-muted`, `--a11y-toast-border`, `--a11y-toast-radius`, `--a11y-toast-shadow`, `--a11y-toast-gap`, `--a11y-toast-offset`, `--a11y-toast-width`, `--a11y-toast-max-height`, `--a11y-toast-z-index`, `--a11y-toast-font`.
 - Interaction: `--a11y-toast-focus`, `--a11y-toast-hover-background`.
-- Icons/actions: `--a11y-toast-icon-size`, `--a11y-toast-icon-glyph-size`, `--a11y-toast-icon-gap`, `--a11y-toast-icon-radius`, `--a11y-toast-icon-background`, `--a11y-toast-icon-color`, `--a11y-toast-action-gap`.
+- Icons/actions: `--a11y-toast-icon-size`, `--a11y-toast-icon-glyph-size`, `--a11y-toast-icon-radius`, `--a11y-toast-icon-background`, `--a11y-toast-icon-color`, `--a11y-toast-action-gap`.
 - Motion: `--a11y-toast-enter-duration`, `--a11y-toast-exit-duration`, `--a11y-toast-enter-ease`, `--a11y-toast-exit-ease`, `--a11y-toast-motion-distance`.
 - Tone accents: `--a11y-toast-neutral-accent`, `--a11y-toast-info-accent`, `--a11y-toast-success-accent`, `--a11y-toast-warning-accent`, `--a11y-toast-error-accent`, `--a11y-toast-loading-accent`.
 
@@ -688,9 +672,9 @@ npm run test:package
 npm run pack:check
 ```
 
-The standard build uses tsdown, and unit tests use Vitest/jsdom. GitHub Actions run #1 successfully executed dependency installation, the tsdown build, source and declaration-consumer typechecks, Vitest, served Chromium lifecycle tests, package export checks, pack inspection, and the configured high-severity audit gate.
+The standard build uses tsdown, and unit tests use Vitest/jsdom. The original GitHub Actions run #1 successfully executed the then-current workflow, including the tsdown build, source and declaration-consumer typechecks, Vitest, served Chromium lifecycle tests, package export checks, pack inspection, and its configured high-severity audit gate. That run predates the tracked-lockfile refresh.
 
-The repository still has no committed `package-lock.json`. The current resolved development dependency graph reports two moderate vulnerabilities through Vitest/@vitest/mocker, so reproducibility and dependency cleanup remain explicit follow-up work. The portable `npm run build:portable` path remains available for restricted/offline environments.
+On 2026-09-21, the tracked-lockfile refresh passed a clean local `npm ci`, `npm audit --audit-level=moderate` with zero vulnerabilities, the tsdown build, typechecks, unit and served-browser tests, package checks, and pack dry run. CI now runs `npm ci` and the moderate audit threshold; the refreshed workflow still needs a remote GitHub Actions run. The portable `npm run build:portable` path remains available for restricted/offline environments.
 
 `PORT` changes the demo port. `CHROMIUM_EXECUTABLE` selects a Chromium binary for `npm run test:browser`. These are development controls, not runtime requirements.
 

@@ -2,12 +2,10 @@ import { t as TOAST_EVENTS } from "../events-D6MCpthx.js";
 
 //#region src/addons/progress.ts
 const SELECTOR = "[data-a11y-toast-id]";
-const SVG_NS = "http://www.w3.org/2000/svg";
 const TRACK_ATTRIBUTE = "data-a11y-toast-progress";
 const BAR_ATTRIBUTE = "data-a11y-toast-progress-bar";
 const ITEM_CLASS = "a11y-toast--has-progress";
 const TRACK_CLASS = "a11y-toast__progress";
-const TRACK_RING_CLASS = "a11y-toast__progress-track";
 const BAR_CLASS = "a11y-toast__progress-bar";
 function createProgressAddon(options = {}) {
 	const name = typeof options.name === "string" && options.name.trim() ? options.name.trim() : "progress";
@@ -28,31 +26,20 @@ function createProgressAddon(options = {}) {
 				for (const candidate of context.root.querySelectorAll(SELECTOR)) if (candidate.getAttribute("data-a11y-toast-id") === id) return candidate;
 				return null;
 			};
-			const createCircle = (className) => {
-				const circle = doc.createElementNS(SVG_NS, "circle");
-				circle.classList.add(className);
-				circle.setAttribute("cx", "18");
-				circle.setAttribute("cy", "18");
-				circle.setAttribute("r", "15");
-				circle.setAttribute("pathLength", "1");
-				return circle;
-			};
 			const ensure = (id) => {
 				const existing = entries.get(id);
 				if (existing?.item.isConnected) return existing;
 				if (existing) remove(id);
 				const item = findItem(id);
 				if (!item) return null;
-				const track = doc.createElementNS(SVG_NS, "svg");
-				const rail = createCircle(TRACK_RING_CLASS);
-				const bar = createCircle(BAR_CLASS);
-				track.classList.add(TRACK_CLASS);
+				const track = doc.createElement("span");
+				const bar = doc.createElement("span");
+				track.className = TRACK_CLASS;
+				bar.className = BAR_CLASS;
 				track.setAttribute(TRACK_ATTRIBUTE, "");
-				track.setAttribute("viewBox", "0 0 36 36");
-				track.setAttribute("aria-hidden", "true");
-				track.setAttribute("focusable", "false");
 				bar.setAttribute(BAR_ATTRIBUTE, "");
-				track.append(rail, bar);
+				track.setAttribute("aria-hidden", "true");
+				track.append(bar);
 				item.append(track);
 				item.classList.add(ITEM_CLASS);
 				const entry = {
@@ -71,17 +58,17 @@ function createProgressAddon(options = {}) {
 				const entry = ensure(toast.id);
 				if (!entry) return;
 				const remaining = Math.max(0, Math.min(toast.duration, toast.remaining));
-				const elapsedFraction = 1 - (toast.duration > 0 ? remaining / toast.duration : 0);
+				const fraction = toast.duration > 0 ? remaining / toast.duration : 0;
 				const paused = toast.pauseReasons.length > 0 || toast.animationPhase === "enter" || doc.hidden;
 				entry.track.dataset.a11yToastProgressState = paused ? "paused" : "running";
 				entry.bar.style.transition = "none";
-				entry.bar.style.strokeDashoffset = String(elapsedFraction);
+				entry.bar.style.transform = `scaleX(${fraction})`;
 				if (paused || remaining <= 0) return;
-				entry.bar.getBoundingClientRect();
-				entry.bar.style.transitionProperty = "stroke-dashoffset";
+				entry.bar.offsetWidth;
+				entry.bar.style.transitionProperty = "transform";
 				entry.bar.style.transitionDuration = `${Math.ceil(remaining)}ms`;
 				entry.bar.style.transitionTimingFunction = "linear";
-				entry.bar.style.strokeDashoffset = "1";
+				entry.bar.style.transform = "scaleX(0)";
 			};
 			const syncCurrent = (id) => {
 				const toast = context.instance.getToast(id);
