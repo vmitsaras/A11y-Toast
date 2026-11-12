@@ -1,0 +1,113 @@
+/* Muted tone-filled surface with a soft icon tile. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-soft {
+  --a11y-toast-background: #fff;
+  --a11y-toast-color: #20272c;
+  --a11y-toast-border: #89949c;
+  --a11y-toast-focus: #155ca5;
+  --a11y-toast-radius: 1.125rem;
+  --a11y-toast-shadow: none;
+  --a11y-toast-icon-size: 2.5rem;
+  --a11y-toast-icon-radius: 0.75rem;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast {
+  background: var(--_skin-tint);
+  border: 1px solid var(--_accent);
+  padding: 1rem;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast__icon {
+  background: #ffffffbd;
+  border: 1px solid var(--_accent);
+}
+
+.a11y-toast-region--skin-soft .a11y-toast__title {
+  margin-block-start: 0;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast__message {
+  line-height: 1.6;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast__action {
+  background: #fff;
+  color: var(--_accent);
+  border-color: var(--_accent);
+  border-radius: 0.75rem;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--neutral {
+  --_skin-tint: #edf0f2;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--info {
+  --_skin-tint: #e8f2fc;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--success {
+  --_skin-tint: #e7f4ec;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--warning {
+  --_skin-tint: #fff3da;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--error {
+  --_skin-tint: #ffedeb;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast--loading {
+  --_skin-tint: #f2edfc;
+}
+
+.a11y-toast-region--skin-soft .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-soft .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-soft .a11y-toast__title,
+  .a11y-toast-region--skin-soft .a11y-toast__message,
+  .a11y-toast-region--skin-soft .a11y-toast__tone,
+  .a11y-toast-region--skin-soft .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-soft .a11y-toast__content,
+  .a11y-toast-region--skin-soft .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-soft .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-soft .a11y-toast__action,
+  .a11y-toast-region--skin-soft .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-soft .a11y-toast__action:hover,
+  .a11y-toast-region--skin-soft .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-soft :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

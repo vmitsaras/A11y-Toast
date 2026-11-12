@@ -6,6 +6,7 @@ Status: Implemented in the TOAST-270 patch; targeted, integrated local, and GitH
 
 ```ts
 import { createToast } from 'a11y-toast';
+import 'a11y-toast/styles.css';
 import { createHistoryController } from 'a11y-toast/addons/history';
 
 const root = document.querySelector('[data-a11y-toast]');
@@ -73,7 +74,7 @@ Only memory owned by the controller is retained. No localStorage, sessionStorage
 
 ## Rendering and accessibility
 
-The package renders nothing. The playground includes an application-owned inspector in `examples/basic/history-demo.js`, styled separately, with native disclosure, Refresh history and Clear history controls. It uses textContent, static ordered-list entries, no live region/role=log, no replay controls and no automatic list replacement while reading. Reading the entries through normal screen-reader navigation is intentional; re-announcing old toasts through a live channel is not.
+The package renders nothing. The advanced lab includes an application-owned inspector in `examples/advanced/history-demo.js`, styled separately, with native disclosure, Refresh history and Clear history controls. It uses textContent, static ordered-list entries, no live region/role=log, no replay controls and no automatic list replacement while reading. Reading the entries through normal screen-reader navigation is intentional; re-announcing old toasts through a live channel is not.
 
 The inspector is deliberately explicit-refresh, not a notification center. A production renderer should preserve focused controls and reading position, use understandable timestamps/states, keep action labels as historical text, and keep essential actions in their proper application context. There is no automatic focus movement from history itself. The demo's core teardown removes the inspector and its displayed rows.
 

@@ -1,0 +1,109 @@
+/* Black and white typography, square borders, no shadow. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-monochrome {
+  --a11y-toast-background: #fff;
+  --a11y-toast-color: #111;
+  --a11y-toast-border: #111;
+  --a11y-toast-radius: 0;
+  --a11y-toast-shadow: none;
+  --a11y-toast-focus: #111;
+  --a11y-toast-neutral-accent: #111;
+  --a11y-toast-info-accent: #111;
+  --a11y-toast-success-accent: #111;
+  --a11y-toast-warning-accent: #111;
+  --a11y-toast-error-accent: #111;
+  --a11y-toast-loading-accent: #111;
+  --a11y-toast-icon-size: 2rem;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast {
+  border: 2px solid #111;
+  padding: 0.875rem;
+  gap: 0.5rem 0.875rem;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__icon {
+  background: #111;
+  color: #fff;
+  border-radius: 0;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__tone {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__title {
+  font-weight: 800;
+  font-size: 1.0625rem;
+  margin-block-start: 0;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__action {
+  border: 2px solid #111;
+  border-radius: 0;
+  color: #fff;
+  background: #111;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__action:hover {
+  color: #111;
+  background: #fff;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__dismiss {
+  border: 1px solid #111;
+  border-radius: 0;
+}
+
+.a11y-toast-region--skin-monochrome .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-monochrome .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-monochrome .a11y-toast__title,
+  .a11y-toast-region--skin-monochrome .a11y-toast__message,
+  .a11y-toast-region--skin-monochrome .a11y-toast__tone,
+  .a11y-toast-region--skin-monochrome .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-monochrome .a11y-toast__content,
+  .a11y-toast-region--skin-monochrome .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-monochrome .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-monochrome .a11y-toast__action,
+  .a11y-toast-region--skin-monochrome .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-monochrome .a11y-toast__action:hover,
+  .a11y-toast-region--skin-monochrome .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-monochrome :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

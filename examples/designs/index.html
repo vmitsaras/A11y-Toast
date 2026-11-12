@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Toast designs | A11y Toast</title>
+  <meta name="description" content="Browse fifteen reusable toast designs. Preview every skin, try the real component, and copy the CSS and setup for your project.">
+  <link rel="canonical" href="https://vmitsaras.github.io/A11y-Toast/designs/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vmitsaras.github.io/A11y-Toast/designs/">
+  <meta property="og:site_name" content="A11y Toast">
+  <meta property="og:title" content="Toast designs | A11y Toast">
+  <meta property="og:description" content="Fifteen reusable CSS skins with live previews and complete setup instructions.">
+  <meta property="og:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <meta property="og:image:alt" content="A11y Toast: accessible toast feedback with predictable focus, timing, and announcements.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Toast designs | A11y Toast">
+  <meta name="twitter:description" content="Fifteen reusable CSS skins with live previews and complete setup instructions.">
+  <meta name="twitter:image" content="https://vmitsaras.github.io/A11y-Toast/social-preview.png">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"A11y Toast designs","description":"Fifteen optional reusable CSS skins for A11y Toast.","url":"https://vmitsaras.github.io/A11y-Toast/designs/","isPartOf":{"@type":"WebSite","name":"A11y Toast","url":"https://vmitsaras.github.io/A11y-Toast/"}}</script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../dist/styles.css">
+  <link rel="stylesheet" href="../../dist/skins/minimal.css">
+  <link rel="stylesheet" href="../../dist/skins/compact.css">
+  <link rel="stylesheet" href="../../dist/skins/rounded.css">
+  <link rel="stylesheet" href="../../dist/skins/classic-light.css">
+  <link rel="stylesheet" href="../../dist/skins/classic-dark.css">
+  <link rel="stylesheet" href="../../dist/skins/snackbar.css">
+  <link rel="stylesheet" href="../../dist/skins/soft.css">
+  <link rel="stylesheet" href="../../dist/skins/outline.css">
+  <link rel="stylesheet" href="../../dist/skins/solid.css">
+  <link rel="stylesheet" href="../../dist/skins/accent-rail.css">
+  <link rel="stylesheet" href="../../dist/skins/top-rule.css">
+  <link rel="stylesheet" href="../../dist/skins/split-panel.css">
+  <link rel="stylesheet" href="../../dist/skins/header-band.css">
+  <link rel="stylesheet" href="../../dist/skins/action-footer.css">
+  <link rel="stylesheet" href="../../dist/skins/monochrome.css">
+  <link rel="stylesheet" href="../shared/demo.css">
+  <link rel="stylesheet" href="./demo.css">
+  <script type="module" src="./demo.js"></script>
+</head>
+<body class="toast-demo">
+  <a class="toast-demo__skip" href="#designs">Skip to designs</a>
+  <header class="toast-demo__masthead">
+    <nav class="toast-demo__nav" aria-label="Primary">
+      <a class="toast-demo__brand" href="../basic/" aria-label="A11y Toast demo home"><img src="../basic/a11y-toast-mark.svg" alt="" width="32" height="32"><span>A11y Toast</span></a>
+      <div class="toast-demo__nav-links"><a href="../basic/">Demo</a><a href="./" aria-current="page">Designs</a><a href="../advanced/">Advanced</a><a href="https://github.com/vmitsaras/A11y-Toast">GitHub <span aria-hidden="true">↗</span></a></div>
+    </nav>
+    <div class="toast-demo__hero"><p class="toast-demo__eyebrow">15 optional CSS skins · v1.0.0</p><h1>A toast for your interface</h1><p class="toast-demo__lead">Familiar designs, ready to use. Choose a skin; keep the same accessible toast behavior.</p></div>
+  </header>
+  <main class="toast-demo__main">
+    <p class="toast-demo__boot" data-boot>Loading the live preview… The designs below remain available to browse.</p>
+    <noscript><p>Browse the designs below. Live previews and code selection need JavaScript. <a href="https://github.com/vmitsaras/A11y-Toast#toast-skins">Read the skin setup instructions</a>.</p></noscript>
+    <section class="toast-designs__play" aria-labelledby="preview-title">
+      <h2 id="preview-title">Try a design</h2>
+      <form data-design-form><fieldset data-design-controls disabled><legend class="toast-demo__sr-only">Preview settings</legend>
+        <div class="toast-designs__fields">
+          <div class="toast-designs__field"><label for="design-skin">Design</label><select id="design-skin" name="skin"><option value="minimal">Minimal</option><option value="compact">Compact</option><option value="rounded">Rounded</option><option value="classic-light" selected>Classic light</option><option value="classic-dark">Classic dark</option><option value="snackbar">Snackbar</option><option value="soft">Soft</option><option value="outline">Outline</option><option value="solid">Solid</option><option value="accent-rail">Accent rail</option><option value="top-rule">Top rule</option><option value="split-panel">Split panel</option><option value="header-band">Header band</option><option value="action-footer">Action footer</option><option value="monochrome">Monochrome</option></select></div>
+          <div class="toast-designs__field"><label for="design-tone">Tone</label><select id="design-tone" name="tone"><option value="neutral">Neutral</option><option value="info">Information</option><option value="success" selected>Success</option><option value="warning">Warning</option><option value="error">Error</option><option value="loading">Loading</option></select></div>
+          <label class="toast-designs__checkbox"><input type="checkbox" id="design-action" name="action" checked> Include action</label>
+        </div>
+        <div class="toast-designs__buttons"><button class="toast-demo__button toast-demo__button--primary" type="submit" data-show-design>Show toast</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-dismiss-design disabled>Dismiss preview</button><span class="toast-demo__hint">Stays until you close it. Nothing is saved or sent.</span></div>
+      </fieldset></form>
+      <p class="toast-designs__result" data-design-result>No live preview yet.</p>
+    </section>
+    <section class="toast-designs__usage" id="use-skin" aria-label="Skin setup">
+      <details data-usage-details><summary>Use <span data-skin-name>Classic light</span></summary><div class="toast-designs__usage-body">
+        <h2 tabindex="-1" data-usage-title>Use Classic light</h2>
+        <p>Load the base stylesheet, then the skin. Add its class to your toast host. Each skin works independently.</p>
+        <div class="toast-designs__code-heading"><h3>1. Import the CSS</h3><button class="toast-demo__button toast-demo__button--quiet" type="button" data-copy="css" disabled>Copy CSS imports</button></div>
+        <pre><code data-css-code>import 'a11y-toast/styles.css';
+import 'a11y-toast/skins/classic-light.css';</code></pre>
+        <div class="toast-designs__code-heading"><h3>2. Add the host and trigger</h3><button class="toast-demo__button toast-demo__button--quiet" type="button" data-copy="html" disabled>Copy HTML</button></div>
+        <pre><code data-html-code>&lt;div class="a11y-toast-region--skin-classic-light" data-toast-host&gt;&lt;/div&gt;
+&lt;button type="button" data-show-toast&gt;Show toast&lt;/button&gt;</code></pre>
+        <div class="toast-designs__code-heading"><h3>3. Create and show the toast</h3><button class="toast-demo__button toast-demo__button--quiet" type="button" data-copy="js" disabled>Copy JavaScript</button></div>
+        <pre><code data-js-code>// Enable JavaScript to select a matching example.
+// The setup and API are also available in the README.</code></pre>
+        <p class="toast-demo__hint">The example includes a decorative inline SVG icon; no icon font is required. Icons, titles and actions are optional. Wide hosts allow inline actions; narrow hosts stack them. Call <code>toast.destroy()</code> when your application removes the host.</p>
+        <p class="toast-designs__download"><a href="../../dist/skins/classic-light.css" download="a11y-toast-classic-light.css" data-skin-download>Download Classic light CSS</a><a href="../../dist/styles.css" download="a11y-toast-base.css">Download base CSS</a><a href="https://github.com/vmitsaras/A11y-Toast#toast-skins">Skin documentation</a></p>
+        <p class="toast-designs__copy-status" role="status" data-copy-status></p>
+      </div></details>
+    </section>
+    <section id="designs" aria-labelledby="designs-title"><div class="toast-designs__heading"><h2 id="designs-title">All designs</h2><p>One component. Fifteen different treatments.</p></div>
+      <div class="toast-designs__grid">
+      <article class="toast-designs__card" id="minimal" data-design-card="minimal">
+        <div class="toast-designs__card-heading"><h3>Minimal</h3><span class="toast-designs__number" aria-hidden="true">01</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-minimal" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A quiet surface with a restrained icon and text action.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="minimal" aria-label="Try Minimal" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="minimal" aria-label="Use Minimal skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="compact" data-design-card="compact">
+        <div class="toast-designs__card-heading"><h3>Compact</h3><span class="toast-designs__number" aria-hidden="true">02</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-compact" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">Tight spacing and a small rectangular footprint.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="compact" aria-label="Try Compact" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="compact" aria-label="Use Compact skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="rounded" data-design-card="rounded">
+        <div class="toast-designs__card-heading"><h3>Rounded</h3><span class="toast-designs__number" aria-hidden="true">03</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-rounded" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A capsule silhouette with rounded controls.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="rounded" aria-label="Try Rounded" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="rounded" aria-label="Use Rounded skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="classic-light" data-design-card="classic-light">
+        <div class="toast-designs__card-heading"><h3>Classic light</h3><span class="toast-designs__number" aria-hidden="true">04</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-classic-light" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A circular icon badge and outlined action on white.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="classic-light" aria-label="Try Classic light" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="classic-light" aria-label="Use Classic light skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="classic-dark" data-design-card="classic-dark">
+        <div class="toast-designs__card-heading"><h3>Classic dark</h3><span class="toast-designs__number" aria-hidden="true">05</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-classic-dark" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A charcoal surface with supporting text and a contained close control.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="classic-dark" aria-label="Try Classic dark" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="classic-dark" aria-label="Use Classic dark skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="snackbar" data-design-card="snackbar">
+        <div class="toast-designs__card-heading"><h3>Snackbar</h3><span class="toast-designs__number" aria-hidden="true">06</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-snackbar" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A dark action bar with minimal decoration.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="snackbar" aria-label="Try Snackbar" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="snackbar" aria-label="Use Snackbar skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="soft" data-design-card="soft">
+        <div class="toast-designs__card-heading"><h3>Soft</h3><span class="toast-designs__number" aria-hidden="true">07</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-soft" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A muted tonal surface and soft icon tile.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="soft" aria-label="Try Soft" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="soft" aria-label="Use Soft skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="outline" data-design-card="outline">
+        <div class="toast-designs__card-heading"><h3>Outline</h3><span class="toast-designs__number" aria-hidden="true">08</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-outline" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">An all-around tonal border with an outlined icon.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="outline" aria-label="Try Outline" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="outline" aria-label="Use Outline skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="solid" data-design-card="solid">
+        <div class="toast-designs__card-heading"><h3>Solid</h3><span class="toast-designs__number" aria-hidden="true">09</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-solid" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A strong tonal surface with contrasting text and controls.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="solid" aria-label="Try Solid" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="solid" aria-label="Use Solid skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="accent-rail" data-design-card="accent-rail">
+        <div class="toast-designs__card-heading"><h3>Accent rail</h3><span class="toast-designs__number" aria-hidden="true">10</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-accent-rail" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A squared surface with a prominent leading status rail.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="accent-rail" aria-label="Try Accent rail" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="accent-rail" aria-label="Use Accent rail skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="top-rule" data-design-card="top-rule">
+        <div class="toast-designs__card-heading"><h3>Top rule</h3><span class="toast-designs__number" aria-hidden="true">11</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-top-rule" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A top accent with clear title and message hierarchy.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="top-rule" aria-label="Try Top rule" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="top-rule" aria-label="Use Top rule skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="split-panel" data-design-card="split-panel">
+        <div class="toast-designs__card-heading"><h3>Split panel</h3><span class="toast-designs__number" aria-hidden="true">12</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-split-panel" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">An icon panel separated from the message area.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="split-panel" aria-label="Try Split panel" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="split-panel" aria-label="Use Split panel skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="header-band" data-design-card="header-band">
+        <div class="toast-designs__card-heading"><h3>Header band</h3><span class="toast-designs__number" aria-hidden="true">13</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-header-band" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A distinct title band above the supporting message.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="header-band" aria-label="Try Header band" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="header-band" aria-label="Use Header band skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="action-footer" data-design-card="action-footer">
+        <div class="toast-designs__card-heading"><h3>Action footer</h3><span class="toast-designs__number" aria-hidden="true">14</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-action-footer" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">A separated action row beneath the message.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="action-footer" aria-label="Try Action footer" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="action-footer" aria-label="Use Action footer skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      <article class="toast-designs__card" id="monochrome" data-design-card="monochrome">
+        <div class="toast-designs__card-heading"><h3>Monochrome</h3><span class="toast-designs__number" aria-hidden="true">15</span></div>
+        <div class="toast-designs__sample a11y-toast-region a11y-toast-region--skin-monochrome" data-design-preview>
+          <div class="a11y-toast-region__viewport"><ol class="a11y-toast-region__list"><li class="a11y-toast a11y-toast--success a11y-toast--inline-action">
+            <span class="a11y-toast__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l4 4L19 6"></path></svg></span>
+            <div class="a11y-toast__content"><span class="a11y-toast__tone a11y-toast__tone--visually-hidden">Success</span><h4 class="a11y-toast__title">Changes saved</h4><p class="a11y-toast__message">Your changes are ready.</p><div class="a11y-toast__actions"><span class="a11y-toast__action" aria-hidden="true">Undo</span></div></div>
+            <span class="a11y-toast__dismiss" aria-hidden="true">×</span>
+          </li></ol></div>
+        </div>
+        <p class="toast-designs__description">Strong black-and-white borders and square geometry.</p>
+        <div class="toast-designs__card-actions"><button class="toast-demo__button" type="button" data-try-skin="monochrome" aria-label="Try Monochrome" disabled>Try</button><button class="toast-demo__button toast-demo__button--quiet" type="button" data-use-skin="monochrome" aria-label="Use Monochrome skin" disabled>Use this skin <span aria-hidden="true">↗</span></button></div>
+      </article>
+      </div>
+    </section>
+    <p class="toast-designs__footnote">Original skins inspired by familiar notification patterns. Each supports every tone, keyboard controls, reduced motion and forced colors. Static samples above do not send announcements; the live preview uses the real component.</p>
+  </main>
+  <footer class="demo-footer" data-demo-footer><div class="demo-footer__inner"><div class="demo-footer__brand"><p class="demo-footer__credit"><span class="demo-footer__plugin">A11y Toast</span><span class="demo-footer__separator" aria-hidden="true">·</span>Built by <a href="https://github.com/vmitsaras/">Vasileios Mitsaras</a></p><p class="demo-footer__meta">MIT License</p></div><nav class="demo-footer__nav" aria-label="Project links"><ul><li><a href="https://github.com/vmitsaras/A11y-Toast">GitHub repository</a></li><li><a href="https://linkedin.com/in/vasilis-mitsaras">LinkedIn</a></li></ul></nav></div></footer>
+  <div class="toast-designs__live" data-live-preview></div>
+</body>
+</html>

@@ -4,7 +4,7 @@ import { TOAST_EVENTS } from './events.js';
 export const docs = {
   slug: 'a11y-toast', name: 'A11y Toast', packageName: 'a11y-toast',
   description: 'Framework-free toast notifications with explicit announcement priority, bounded queues, safe timers and lifecycle events.',
-  status: '0.1.0 — manual assistive-technology verification pending; not published by this delivery',
+  status: '1.0.0 — unpublished release candidate; showcase/lab/design gallery, reusable skins and lifecycle regressions verified locally; final-revision CI and manual assistive-technology acceptance pending',
   install: { npm: 'npm install a11y-toast', pnpm: 'pnpm add a11y-toast', yarn: 'yarn add a11y-toast' },
   usage: `import { createToast } from 'a11y-toast';\nimport 'a11y-toast/styles.css';\nconst root = document.querySelector('[data-a11y-toast]');\nif (root instanceof HTMLElement) {\n  const toast = createToast(root);\n  toast.success('Your changes were saved.');\n}`,
   selectors: ['[data-a11y-toast]', '[data-a11y-toast-id]', '[data-a11y-toast-action]', '[data-a11y-toast-dismiss]'],
@@ -14,6 +14,7 @@ export const docs = {
     { key: 'Arrow / Page Up / Page Down', description: 'Native scrolling while the notification list is focused. No custom global shortcuts.' },
   ],
   api: [
+    { name: 'new A11yToast(root, options)', type: 'new (HTMLElement, ToastOptions?) => A11yToast', description: 'Explicit class construction; shares the same mounted-host requirements and duplicate-instance reuse as createToast.' },
     { name: 'createToast(root, options)', type: '(HTMLElement, ToastOptions?) => A11yToast', description: 'Initialize a mounted, non-live host; duplicate initialization reuses the active manager.' },
     { name: 'initToastAll(options, scope)', type: '(ToastOptions?, ParentNode?) => A11yToast[]', description: 'Explicitly initialize matching descendants. Never runs on import.' },
     { name: 'show(input)', type: '(ToastInput) => string | null', description: 'Display or enqueue a toast. Optional icon accepts a trusted passive HTML/SVG element, cloned on ingestion; HTML strings are rejected. actionLayout selects stacked (default) or inline placement. null means the bounded queue rejected it.' },
@@ -23,7 +24,7 @@ export const docs = {
     { name: 'dismissAll(reason)', type: '(ToastDismissReason?) => number', description: 'Remove visible and queued records without showing intermediate queued items.' },
     { name: 'pause(id) / resume(id)', type: '(string) => boolean', description: 'Manage the caller-owned API pause without overriding keyboard/hover/visibility safeguards.' },
     { name: 'getToast(id) / getToasts()', type: 'Readonly snapshot accessors', description: 'Inspect state and actionLayout without receiving callbacks, origin/icon nodes or mutable collections. History also excludes icon DOM.' },
-    { name: 'registerAddon / unregisterAddon / getAddon / getAddons', type: 'ToastAddon lifecycle', description: 'Explicit per-instance setup, selected observer hooks, subscriptions and cleanup.' },
+    { name: 'registerAddon / unregisterAddon / getAddon / getAddons', type: 'ToastAddon lifecycle', description: 'Explicit per-instance setup, selected observer hooks, subscriptions and cleanup. Add-on context holdTimer(id) returns an owned, idempotent release for a gesture timer hold without clearing other pause reasons.' },
     { name: 'destroy()', type: '() => void', description: 'Idempotent teardown; cancel timers, scheduled announcements and action signals; preserve authored DOM.' },
     { name: 'addToastEventListener(target, type, listener, options)', type: 'Typed DOM-event helper returning cleanup', description: 'Subscribe to TOAST_EVENTS. Events bubble, are not cancelable, and do not cross shadow boundaries.' },
   ],
@@ -60,17 +61,21 @@ export const docs = {
       'destroy is terminal: teardown cleanup errors are isolated but do not emit events after it.',
     ],
   },
-  examples: [{ name: 'Playground', description: 'One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, FIFO queue and a non-live event log.', path: 'examples/basic' }],
+  examples: [
+    { name: 'Component showcase', description: 'Explicit success, Undo, loading and error/retry triggers with retained non-live results, Reset examples and a minimal usage snippet. No automatic toast; imports core and the promise helper only.', path: 'examples/basic' },
+    { name: 'Design gallery', description: 'Fifteen static non-live previews and one explicitly activated persistent polite toast; matching copyable usage and CSS downloads. Import a11y-toast/styles.css plus a11y-toast/skins/{id}.css and use the matching a11y-toast-region--skin-{id} root class. No JavaScript skin option, external font or asset. Verified locally; manual AT/zoom/touch pending.', path: 'examples/designs' },
+    { name: 'Advanced lab', description: 'Settings, animations, announcement-ownership and note recipes, queue controls, and non-live history, diagnostics and event inspectors in the shared page shell.', path: 'examples/advanced' },
+  ],
   addons: [
     { name: 'Development diagnostics', export: 'a11y-toast/addons/diagnostics', description: 'Opt-in advisory reports for risky timing, assertive bursts, queue rejection and lifecycle failures. Content-free payloads; no default output or conformance claims.' },
     { name: 'In-memory history', export: 'a11y-toast/addons/history', description: 'Bounded immutable show/update/dismiss entries with read/clear access and lifecycle cleanup. No persistence, announcement replay or action replay; no backfill.' },
     { name: 'Swipe dismissal', export: 'a11y-toast/addons/swipe-dismiss', stylesheet: 'a11y-toast/addons/swipe-dismiss.css', description: 'Opt-in per-instance horizontal pointer drag to dismiss visible, dismissible notifications. Retains the native close button; use with none or built-in CSS animation.' },
     { name: 'Progress', export: 'a11y-toast/addons/progress', stylesheet: 'a11y-toast/addons/progress.css', description: 'Visual-only timeout progress synchronized from core lifecycle snapshots; no live or progressbar semantics.' },
-    { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.' },
+    { name: 'Promise orchestration', export: 'a11y-toast/addons/promise', description: 'Retains one toast ID across loading → success/error with caller-authored error copy; subscribes only while the returned toast and manager remain active and ignores late settlement after dismissal, destroy or stop.' },
     { name: 'Key deduplication', export: 'a11y-toast/addons/dedupe', description: 'Explicit exact-key update/drop/replace policies; no message-text or automatic core deduplication.' },
   ],
   adapters: [
-    { name: 'DOM events', export: 'a11y-toast/adapters/dom-events', description: 'Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy.' },
+    { name: 'DOM events', export: 'a11y-toast/adapters/dom-events', description: 'Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy. Synchronous same-key transactions accept at most 100 commands; overflow clears pending work and reports once through onError, while later events can recover.' },
     { name: 'A11y Menu Button async state', export: 'a11y-toast/adapters/menu-button-async-state', peer: 'a11y-menu-button@^1.0.1', description: 'Mirrors Menu Button loading/error/empty states visually with source-owned announcements and dismisses the mirror on ready.' },
   ],
   transports: [
@@ -87,7 +92,7 @@ export const docs = {
     focusOnShow: false, priorityDefault: 'polite', announcementTransport: 'Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.',
     icon: 'Decorative icons are cloned into an inert, aria-hidden wrapper. Only passive icon-font and SVG markup is accepted; active elements, handlers, inline styles, IDs and URL references are rejected. Icons never change announcements.',
     toneLabel: 'Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.',
-    motion: 'CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after entrance settles.',
+    motion: 'CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after initial display and entrance settle, including synchronous display-hook updates.',
     limitations: 'An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.',
   },
 } as const;

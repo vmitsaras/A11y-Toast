@@ -1,10 +1,18 @@
 {
   "name": "a11y-toast",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Framework-free TypeScript toast notifications with explicit announcement ownership and deterministic lifecycle cleanup.",
   "type": "module",
   "license": "MIT",
   "author": "Vasileios Mitsaras",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vmitsaras/A11y-Toast.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vmitsaras/A11y-Toast/issues"
+  },
+  "homepage": "https://vmitsaras.github.io/A11y-Toast/",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,6 +26,21 @@
       "import": "./dist/docs.js"
     },
     "./styles.css": "./dist/styles.css",
+    "./skins/minimal.css": "./dist/skins/minimal.css",
+    "./skins/compact.css": "./dist/skins/compact.css",
+    "./skins/rounded.css": "./dist/skins/rounded.css",
+    "./skins/classic-light.css": "./dist/skins/classic-light.css",
+    "./skins/classic-dark.css": "./dist/skins/classic-dark.css",
+    "./skins/snackbar.css": "./dist/skins/snackbar.css",
+    "./skins/soft.css": "./dist/skins/soft.css",
+    "./skins/outline.css": "./dist/skins/outline.css",
+    "./skins/solid.css": "./dist/skins/solid.css",
+    "./skins/accent-rail.css": "./dist/skins/accent-rail.css",
+    "./skins/top-rule.css": "./dist/skins/top-rule.css",
+    "./skins/split-panel.css": "./dist/skins/split-panel.css",
+    "./skins/header-band.css": "./dist/skins/header-band.css",
+    "./skins/action-footer.css": "./dist/skins/action-footer.css",
+    "./skins/monochrome.css": "./dist/skins/monochrome.css",
     "./package.json": "./package.json",
     "./addons/progress": {
       "types": "./dist/addons/progress.d.ts",
@@ -108,7 +131,7 @@
     "playwright": "^1.51.1",
     "tsdown": "^0.15.0",
     "typescript": "~5.8.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.5"
   },
   "keywords": [
     "accessibility",

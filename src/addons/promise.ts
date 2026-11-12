@@ -49,7 +49,7 @@ export function trackToastPromise<T>(
 
   const promise = Promise.resolve(operation);
   const id = instance.show(loadingInput(states.loading));
-  let active = id !== null;
+  let active = id !== null && !instance.isDestroyed && Boolean(instance.getToast(id));
   let removeDismiss: (() => void) | null = null;
   let removeDestroy: (() => void) | null = null;
 
@@ -63,7 +63,7 @@ export function trackToastPromise<T>(
     return true;
   };
 
-  if (id !== null) {
+  if (active) {
     removeDismiss = addToastEventListener(instance.root, TOAST_EVENTS.dismiss, event => {
       if (event.detail.instance === instance && event.detail.toast.id === id) stop();
     });

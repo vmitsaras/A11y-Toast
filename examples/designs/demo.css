@@ -1,0 +1,48 @@
+/* Gallery presentation only. Downloadable skins never depend on these rules. */
+.toast-designs__play { padding: 1.25rem; border: 1px solid var(--demo-line); border-radius: var(--demo-radius); }
+.toast-designs__play fieldset { min-inline-size: 0; padding: 0; margin: 1.25rem 0 0; border: 0; }
+.toast-designs__fields { display: flex; flex-wrap: wrap; align-items: end; gap: 1rem 1.5rem; }
+.toast-designs__field { display: grid; flex: 1 1 12rem; min-inline-size: 0; gap: 0.375rem; }
+.toast-designs__field label { font-size: 0.875rem; font-weight: 600; }
+.toast-designs__field select { inline-size: 100%; min-inline-size: 0; min-block-size: 2.75rem; padding: 0.5rem; border: 1px solid #8c9991; border-radius: 0.375rem; color: var(--demo-ink); background: var(--demo-paper); }
+.toast-designs__checkbox { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; min-block-size: 2.75rem; font-size: 0.875rem; }
+.toast-designs__checkbox input { inline-size: 1.125rem; block-size: 1.125rem; accent-color: var(--demo-accent); }
+.toast-designs__buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-block-start: 1rem; }
+.toast-designs__result { margin: 1rem 0 0; color: var(--demo-ink-soft); font-size: 0.875rem; overflow-wrap: anywhere; }
+.toast-designs__usage { margin-block: 1rem 2.5rem; scroll-margin-block-start: 1rem; }
+.toast-designs__usage details { border-block: 1px solid var(--demo-line-soft); }
+.toast-designs__usage summary { padding-block: 1rem; font-weight: 600; cursor: pointer; overflow-wrap: anywhere; }
+.toast-designs__usage-body { min-inline-size: 0; padding-block: 0.5rem 1.5rem; }
+.toast-designs__usage-body h2 { scroll-margin-block-start: 1.5rem; }
+.toast-designs__usage-body > p { max-inline-size: 70ch; }
+.toast-designs__code-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; margin-block-start: 1.5rem; }
+.toast-designs__code-heading h3 { margin: 0; font-size: 1rem; }
+.toast-designs__download { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; font-size: 0.875rem; }
+.toast-designs__download a { display: inline-flex; align-items: center; min-block-size: 2.75rem; }
+.toast-designs__copy-status { color: var(--demo-ink-soft); font-size: 0.875rem; }
+.toast-designs__heading { margin-block-end: 1.25rem; }
+.toast-designs__heading p { margin: 0.375rem 0 0; color: var(--demo-ink-soft); }
+.toast-designs__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
+.toast-designs__card { display: flex; flex-direction: column; min-inline-size: 0; padding: 1.25rem; border: 1px solid var(--demo-line); border-radius: var(--demo-radius); scroll-margin-block-start: 1rem; }
+.toast-designs__card-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-block-end: 1rem; }
+.toast-designs__card-heading h3 { margin: 0; font-size: 1rem; font-weight: 650; }
+.toast-designs__number { color: var(--demo-ink-soft); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+.toast-designs__sample { display: grid; align-items: center; flex: 1; min-inline-size: 0; padding: 0.5rem; background: #f3f5f4; border-radius: 0.375rem; }
+.toast-designs__sample .a11y-toast-region__viewport { position: static; inline-size: 100%; max-inline-size: 100%; margin: 0; }
+.toast-designs__sample .a11y-toast-region__list { max-block-size: none; overflow: visible; padding: 0.25rem; scrollbar-gutter: auto; }
+.toast-designs__sample .a11y-toast__action { display: inline-flex; align-items: center; justify-content: center; cursor: default; }
+.toast-designs__sample .a11y-toast__dismiss { cursor: default; }
+.toast-designs__description { margin: 1rem 0 0.75rem; color: var(--demo-ink-soft); font-size: 0.875rem; overflow-wrap: anywhere; }
+.toast-designs__card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-block-start: auto; }
+.toast-designs__footnote { max-inline-size: 75ch; margin-block: 2rem 0; color: var(--demo-ink-soft); font-size: 0.875rem; }
+.toast-designs__live { --a11y-toast-width: 36rem; }
+@media (min-width: 64rem) { .toast-designs__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 24rem) {
+  .toast-designs__card, .toast-designs__play { padding: 0.875rem; }
+  .toast-designs__sample { padding: 0; }
+}
+@media (forced-colors: active) {
+  .toast-designs__play, .toast-designs__card, .toast-designs__usage details { border-color: CanvasText; }
+  .toast-designs__sample { background: Canvas; }
+  .toast-designs__field select { border-color: ButtonText; color: ButtonText; background: ButtonFace; }
+}

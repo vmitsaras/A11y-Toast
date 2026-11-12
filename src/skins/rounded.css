@@ -1,0 +1,117 @@
+/* An expanding capsule with pill controls. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-rounded {
+  --a11y-toast-background: #fff;
+  --a11y-toast-color: #20272c;
+  --a11y-toast-border: #89949c;
+  --a11y-toast-focus: #155ca5;
+  --a11y-toast-radius: 2rem;
+  --a11y-toast-shadow: 0 0.25rem 1rem #21344814;
+  --a11y-toast-icon-size: 2.75rem;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast {
+  border-inline-start-width: 1px;
+  align-items: center;
+  padding: 0.75rem;
+  gap: 0.5rem 0.75rem;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__icon {
+  background: var(--_skin-tint);
+  border: 1px solid var(--_accent);
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__tone {
+  font-size: 0.75rem;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__title {
+  margin-block-start: 0;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__action {
+  border-radius: 2rem;
+  border-color: var(--_accent);
+  color: var(--_accent);
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__dismiss {
+  align-self: center;
+  border-radius: 50%;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--neutral {
+  --_skin-tint: #edf0f2;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--info {
+  --_skin-tint: #e8f2fc;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--success {
+  --_skin-tint: #e7f4ec;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--warning {
+  --_skin-tint: #fff3da;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--error {
+  --_skin-tint: #ffedeb;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast--loading {
+  --_skin-tint: #f2edfc;
+}
+
+.a11y-toast-region--skin-rounded .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-rounded .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-rounded .a11y-toast__title,
+  .a11y-toast-region--skin-rounded .a11y-toast__message,
+  .a11y-toast-region--skin-rounded .a11y-toast__tone,
+  .a11y-toast-region--skin-rounded .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-rounded .a11y-toast__content,
+  .a11y-toast-region--skin-rounded .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-rounded .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-rounded .a11y-toast__action,
+  .a11y-toast-region--skin-rounded .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-rounded .a11y-toast__action:hover,
+  .a11y-toast-region--skin-rounded .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-rounded :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

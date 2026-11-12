@@ -1,19 +1,19 @@
 .toast-history-demo {
-  --_border: #b9c7c1;
-  --_muted: #36514f;
-  margin-block: clamp(3.5rem, 8vw, 6rem) 2rem;
+  --_border: var(--demo-line);
+  --_muted: var(--demo-ink-soft);
+  margin-block: 0;
   padding: 1.5rem 0 0;
   border: 0;
-  border-block-start: 2px solid #102c2c;
+  border-block-start: 0;
   border-radius: 0;
   background: transparent;
-  color: #102c2c;
+  color: var(--demo-ink);
   min-inline-size: 0;
   overflow-wrap: anywhere;
 }
-.toast-history-demo__heading { margin-block: 0 0.75rem; font-size: clamp(1.35rem, 2.5vw, 1.75rem); letter-spacing: -0.035em; }
+.toast-history-demo__heading { margin-block: 0 0.75rem; font-size: clamp(1.125rem, 2vw, 1.35rem); letter-spacing: -0.025em; }
 .toast-history-demo__hint,
-.toast-history-demo__count { color: var(--_muted); line-height: 1.6; }
+.toast-history-demo__count { color: var(--_muted); font-size: 0.8125rem; line-height: 1.6; }
 .toast-history-demo__summary { cursor: pointer; padding-block: 0.75rem; font-weight: 650; }
 .toast-history-demo__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block: 1rem; }
 .toast-history-demo__button {
@@ -28,9 +28,9 @@
   cursor: pointer;
   overflow-wrap: anywhere;
 }
-.toast-history-demo__button:hover { background: #e4efea; }
+.toast-history-demo__button:hover { background: var(--demo-tint); }
 .toast-history-demo__button:focus-visible,
-.toast-history-demo__summary:focus-visible { outline: 3px solid #1859ae; outline-offset: 3px; }
+.toast-history-demo__summary:focus-visible { outline: 3px solid var(--demo-accent); outline-offset: 3px; }
 .toast-history-demo__list { padding-inline-start: 1.5rem; }
 .toast-history-demo__entry { padding-block: 0.85rem; border-block-start: 1px solid var(--_border); }
 .toast-history-demo__meta,

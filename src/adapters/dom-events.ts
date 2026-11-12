@@ -1,6 +1,14 @@
 import { addToastEventListener, TOAST_EVENTS } from '../events.js';
 import type { ToastDismissReason, ToastId, ToastInput, ToastInstance, ToastPatch } from '../types.js';
 
+const MAX_SYNC_COMMANDS = 100;
+
+interface PendingCommands {
+  readonly jobs: Array<() => void>;
+  remaining: number;
+  blocked: boolean;
+}
+
 export type ToastAnnouncementOwner = 'toast' | 'source';
 
 export type DomToastCommand =
@@ -88,11 +96,13 @@ export function createDomEventAdapter(
   });
 
   const correlations = new Map<string, ToastId>();
+  const pending = new Map<string, PendingCommands>();
   const removers: Array<() => void> = [];
   let destroyed = false;
 
   const getToastId = (rawKey: string): ToastId | undefined => {
     const key = normalizeCorrelationKey(rawKey, true)!;
+    if (destroyed) return undefined;
     const id = correlations.get(key);
     if (!id) return undefined;
     if (!instance.getToast(id)) {
@@ -129,11 +139,16 @@ export function createDomEventAdapter(
         const existingId = getToastId(key);
         if (existingId) {
           if (instance.update(existingId, input)) return;
+          if (destroyed || instance.isDestroyed || instance.getToast(existingId)) return;
           correlations.delete(key);
         }
       }
       const id = instance.show(input);
-      if (key && id !== null) correlations.set(key, id);
+      if (key && id !== null) {
+        if (destroyed) {
+          if (options.dismissTrackedOnDestroy && !instance.isDestroyed) instance.dismiss(id);
+        } else if (!instance.isDestroyed && instance.getToast(id)) correlations.set(key, id);
+      }
       return;
     }
 
@@ -142,12 +157,46 @@ export function createDomEventAdapter(
     if (!id) return;
 
     if (command.type === 'update') {
-      if (!instance.update(id, applyUpdateOwnership(command.patch, announcementOwner))) correlations.delete(key);
+      if (!instance.update(id, applyUpdateOwnership(command.patch, announcementOwner)) && !instance.getToast(id)) {
+        if (correlations.get(key) === id) correlations.delete(key);
+      }
       return;
     }
 
     instance.dismiss(id, command.reason);
-    correlations.delete(key);
+    if (correlations.get(key) === id) correlations.delete(key);
+  };
+
+  // Lifecycle observers can synchronously dispatch more source events. Commit
+  // this key's retained ID before processing those nested commands; other keys
+  // remain independent. Each job owns its source-event error context.
+  const dispatch = (command: DomToastCommand, event: Event, eventType: string): void => {
+    const run = (): void => {
+      try { execute(command); }
+      catch (error) { report(error, event, eventType); }
+    };
+    const key = command.type === 'ignore' ? null
+      : normalizeCorrelationKey(command.correlationKey, command.type !== 'show');
+    if (!key) { run(); return; }
+    const current = pending.get(key);
+    if (current) {
+      if (current.blocked) return;
+      if (current.remaining === 0) {
+        // Block before reporting: error handlers may dispatch the source event again.
+        current.blocked = true;
+        current.jobs.length = 0;
+        report(new RangeError(`DOM event adapter exceeded ${MAX_SYNC_COMMANDS} same-key commands in one synchronous transaction.`), event, eventType);
+        return;
+      }
+      current.remaining--;
+      current.jobs.push(run);
+      return;
+    }
+    const transaction: PendingCommands = { jobs: [run], remaining: MAX_SYNC_COMMANDS - 1, blocked: false };
+    pending.set(key, transaction);
+    try {
+      while (transaction.jobs.length && !destroyed && !instance.isDestroyed) transaction.jobs.shift()!();
+    } finally { pending.delete(key); }
   };
 
   for (const binding of bindings) {
@@ -162,7 +211,7 @@ export function createDomEventAdapter(
         if (!['show', 'update', 'dismiss', 'ignore'].includes(command.type)) {
           throw new TypeError('DOM event adapter mapper returned an unsupported command type.');
         }
-        execute(command as DomToastCommand);
+        dispatch(command as DomToastCommand, event, binding.event);
       } catch (error) {
         report(error, event, binding.event);
       }
@@ -185,6 +234,8 @@ export function createDomEventAdapter(
     destroy(): void {
       if (destroyed) return;
       destroyed = true;
+      for (const transaction of pending.values()) transaction.jobs.length = 0;
+      pending.clear();
       for (const remove of removers.splice(0)) remove();
       if (options.dismissTrackedOnDestroy && !instance.isDestroyed) {
         for (const id of new Set(correlations.values())) instance.dismiss(id);

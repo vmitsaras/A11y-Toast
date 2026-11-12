@@ -1,5 +1,5 @@
 import { n as addToastEventListener, t as TOAST_EVENTS } from "../events-D6MCpthx.js";
-import { t as createDomEventAdapter } from "../dom-events-DtCzMDJP.js";
+import { t as createDomEventAdapter } from "../dom-events-DwuDnHT0.js";
 import { MENU_BUTTON_EVENTS, addMenuButtonEventListener } from "a11y-menu-button/core";
 
 //#region src/adapters/menu-button-async-state.ts

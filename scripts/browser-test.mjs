@@ -1,6 +1,9 @@
 import { chromium } from 'playwright';
 import { createServer } from './serve.mjs';
 import { writeFile, mkdir } from 'node:fs/promises';
+import { runShowcaseChecks } from './showcase-test.mjs';
+import { runDesignChecks } from './designs-test.mjs';
+import { runSkinChecks } from './skins-test.mjs';
 const server = createServer();
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 let browser;
@@ -9,15 +12,15 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto(`http://127.0.0.1:${server.address().port}/examples/basic/`);
-  await page.waitForFunction(() => !document.querySelector('#toast-form [type="submit"]')?.disabled);
+  await page.goto(`http://127.0.0.1:${server.address().port}/examples/advanced/`);
+  await page.waitForFunction(() => document.querySelector('[data-boot]')?.hidden === true && document.querySelector('.toast-history-demo'));
   const demoReady = await page.evaluate(async () => ({
     loadingNoticeHidden: document.querySelector('[data-boot]')?.hidden === true,
     historyInspectorPresent: document.querySelector('.toast-history-demo') instanceof HTMLElement,
     unrelatedDependencyStatus: (await fetch('/node_modules/typescript/package.json')).status,
   }));
   if (!demoReady.loadingNoticeHidden || !demoReady.historyInspectorPresent || demoReady.unrelatedDependencyStatus !== 403) {
-    throw new Error(`Playground failed to initialize: ${JSON.stringify(demoReady)}`);
+    throw new Error(`Advanced lab failed to initialize: ${JSON.stringify(demoReady)}`);
   }
   // Leave the demo empty and exercise independent fixture hosts using the same built entry.
   const results = await page.evaluate(async () => {
@@ -40,6 +43,64 @@ try {
     try { await run(); results.push({ name, status: 'pass' }); }
     catch (error) { results.push({ name, status: 'fail', error: String(error) }); }
   }
+  await demoTest('D00 quick note saves with persistent inline state and retained focus', async () => {
+    const groups = await page.locator('.toast-demo__group').evaluateAll(elements => elements.map(element => [element.querySelector('summary').textContent.trim(), element.open]));
+    const expected = [['Content and appearance', true], ['Timing and announcements', false], ['Animation', false], ['Recipes and integrations', false], ['Inspectors', false]];
+    if (JSON.stringify(groups) !== JSON.stringify(expected)) throw new Error(`Disclosure defaults: ${JSON.stringify(groups)}`);
+    await page.locator('.toast-demo__group > summary').filter({ hasText: 'Recipes and integrations' }).click();
+    const note = page.locator('#quick-note');
+    const save = page.locator('[data-quick-save]');
+    await note.fill('Send the accessibility review on Friday.');
+    await save.focus();
+    await save.press('Enter');
+    await page.waitForFunction(() => document.querySelector('[data-a11y-toast] .a11y-toast__message')?.textContent === 'Note saved in this preview.');
+    const state = await page.evaluate(() => ({
+      focused: document.activeElement === document.querySelector('[data-quick-save]'),
+      status: document.querySelector('[data-quick-status]').textContent,
+      statusIsLive: document.querySelector('[data-quick-status]').hasAttribute('role') || document.querySelector('[data-quick-status]').hasAttribute('aria-live'),
+      count: document.querySelectorAll('[data-a11y-toast] [data-a11y-toast-id]').length,
+    }));
+    if (!state.focused || !state.status.startsWith('Saved in this preview.') || state.statusIsLive || state.count !== 1) {
+      throw new Error(`Quick save state: ${JSON.stringify(state)}`);
+    }
+    await note.fill('A revised note.');
+    if (!(await page.locator('[data-quick-status]').textContent()).startsWith('Unsaved changes.')) throw new Error('Edit did not expose unsaved state.');
+    await page.locator('[data-a11y-toast-dismiss]').click();
+    if (!(await page.locator('[data-quick-status]').textContent()).startsWith('Unsaved changes.')) throw new Error('Dismissing the toast lost inline state.');
+  });
+  await demoTest('D00a a full queue preserves the save and exposes a fallback status', async () => {
+    await page.waitForFunction(() => document.querySelectorAll('[data-a11y-toast] [data-a11y-toast-id]').length === 0);
+    const filled = await page.evaluate(async () => {
+      const { getDemoManager } = await import('/examples/advanced/demo.js');
+      const manager = getDemoManager();
+      for (let index = 0; index < 15; index += 1) manager.show({ message: `Existing ${index}`, persistent: true, priority: 'off' });
+      return { visible: manager.visibleCount, queued: manager.queuedCount };
+    });
+    if (filled.visible !== 5 || filled.queued !== 10) throw new Error(`Queue setup failed: ${JSON.stringify(filled)}`);
+    const save = page.locator('[data-quick-save]');
+    await save.focus();
+    await save.press('Enter');
+    const state = await page.evaluate(() => ({
+      focused: document.activeElement === document.querySelector('[data-quick-save]'),
+      saved: document.querySelector('[data-quick-status]').textContent,
+      fallback: document.querySelector('[data-quick-fallback]').textContent,
+      role: document.querySelector('[data-quick-fallback]').getAttribute('role'),
+    }));
+    if (!state.focused || !state.saved.startsWith('Saved in this preview.') || !state.fallback.includes('queue is full') || state.role !== 'status') {
+      throw new Error(`Quick save fallback: ${JSON.stringify(state)}`);
+    }
+    await page.evaluate(async () => (await import('/examples/advanced/demo.js')).getDemoManager().dismissAll());
+    await page.waitForFunction(() => document.querySelectorAll('[data-a11y-toast] [data-a11y-toast-id]').length === 0);
+  });
+  await demoTest('D00b lab disclosure groups open and close by keyboard', async () => {
+    const group = page.locator('.toast-demo__group').first();
+    const summary = group.locator('summary').first();
+    await summary.focus();
+    await summary.press('Enter');
+    if (await group.evaluate(element => element.open)) throw new Error('Enter did not close content examples.');
+    await summary.press('Enter');
+    if (!(await group.evaluate(element => element.open))) throw new Error('Enter did not reopen content examples.');
+  });
   await demoTest('D01 async form keeps submit focus while saving', async () => {
     await page.locator('summary').filter({ hasText: 'Try an async form recipe' }).click();
     const button = page.locator('[data-async-submit]');
@@ -102,6 +163,7 @@ try {
     if (!focus.visible || focus.ratio < 3) throw new Error(`Masthead focus indicator: ${JSON.stringify(focus)}.`);
   });
   await demoTest('D04 five-toast demo shows the full stack without a scrollbar at normal size', async () => {
+    await page.locator('.toast-demo__group > summary').filter({ hasText: 'Timing and announcements' }).click();
     await page.locator('[data-clear]').click();
     await page.waitForFunction(() => document.querySelector('[data-a11y-toast] .a11y-toast-region__list').children.length === 0);
     await page.locator('[data-burst]').click();
@@ -131,6 +193,9 @@ try {
       throw new Error(`Theme backgrounds: ${initialBackground} -> ${darkBackground} -> ${restoredBackground}`);
     }
   });
+  await runShowcaseChecks(page, `http://127.0.0.1:${server.address().port}`, demoTest);
+  await runDesignChecks(page, `http://127.0.0.1:${server.address().port}`, demoTest);
+  await runSkinChecks(page, `http://127.0.0.1:${server.address().port}`, demoTest);
   await mkdir(new URL('../test-results/', import.meta.url), { recursive: true });
   await writeFile(new URL('../test-results/browser.json', import.meta.url), JSON.stringify({ browser: browser.version(), results, errors }, null, 2));
   for (const row of results) console.log(`${row.status.toUpperCase()} ${row.name}${row.error ? `\n  ${row.error}` : ''}`);

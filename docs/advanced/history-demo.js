@@ -1,5 +1,5 @@
-import { createHistoryController } from '../../dist/addons/history.js';
-import { TOAST_EVENTS } from '../../dist/index.js';
+import { createHistoryController } from '../dist/addons/history.js';
+import { TOAST_EVENTS } from '../dist/index.js';
 
 /** Application-owned, non-live inspector. The package itself renders no history UI. */
 export function createHistoryDemo(instance, parent) {
@@ -17,7 +17,7 @@ export function createHistoryDemo(instance, parent) {
   heading.id = `${instance.instanceId}-history-heading`;
   panel.setAttribute('aria-labelledby', heading.id);
   const hint = element('p', 'toast-history-demo__hint',
-    'Optional, in-memory history of the latest 50 show, update and dismiss events. No storage, announcement replay or action replay. Reloading or recreating the manager clears it.');
+    'Latest 50 show, update and dismiss events in page memory. Reloading or recreating the manager clears history; no announcements or actions are replayed.');
   const details = element('details', 'toast-history-demo__details');
   const summary = element('summary', 'toast-history-demo__summary', 'Inspect notification history');
   const actions = element('div', 'toast-history-demo__actions');
@@ -28,7 +28,7 @@ export function createHistoryDemo(instance, parent) {
   const list = element('ol', 'toast-history-demo__list');
   const empty = element('p', 'toast-history-demo__empty', 'No history entries. Show a toast, then refresh this view.');
   const note = element('p', 'toast-history-demo__hint',
-    'This view refreshes only when opened or when you select Refresh history. Clear history does not close active toasts. Action labels are text only; an earlier action may no longer be valid.');
+    'Refreshes when opened or on request. Clearing history keeps active toasts. Earlier action labels are shown as text.');
   actions.append(refresh, clear);
   details.append(summary, note, actions, count, empty, list);
   panel.append(heading, hint, details);

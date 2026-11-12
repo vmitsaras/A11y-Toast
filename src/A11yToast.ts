@@ -44,6 +44,7 @@ interface RecordState {
   remaining: number;
   startedAt: number | null;
   timer: number | null;
+  timerEligible: boolean;
   pauses: Set<ToastPauseReason>;
   view: ToastView | null;
   capturedFocus: HTMLElement | null;
@@ -173,11 +174,12 @@ export class A11yToast implements ToastInstance {
   public show(input: ToastInput): ToastId | null {
     this.assertActive();
     this.drain(); // Existing waiters precede re-entrant arrivals from dismissal observers.
+    this.assertActive(); // Promotion observers may destroy or detach the host.
     const copied = this.copyInput(input);
     const data = normalizeToast(copied, this.options, this.doc);
     const record: RecordState = {
       id: `${this.instanceId}-${++this.sequence}`, input: copied, data, state: 'queued',
-      remaining: data.duration, startedAt: null, timer: null, pauses: new Set(), view: null,
+      remaining: data.duration, startedAt: null, timer: null, timerEligible: false, pauses: new Set(), view: null,
       capturedFocus: isHTMLElement(this.doc.activeElement, this.doc) ? this.doc.activeElement : null,
       lastAnnouncement: null, actionController: null, actionPending: false, actionError: null,
       animationPhase: null, updating: false, dismissing: false,
@@ -223,7 +225,7 @@ export class A11yToast implements ToastInstance {
       if (timingChanged) record.remaining = next.duration;
       if (record.view) this.render(record);
       if (!this.owns(record)) return false;
-      if (record.animationPhase !== 'enter') this.startTimer(record);
+      this.startTimer(record);
       this.emit(TOAST_EVENTS.update, { toast: this.snapshot(record) });
       this.runHooks('afterUpdate', record);
       if (this.owns(record) && record.state === 'visible') this.requestAnnouncement(record);
@@ -452,10 +454,13 @@ export class A11yToast implements ToastInstance {
     this.runHooks('afterShow', record);
     if (!this.owns(record)) return;
     this.requestAnnouncement(record);
-    const started = this.beginAnimation(record, 'enter', record.view.item, () => {
-      if (this.owns(record) && !record.dismissing) this.startTimer(record);
-    });
-    if (!started) this.startTimer(record);
+    const finishEntrance = () => {
+      if (!this.owns(record) || record.dismissing) return;
+      record.timerEligible = true;
+      this.startTimer(record);
+    };
+    const started = this.beginAnimation(record, 'enter', record.view.item, finishEntrance);
+    if (!started) finishEntrance();
   }
   private drain(): void {
     if (this.destroyed || this.clearing || this.draining) return;
@@ -531,7 +536,7 @@ export class A11yToast implements ToastInstance {
     }
   }
   private startTimer(record: RecordState): void {
-    if (!this.owns(record) || record.state !== 'visible' || record.animationPhase === 'enter' || record.data.persistent || record.pauses.size || record.timer !== null) return;
+    if (!this.owns(record) || !record.timerEligible || record.state !== 'visible' || record.animationPhase === 'enter' || record.data.persistent || record.pauses.size || record.timer !== null) return;
     record.startedAt = this.now();
     record.timer = this.win.setTimeout(() => {
       record.timer = null;

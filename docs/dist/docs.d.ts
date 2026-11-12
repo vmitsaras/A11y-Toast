@@ -5,7 +5,7 @@ declare const docs: {
   readonly name: "A11y Toast";
   readonly packageName: "a11y-toast";
   readonly description: "Framework-free toast notifications with explicit announcement priority, bounded queues, safe timers and lifecycle events.";
-  readonly status: "0.1.0 — manual assistive-technology verification pending; not published by this delivery";
+  readonly status: "1.0.0 — unpublished release candidate; showcase/lab/design gallery, reusable skins and lifecycle regressions verified locally; final-revision CI and manual assistive-technology acceptance pending";
   readonly install: {
     readonly npm: "npm install a11y-toast";
     readonly pnpm: "pnpm add a11y-toast";
@@ -24,6 +24,10 @@ declare const docs: {
     readonly description: "Native scrolling while the notification list is focused. No custom global shortcuts.";
   }];
   readonly api: readonly [{
+    readonly name: "new A11yToast(root, options)";
+    readonly type: "new (HTMLElement, ToastOptions?) => A11yToast";
+    readonly description: "Explicit class construction; shares the same mounted-host requirements and duplicate-instance reuse as createToast.";
+  }, {
     readonly name: "createToast(root, options)";
     readonly type: "(HTMLElement, ToastOptions?) => A11yToast";
     readonly description: "Initialize a mounted, non-live host; duplicate initialization reuses the active manager.";
@@ -62,7 +66,7 @@ declare const docs: {
   }, {
     readonly name: "registerAddon / unregisterAddon / getAddon / getAddons";
     readonly type: "ToastAddon lifecycle";
-    readonly description: "Explicit per-instance setup, selected observer hooks, subscriptions and cleanup.";
+    readonly description: "Explicit per-instance setup, selected observer hooks, subscriptions and cleanup. Add-on context holdTimer(id) returns an owned, idempotent release for a gesture timer hold without clearing other pause reasons.";
   }, {
     readonly name: "destroy()";
     readonly type: "() => void";
@@ -156,9 +160,17 @@ declare const docs: {
     readonly sequencing: readonly ["show emits before animation-start; an announcement commit may happen later or not at all.", "queue emits when enqueued; show emits only when the item is promoted.", "dismissAll emits one dismiss event per removed toast and no aggregate completion event.", "pause and resume emit only when the effective running/paused boundary changes.", "action has no success event; completion is reflected by update or dismissal. Dismissal cancels pending work.", "destroy is terminal: teardown cleanup errors are isolated but do not emit events after it."];
   };
   readonly examples: readonly [{
-    readonly name: "Playground";
-    readonly description: "One page with content/timing/announcement-transport/animation/progress/dedupe controls, loading/update, actions, classic light/dark icon examples, a five-notification swipe-dismiss stack, FIFO queue and a non-live event log.";
+    readonly name: "Component showcase";
+    readonly description: "Explicit success, Undo, loading and error/retry triggers with retained non-live results, Reset examples and a minimal usage snippet. No automatic toast; imports core and the promise helper only.";
     readonly path: "examples/basic";
+  }, {
+    readonly name: "Design gallery";
+    readonly description: "Fifteen static non-live previews and one explicitly activated persistent polite toast; matching copyable usage and CSS downloads. Import a11y-toast/styles.css plus a11y-toast/skins/{id}.css and use the matching a11y-toast-region--skin-{id} root class. No JavaScript skin option, external font or asset. Verified locally; manual AT/zoom/touch pending.";
+    readonly path: "examples/designs";
+  }, {
+    readonly name: "Advanced lab";
+    readonly description: "Settings, animations, announcement-ownership and note recipes, queue controls, and non-live history, diagnostics and event inspectors in the shared page shell.";
+    readonly path: "examples/advanced";
   }];
   readonly addons: readonly [{
     readonly name: "Development diagnostics";
@@ -181,7 +193,7 @@ declare const docs: {
   }, {
     readonly name: "Promise orchestration";
     readonly export: "a11y-toast/addons/promise";
-    readonly description: "Retains one toast ID across loading → success/error with caller-authored error copy and late-settlement guards.";
+    readonly description: "Retains one toast ID across loading → success/error with caller-authored error copy; subscribes only while the returned toast and manager remain active and ignores late settlement after dismissal, destroy or stop.";
   }, {
     readonly name: "Key deduplication";
     readonly export: "a11y-toast/addons/dedupe";
@@ -190,7 +202,7 @@ declare const docs: {
   readonly adapters: readonly [{
     readonly name: "DOM events";
     readonly export: "a11y-toast/adapters/dom-events";
-    readonly description: "Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy.";
+    readonly description: "Maps external EventTarget lifecycles to correlated toast show/update/dismiss commands with explicit single-owner announcement policy. Synchronous same-key transactions accept at most 100 commands; overflow clears pending work and reports once through onError, while later events can recover.";
   }, {
     readonly name: "A11y Menu Button async state";
     readonly export: "a11y-toast/adapters/menu-button-async-state";
@@ -238,7 +250,7 @@ declare const docs: {
     readonly announcementTransport: "Live regions by default; experimental ariaNotify is explicit opt-in with unsupported-browser fallback.";
     readonly icon: "Decorative icons are cloned into an inert, aria-hidden wrapper. Only passive icon-font and SVG markup is accepted; active elements, handlers, inline styles, IDs and URL references are rejected. Icons never change announcements.";
     readonly toneLabel: "Visible by default; showToneLabel:false visually hides the tone label while keeping the text available to assistive technology and generated live announcements.";
-    readonly motion: "CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after entrance settles.";
+    readonly motion: "CSS/GSAP/View Transition motion is decorative; reduced-motion skips animation drivers, announcements do not wait for motion, and timed lifetime begins after initial display and entrance settle, including synchronous display-hook updates.";
     readonly limitations: "An announce event records a transport commit attempt, not proof of speech. ariaNotify Permissions Policy suppression may be silent. Timed content must remain available elsewhere. No modal/top-layer portal or shared cross-manager announcer.";
   };
 };

@@ -94,6 +94,14 @@ export class LiveAnnouncer {
         if (candidate.valid()) { entry = candidate; break; }
       }
       if (!entry) return;
+      channel.stage = 'gap';
+      // Own the boundary before entering a caller-supplied transport. It may
+      // request another announcement, pause the document, or destroy us.
+      channel.timer = this.win.setTimeout(() => {
+        channel.timer = null;
+        channel.stage = 'idle';
+        this.pump(channel);
+      }, 1000);
       let result: ToastAnnouncementTransportResult;
       try {
         result = this.transport.announce({
@@ -102,23 +110,10 @@ export class LiveAnnouncer {
           liveRegion: channel.region,
         }) ?? Object.freeze({ transport: this.transport.name, fallback: false });
       } catch (error) {
-        channel.stage = 'gap';
-        channel.timer = this.win.setTimeout(() => {
-          channel.timer = null;
-          channel.stage = 'idle';
-          this.pump(channel);
-        }, 1000);
-        entry.failed(error, this.transport.name);
+        if (!this.destroyed) entry.failed(error, this.transport.name);
         return;
       }
-      channel.stage = 'gap';
-      // Register the next scheduling boundary before invoking application code.
-      channel.timer = this.win.setTimeout(() => {
-        channel.timer = null;
-        channel.stage = 'idle';
-        this.pump(channel);
-      }, 1000);
-      entry.committed(result);
+      if (!this.destroyed) entry.committed(result);
     }, 100);
   }
 }

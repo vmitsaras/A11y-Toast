@@ -2,7 +2,7 @@
 
 ## Scope
 
-This is a standalone accessible TypeScript plugin, not an application framework. Read `ROADMAP.md`, the relevant task, `docs/CONTRACT.md`, and current source/tests before changing behavior. The repository describes implementation reality; plans do not prove completion.
+This is a standalone accessible TypeScript plugin, not an application framework. Read `README.md`, `docs/CONTRACT.md`, `docs/VERIFICATION.md`, and current source/tests before changing behavior. The repository describes implementation reality; documentation does not prove completion.
 
 ## Architecture
 
@@ -41,9 +41,9 @@ This is a standalone accessible TypeScript plugin, not an application framework.
 - Run build, typecheck, unit tests, browser tests, package tests and pack check where tooling is available.
 - `build:portable` is a documented fallback, not evidence of tsdown success.
 - Never mark VoiceOver/NVDA/browser zoom verified from DOM tests or a screenshot.
-- Update roadmap, implementation tasks, contract and verification record only to match actual evidence.
+- Update the contract, manual test matrix and verification record only to match actual evidence.
 - No npm publish, changeset publish, git push or git tag without a new explicit user request.
 
 ## Source adoption
 
-This package deliberately adopts the project's Plugin Package Standard, accessibility/CSS rules, and incremental verification model. Prototype capabilities are classified in `docs/MIGRATION.md`; do not reintroduce them silently. Modern Web Guidance CLI retrieval was blocked by npm DNS access during this build; its successful retrieval remains an online implementation check for subsequent complex changes.
+This package deliberately adopts the project's Plugin Package Standard, accessibility/CSS rules, and incremental verification model. Prototype capabilities are classified in `docs/MIGRATION.md`; do not reintroduce them silently. Modern Web Guidance CLI search and toast-guide retrieval succeeded on 2026-11-12. The repository's explicit per-host DOM, default live-region transport and no-automatic-top-layer decisions take precedence over generic guide suggestions; see `docs/VERIFICATION.md` for the applied constraints.

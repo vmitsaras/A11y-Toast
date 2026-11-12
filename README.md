@@ -2,27 +2,29 @@
 
 A framework-free, TypeScript-first toast manager with explicit announcement ownership, bounded queueing, predictable timers, and removable lifecycle integrations.
 
-**Version 0.1.0 — implementation preview.** The repository contains source, tests, docs, and build configuration; generated `dist/` output is intentionally ignored. The earlier GitHub Actions workflow passed; the tracked-lockfile refresh, clean `npm ci`, and moderate audit gate pass locally, while remote validation of the refreshed workflow remains open. Chrome 200%/400% zoom has recorded evidence; Safari zoom, long-history zoom, and manual VoiceOver checks remain open. See `docs/VERIFICATION.md`.
+**Version 1.0.0 — unpublished release candidate.** The repository contains source, tests, docs and build configuration; generated `dist/` output is intentionally ignored. The showcase, advanced lab, fifteen reusable skins and design gallery pass local build, source/public types, 23 unit tests, 335 browser checks (zero uncaught errors), package and pack verification. See `docs/VERIFICATION.md` for evidence, including the earlier fresh-install/audit result against the unchanged dependency graph. Final-revision remote CI, Safari/long-history zoom, native touch and manual VoiceOver remain open; recorded Chrome zoom evidence applies to an earlier demo revision.
 
 ## Try it immediately
 
-Use the [hosted A11y Toast playground](https://vmitsaras.github.io/A11y-Toast/) or run it locally.
+Use the [hosted component showcase](https://vmitsaras.github.io/A11y-Toast/) or run it locally. The [advanced lab](https://vmitsaras.github.io/A11y-Toast/advanced/) contains the optional integrations and detailed controls. The [design gallery](https://vmitsaras.github.io/A11y-Toast/designs/) presents fifteen reusable CSS skins.
 
 Clone the repository, install development dependencies, build, and run the demo:
 
 ```sh
-npm install
+npm ci
 npm run build
 npm run demo
 ```
 
-Open `http://127.0.0.1:4173/examples/basic/`. Node.js 22 or later is the declared development baseline. The demo imports generated `dist/` output, so a build is required after a fresh clone. Do not open `index.html` using `file://`: it imports real ES modules.
+Open `http://127.0.0.1:4173/examples/basic/` for the showcase or `http://127.0.0.1:4173/examples/advanced/` for the lab, or `http://127.0.0.1:4173/examples/designs/` for the gallery. Use Node.js 24 for development, or at least 22.12 on the Node 22 line. The locked Vitest version supports `^22.12.0 || ^24.0.0 || >=26.0.0`; the package's declared runtime engine remains `>=22.0.0`. All three pages import generated `dist/` output, so a build is required after a fresh clone. Serve them over HTTP: their ES modules do not run through `file://`.
 
-The demo is one page: content/options form, visible/queued selection, loading/update controls, action retry, six logical positions, and a deliberately non-live event log. No CDN, framework, backend, account, or storage is used.
+The showcase has four explicit triggers: success, Undo, loading, and error with retry. It creates no toast on page load. Each example retains ordinary, non-live result text after its toast closes; **Reset examples** clears the simulated results and owned pending work. Undo restores the simulated item, while Close only dismisses its toast. The page imports only core and the promise helper, and includes a minimal usage example.
+
+The advanced lab retains the note-save recipe, content and manager settings, queue/loading/retry controls, animation examples, announcement-ownership recipes, and non-live history, diagnostics and event inspectors. All three pages use a shared documentation-style shell. The dedicated classic previews now live in the gallery; the lab retains its Compact, Compact dark and High-contrast-safe composer presets. State stays in page memory; no CDN, framework, backend, account, or storage is used.
 
 ## GitHub Pages
 
-The committed `docs/` folder is the static GitHub Pages source. Existing Markdown documentation remains there alongside generated playground files. Refresh the package and Pages output together with:
+The committed `docs/` folder is the static GitHub Pages source. The generated showcase is served at the Pages root, the lab at `/advanced/` and the gallery at `/designs/`; existing Markdown documentation remains alongside them. Refresh the package and all three Pages routes together with:
 
 ```sh
 npm run pages:build
@@ -33,6 +35,14 @@ For the repository's one-time Pages configuration, choose **Settings → Pages �
 ## Optional swipe dismissal
 
 The swipe add-on lets pointer users drag a visible, dismissible notification horizontally to dismiss it. It is registered per manager, does not run on import, and leaves the labeled close button available for keyboard and assistive-technology users.
+
+```ts
+import { createSwipeDismissAddon } from 'a11y-toast/addons/swipe-dismiss';
+import 'a11y-toast/addons/swipe-dismiss.css';
+
+// The manager uses animation: 'css' (default) or 'none'.
+toast.registerAddon(createSwipeDismissAddon());
+```
 
 Use the add-on with `animation: 'none'` or the built-in CSS animation driver. The drag is supplementary: keep `dismissible: true` for notifications that should be swipeable, and keep essential information or actions available elsewhere. Touch users can scroll the stack vertically. Reduced-motion preferences and target screen readers still need direct testing in the host application.
 
@@ -48,7 +58,7 @@ history.destroy(); // clears and unregisters the owned observer
 
 Attach before producing notifications: existing toasts are not backfilled. Capacity counts lifecycle entries, not distinct toast IDs; the default is 50, with an accepted integer range of 1–1,000. Entries are oldest-observed first and contain no callbacks, DOM nodes or action replay surface. No storage, announcement replay, action replay, polling or core options are added. Core destruction or external history unregistration clears internal data. Previously retained caller copies cannot be revoked.
 
-The playground includes an application-owned, non-live inspector with explicit Refresh and Clear controls. This is a bounded event history, not a current-state cache or durable notification center. [History contract](docs/HISTORY.md) · [TOAST-270 evidence and remaining gates](docs/TOAST-270-VERIFICATION.md). This slice has targeted automated evidence; the earlier successful workflow run is not a CI pass for these changes.
+The advanced lab includes an application-owned, non-live inspector with explicit Refresh and Clear controls. This is a bounded event history, not a current-state cache or durable notification center. [History contract](docs/HISTORY.md) · [TOAST-270 evidence and remaining gates](docs/TOAST-270-VERIFICATION.md). Earlier history checks do not verify the current demo cleanup.
 
 ## Opt-in development diagnostics
 
@@ -74,6 +84,16 @@ These heuristics are development aids. They may need application-specific interp
 ## npm publication
 
 Publication to npm is planned alongside the author's other accessibility plugins. Until `a11y-toast` is actually published, use the repository for development and do not assume `npm install a11y-toast` resolves to this project.
+
+After publication, choose one package manager:
+
+```sh
+npm install a11y-toast
+# or
+pnpm add a11y-toast
+# or
+yarn add a11y-toast
+```
 
 ## Usage
 
@@ -157,7 +177,7 @@ if (id) toast.update(id, { icon: null }); // Remove the decoration.
 
 The icon is cloned when supplied to `show` or `update`; the original stays with the caller. Later changes to the original do not change an existing or queued toast. Pass it again in an update to replace the icon. Icons remain outside announcements, snapshots and history, inside an owned, noninteractive `.a11y-toast__icon` wrapper hidden from assistive technology. Message and tone text must convey the meaning independently.
 
-`actionLayout` is a per-toast option: `stacked` (default) or `inline`. Inline layout places the action beside the text when space permits and wraps it below on narrow surfaces. Updates preserve the existing action and close buttons and their focus. The playground includes light success/Undo and dark information examples using these options and application-scoped CSS skins.
+`actionLayout` is a per-toast option: `stacked` (default) or `inline`. Inline layout places the action beside the text when space permits and wraps it below on narrow surfaces. Updates preserve the existing action and close buttons and their focus. The design gallery includes Classic light and Classic dark previews using these options and optional package CSS skins.
 
 The shipped CSS uses inline placement at viewport container widths of at least `32rem`; the default `23rem` toast width keeps actions stacked. Set `--a11y-toast-width: 52rem` on your host for a wider classic toast. Browsers without container queries retain the stacked layout.
 
@@ -165,7 +185,7 @@ The shipped CSS uses inline placement at viewport container widths of at least `
 
 Ordinary notifications inherit the manager duration. Loading is always persistent. Actions and assertive messages are persistent unless the caller explicitly supplies a positive per-toast duration or `persistent: false`. A manager's default duration alone does not opt actionable/urgent content into timing. `duration: 0` remains persistent.
 
-With animation enabled, a timed toast begins consuming its lifetime after entrance animation completes or is skipped. Announcements do not wait for decorative motion.
+A timed toast begins consuming its lifetime after initial display setup has finished and entrance animation completes or is skipped. Synchronous updates from `beforeShow`, `show`, or `afterShow` cannot start its timer early. Announcements do not wait for decorative motion.
 
 Timers pause for hover, focus within the toast, focus on the scrollable notification list, a hidden document, a pending action, or the public API pause. Clearing one pause reason cannot clear another. `pause(id)` and `resume(id)` manage only the caller-owned `api` reason.
 
@@ -216,7 +236,7 @@ const id = toast.show({
 
 A callback may return a promise. While pending, duplicate activation is blocked and the button uses `aria-disabled` without losing focus. The callback receives an `AbortSignal`, which is aborted on dismissal, action replacement, or destruction. Cooperating application code should honor it. A toast cannot cancel an external operation that ignores cancellation.
 
-Rejected/thrown callbacks retain a visible, persistent retry message and emit `action-error`. They do not manufacture success or escalate politeness. Late results cannot revive a dismissed/destroyed toast. This is action lifecycle safety, **not** the deferred `toast.promise()` orchestration add-on.
+Rejected/thrown callbacks retain a visible, persistent retry message and emit `action-error`. They do not manufacture success or escalate politeness. Late results cannot revive a dismissed/destroyed toast. This is core action lifecycle safety. Promise/loading orchestration is available separately through `trackToastPromise` from `a11y-toast/addons/promise`; there is no core `toast.promise()` method.
 
 ## Lifecycle events
 
@@ -480,6 +500,7 @@ The error state is required application-authored copy. Rejection objects, except
 The utility:
 
 - retains one toast ID across loading → success/error;
+- installs its lifecycle listeners only if the returned toast and manager are still active after synchronous show callbacks;
 - can settle while the toast is queued; the latest state is shown when promoted;
 - stops updating if the toast is dismissed or the manager is destroyed;
 - returns the underlying normalized promise unchanged in meaning;
@@ -559,11 +580,11 @@ Announcement ownership is mandatory:
 - `announcementOwner: 'toast'` — mapped toast priority is preserved and A11y Toast owns the announcement.
 - `announcementOwner: 'source'` — the adapter forces mapped show/update priority to `off`, so a source component that already announces does not create duplicate toast speech.
 
-Bindings map source events synchronously to `show`, `update`, `dismiss`, or `ignore` commands. A `correlationKey` retains the toast ID across source lifecycle events. Repeated `show` commands for the same active correlation update the retained toast instead of creating another record.
+Bindings map source events synchronously to `show`, `update`, `dismiss`, or `ignore` commands. A `correlationKey` retains the toast ID across source lifecycle events. Repeated `show` commands for the same active correlation update the retained toast instead of creating another record. Nested commands for the same key run in order after the current command commits its tracking; other keys remain independent. A synchronous same-key transaction accepts at most 100 commands, including its initial command. Overflow discards pending commands for that key and reports one `RangeError` through `onError`, using the rejected source event context. Further same-key commands are ignored until that transaction unwinds; later source events can resume normal work. A core update refused while that toast is already updating preserves its correlation.
 
 Unknown update/dismiss correlations are safe no-ops. External toast dismissal clears adapter tracking. Mapper/command failures are isolated through optional `onError`; they do not break source event dispatch.
 
-`destroy()` removes every source/toast listener. `dismissTrackedOnDestroy: true` can additionally dismiss active adapter-tracked toasts when the adapter itself is disposed. Destroying the toast manager automatically disposes the adapter.
+`destroy()` removes every source/toast listener and clears pending nested commands. `dismissTrackedOnDestroy: true` can additionally dismiss active adapter-tracked toasts when the adapter itself is disposed, including a correlated toast whose show observer disposes the adapter before its ID is returned. Destroying the toast manager automatically disposes the adapter.
 
 Correlation keys are adapter-local lifecycle identifiers; they are independent from the optional key-deduplication controller.
 
@@ -619,17 +640,51 @@ const logger = {
 toast.registerAddon(logger);
 ```
 
-`setup` must synchronously return a cleanup function or nothing. Its context provides the public instance, root, an abort signal, and auto-cleaned typed `on()` subscriptions. Selected observer hooks are `beforeShow`, `afterShow`, `beforeUpdate`, `afterUpdate`, `beforeDismiss`, `afterDismiss`. Snapshots are not writable middleware; return values cannot cancel operations. Hooks are not awaited. Accidental returned-promise failures are isolated instead of becoming unhandled rejections.
+`setup` must synchronously return a cleanup function or nothing. Its context provides the public instance, root, an abort signal, auto-cleaned typed `on()` subscriptions, and `holdTimer(id)`. A hold pauses a visible toast using the separate `gesture` reason and returns an idempotent release function. Overlapping holds are counted; releasing one cannot clear an API, focus, hover or visibility pause, and unregister/destroy releases owned holds. Selected observer hooks are `beforeShow`, `afterShow`, `beforeUpdate`, `afterUpdate`, `beforeDismiss`, `afterDismiss`. Snapshots are not writable middleware; return values cannot cancel operations. Hooks are not awaited. Accidental returned-promise failures are isolated instead of becoming unhandled rejections.
 
 Unregister removes subscriptions and aborts the add-on signal; destroy cleans up in reverse registration order. Setup/hook/cleanup failures while the instance is active emit bounded `addon-error` diagnostics. Failures during destruction are isolated without dispatching after the terminal `destroy` event. One failed add-on does not stop core cleanup.
 
 For interoperability, subscribe to the **source package's actual exported events**, map useful outcomes to `show`/`update`/`dismiss`, and retain toast IDs. Do not inspect another component's private collections. If the source already announces a result, use `priority: 'off'` on the toast. Only one component should own each announcement.
 
-No source-plugin or framework adapter is shipped yet. The sampled Menu Button uses `menu-button:*` events; do not assume every existing package already has the same literal prefix.
+The package ships the generic DOM-event adapter and the A11y Menu Button async-state adapter described above; no framework adapter is included. Menu Button uses its exported `menu-button:*` events; do not assume every package has the same literal prefix.
+
+## Toast skins
+
+Load the base stylesheet, then one optional skin, and add its matching modifier to a mounted, non-live host. For example, in a bundler-based application:
+
+```html
+<div class="a11y-toast-region--skin-classic-light" data-toast-host></div>
+<button type="button" data-show-toast>Show toast</button>
+```
+
+```ts
+import { createToast } from 'a11y-toast';
+import 'a11y-toast/styles.css';
+import 'a11y-toast/skins/classic-light.css';
+
+const root = document.querySelector('[data-toast-host]');
+const button = document.querySelector('[data-show-toast]');
+if (root instanceof HTMLElement && button instanceof HTMLButtonElement) {
+  const toast = createToast(root);
+  button.addEventListener('click', () => {
+    toast.show({
+      message: 'Your changes were saved.', tone: 'success',
+      priority: 'polite', persistent: true, origin: button,
+    });
+  });
+  // Call toast.destroy() when the host's owning view is disposed.
+}
+```
+
+Replace `classic-light` in both the import and root class with one of: `minimal`, `compact`, `rounded`, `classic-light`, `classic-dark`, `snackbar`, `soft`, `outline`, `solid`, `accent-rail`, `top-rule`, `split-panel`, `header-band`, `action-footer`, `monochrome`. Each file is independent: import `a11y-toast/styles.css` plus `a11y-toast/skins/{id}.css`, and use `.a11y-toast-region--skin-{id}`. No aggregate skin stylesheet, external font or asset is required.
+
+Skins style the existing renderer and support all six tones (`neutral`, `info`, `success`, `warning`, `error`, `loading`) with optional title, decorative icon and action. They add no JavaScript skin option or skin engine and do not change defaults, timing or announcement ownership. Horizontal actions require `actionLayout: 'inline'` and a container at least 32rem wide; the gallery uses 36rem hosts and actions stack on narrow surfaces. Action footer deliberately keeps its separated action row below the message at every width.
+
+The [gallery](https://vmitsaras.github.io/A11y-Toast/designs/) has fifteen readable, non-live samples and an explicit persistent, polite preview. Design/Tone/Include action controls affect the next preview and matching instructions; selection alone leaves an existing notification unchanged. Show or a card's Try button replaces the previous preview. Try action updates the same ID to “Action completed.” and removes the action. No manager, toast or timer starts on page load. Copy the selected CSS/HTML/JavaScript, including the standard SVG helper if using its icon, or download that skin and base CSS and link them in that order. Selectable code remains available if clipboard access fails. Skin/gallery automated verification passes locally; manual VoiceOver, actual zoom and touch acceptance remain pending.
 
 ## CSS
 
-Import `a11y-toast/styles.css` explicitly. Behavior uses `data-*`; presentation uses BEM. There is no page reset, framework stylesheet, CSS-in-JS runtime, or imported font.
+Import `a11y-toast/styles.css` explicitly. Behavior uses `data-*`; presentation uses BEM. Core adds `.a11y-toast-region` to the host, creates `.a11y-toast-region__viewport` and `.a11y-toast-region__list`, and renders each notification as `.a11y-toast`. Managed item state classes are `.is-entering`, `.is-exiting`, `.is-paused` and `.is-action-pending`; observe them for styling rather than toggling them manually. There is no page reset, framework stylesheet, CSS-in-JS runtime, or imported font.
 
 Public variables include:
 
@@ -641,11 +696,13 @@ Public variables include:
 
 Private `--_` variables are implementation details, not a supported customization API. Changing colors remains the integrator's contrast responsibility.
 
-The notification list grows to fit its visible toasts up to the available viewport height (minus the configured offset). It scrolls vertically only when the stack or a long message needs more space. `--a11y-toast-max-height` can set a smaller host-specific limit. The package default remains three visible toasts; the playground opts into five for its batch example.
+The notification list grows to fit its visible toasts up to the available viewport height (minus the configured offset). It scrolls vertically only when the stack or a long message needs more space. `--a11y-toast-max-height` can set a smaller host-specific limit. The package default remains three visible toasts; the advanced lab opts into five for its batch example.
 
-The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated announcement wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entry animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
+The visual viewport is a named section with an ordered notification list. Text-only status/alert regions are siblings outside the interactive viewport. Default controls have 44px-equivalent minimum target dimensions at the standard root text size. Tone has a visible text label by default, not just an accent color. With `showToneLabel: false`, that label is visually hidden rather than removed, so assistive-technology users can still encounter the tone when revisiting the notification; generated announcement wording is unchanged. Do not rely on the accent color alone to communicate essential meaning. Reduced motion removes entrance and exit animation; forced colors preserves borders/focus styling. Logical positions mirror with inherited direction.
 
 ## Accessibility and integration limitations
+
+Use Tab and Shift+Tab to reach the scrollable notification list and its native action/close buttons. Enter or Space activates a focused button; Arrow and Page Up/Page Down keys scroll natively while the list is focused. Focus pauses the relevant timers. There is no global Escape handler or custom arrow-key navigation.
 
 Showing a toast never focuses it. Focused dismiss/action removal tries an explicit origin, then the captured surviving focus target, then another notification control. If no target remains, a visible “No notifications” region is available until focus leaves. Content-only updates retain existing button nodes. Removing the entire host/view is still an application lifecycle operation: supply valid origins and coordinate focus when disposing surrounding UI.
 
@@ -661,8 +718,10 @@ References used for these decisions:
 
 ## Development and verification
 
+Use Node.js 24, or Node.js 22.12 or later on the Node 22 line, for the locked development toolchain. Vitest's locked engine range is `^22.12.0 || ^24.0.0 || >=26.0.0`; it does not support every Node version above 22.
+
 ```sh
-npm install
+npm ci
 npm run build
 npm run typecheck
 npm test
@@ -674,11 +733,13 @@ npm run pack:check
 
 The standard build uses tsdown, and unit tests use Vitest/jsdom. The original GitHub Actions run #1 successfully executed the then-current workflow, including the tsdown build, source and declaration-consumer typechecks, Vitest, served Chromium lifecycle tests, package export checks, pack inspection, and its configured high-severity audit gate. That run predates the tracked-lockfile refresh.
 
-On 2026-09-21, the tracked-lockfile refresh passed a clean local `npm ci`, `npm audit --audit-level=moderate` with zero vulnerabilities, the tsdown build, typechecks, unit and served-browser tests, package checks, and pack dry run. CI now runs `npm ci` and the moderate audit threshold; the refreshed workflow still needs a remote GitHub Actions run. The portable `npm run build:portable` path remains available for restricted/offline environments.
+On 2026-09-21, the tracked-lockfile refresh passed a clean local `npm ci`, `npm audit --audit-level=moderate` with zero vulnerabilities, the tsdown build, typechecks, unit and served-browser tests, package checks, and pack dry run. CI now runs `npm ci` and the moderate audit threshold; the refreshed workflow still needs a remote GitHub Actions run. On 2026-10-26, a fresh audit identified four affected development packages. Vitest/mocker 5.0.5, Vite 8.3.5 and source-map-js 1.2.2 now pass clean `npm ci`, a zero-vulnerability moderate audit, standard build, source/public declaration checks, 23 unit tests, 228 served-browser scenarios (0 page errors), package checks and pack dry run. That dependency-only remediation changed no runtime dependency or public API. Release preparation then advanced package metadata to 0.2.0 and consumed both pending changesets. The current release target was updated to 1.0.0 by user request on 2026-11-12; the changelog consolidates the unpublished preview notes. The patched lockfile still needs remote CI, and manual accessibility acceptance remains open. The portable `npm run build:portable` path remains available for restricted/offline environments.
+
+Those are dated results for earlier revisions. The 2026-11-12 showcase/lab split, initial-display timer guard and initial promise-cleanup guard pass the standard build, source/public declarations, 23 unit tests, 257 browser scenarios with zero uncaught errors, package checks and pack dry run. A clean isolated `npm ci` and fresh moderate-threshold audit pass with zero vulnerabilities. See `docs/VERIFICATION.md`. No new manual assistive-technology, browser zoom or native-touch pass is claimed by this cleanup.
 
 `PORT` changes the demo port. `CHROMIUM_EXECUTABLE` selects a Chromium binary for `npm run test:browser`. These are development controls, not runtime requirements.
 
-See `ROADMAP.md`, `IMPLEMENTATION_TASKS.md`, `docs/VERIFICATION.md`, and `docs/MANUAL_TESTS.md`. The documentation metadata is available without loading the runtime:
+See the [behavior contract](docs/CONTRACT.md), [verification record](docs/VERIFICATION.md), and [manual test matrix](docs/MANUAL_TESTS.md). The documentation metadata is available without loading the runtime:
 
 ```ts
 import { docs } from 'a11y-toast/docs';
@@ -686,6 +747,6 @@ import { docs } from 'a11y-toast/docs';
 
 ## Package layout
 
-`src/` contains the class, types, events, option normalization, private live-region scheduler, stylesheet, and pure docs metadata. `examples/basic/` is the single demo. `test/` contains the shared browser/Vitest contract and declaration-consumer fixture. `scripts/` contains build/serve/verification helpers. `dist/` is generated by the build and intentionally ignored by Git.
+`src/` contains the class, types, events, option normalization, private live-region scheduler, stylesheet, and pure docs metadata. `examples/basic/` contains the public showcase, `examples/advanced/` the advanced lab, `examples/designs/` the design gallery, `src/skins/` the optional CSS skins, and `examples/shared/` their page shell. `test/` contains the shared browser/Vitest contract and declaration-consumer fixture. `scripts/` contains build/serve/verification helpers. `dist/` and `test-results/` are generated verification output and intentionally ignored by Git.
 
 No npm publication or Git tag has been created. See `docs/MIGRATION.md` before replacing the earlier JavaScript prototype; this is not a drop-in alias layer.

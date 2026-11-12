@@ -165,6 +165,26 @@ export async function runSuite(api, capabilities = { layout: true }) {
     m.root.addEventListener(api.TOAST_EVENTS.dismiss,()=>{c=m.show({message:'C'});},{once:true});m.dismiss(a);
     equal(m.getToast(b).state,'visible');equal(m.getToast(c).state,'queued');
   });
+  await test('21a destruction during queue drainage cannot admit a re-entrant arrival', () => {
+    const c = fakeClock(), m = create({ maxVisible: 1 });
+    const a = m.show({ message: 'A', persistent: true });
+    const b = m.show({ message: 'B', persistent: true });
+    const afterDestroy = [];
+    m.root.addEventListener(api.TOAST_EVENTS.show, event => {
+      if (event.detail.toast.id === b) m.destroy();
+    });
+    m.root.addEventListener(api.TOAST_EVENTS.queue, () => {
+      if (m.isDestroyed) afterDestroy.push('queue');
+    });
+    let rejected = false;
+    m.root.addEventListener(api.TOAST_EVENTS.dismiss, () => {
+      try { m.show({ message: 'C' }); } catch { rejected = true; }
+    }, { once: true });
+    m.dismiss(a);
+    ok(rejected && m.isDestroyed);
+    equal(m.getToasts(), []); equal(m.queuedCount, 0);
+    equal(afterDestroy, []); equal(c.size, 0);
+  });
   await test('22 exact timeout boundary', () => {const c=fakeClock(),m=create();const id=m.show({message:'Timed',duration:1000});c.tick(999);ok(m.getToast(id));c.tick(1);equal(m.getToast(id),undefined);});
   await test('23 content-only updates preserve remaining timeout', () => {
     const c=fakeClock(),m=create();const id=m.show({message:'Timed',duration:1000});c.tick(400);m.update(id,{message:'Changed'});equal(m.getToast(id).remaining,600);c.tick(600);equal(m.getToast(id),undefined);
@@ -323,6 +343,98 @@ export async function runSuite(api, capabilities = { layout: true }) {
     c.tick(999); ok(m.getToast(id));
     c.tick(1); equal(m.getToast(id), undefined);
   });
+
+  for (const [suffix, callback] of [['a', 'beforeShow'], ['b', 'show'], ['c', 'afterShow']]) {
+    await test(`81${suffix} ${callback} updates and API resumes wait for the full entrance`, async () => {
+      const c = fakeClock(); let resolveEnter;
+      const m = create({ priority: 'off', animation: {
+        name: 'callback-entrance', enter() { return new Promise(resolve => { resolveEnter = resolve; }); },
+      } });
+      const revise = ({ toast }) => {
+        m.update(toast.id, { message: 'Updated during display', duration: 1000 });
+        m.pause(toast.id);
+        m.resume(toast.id);
+      };
+      if (callback === 'show') m.root.addEventListener(api.TOAST_EVENTS.show, event => revise(event.detail));
+      else m.registerAddon({ name: 'display-update', [callback]: revise });
+      const id = m.show({ message: 'Initial content', duration: 2000 });
+      equal(m.getToast(id).message, 'Updated during display');
+      equal(m.getToast(id).animationPhase, 'enter');
+      c.tick(5000);
+      ok(m.getToast(id), `${callback} must not expire during entrance`);
+      equal(m.getToast(id).remaining, 1000);
+      equal(m.getToast(id).pauseReasons, []);
+      resolveEnter();
+      await waitMicrotasks();
+      c.tick(999); ok(m.getToast(id));
+      c.tick(1); equal(m.getToast(id), undefined);
+    });
+  }
+
+  await test('81d an API pause through entrance completion preserves the full resumed lifetime', async () => {
+    const c = fakeClock(); let resolveEnter;
+    const m = create({ priority: 'off', animation: {
+      name: 'paused-entrance', enter() { return new Promise(resolve => { resolveEnter = resolve; }); },
+    } });
+    m.registerAddon({ name: 'pause-display', beforeShow({ toast }) {
+      m.update(toast.id, { duration: 1000 });
+      m.pause(toast.id);
+    } });
+    const id = m.show({ message: 'Paused while appearing', duration: 2000 });
+    c.tick(5000);
+    resolveEnter();
+    await waitMicrotasks();
+    c.tick(5000);
+    equal(m.getToast(id).remaining, 1000);
+    equal(m.getToast(id).pauseReasons, ['api']);
+    equal(m.resume(id), true);
+    c.tick(999); ok(m.getToast(id));
+    c.tick(1); equal(m.getToast(id), undefined);
+  });
+
+  for (const [suffix, callback] of [['e', 'beforeShow'], ['f', 'show'], ['g', 'afterShow']]) {
+    await test(`81${suffix} ${callback} cannot consume time before a skipped entrance`, () => {
+      const c = fakeClock(); let remainingDuringCallback;
+      const m = create({ priority: 'off', animation: 'none' });
+      const revise = ({ toast }) => {
+        m.update(toast.id, { message: 'Updated without motion', duration: 1000 });
+        m.pause(toast.id);
+        m.resume(toast.id);
+        c.tick(500);
+        remainingDuringCallback = m.getToast(toast.id).remaining;
+      };
+      if (callback === 'show') m.root.addEventListener(api.TOAST_EVENTS.show, event => revise(event.detail));
+      else m.registerAddon({ name: 'display-update', [callback]: revise });
+      const id = m.show({ message: 'Initial content', duration: 2000 });
+      equal(remainingDuringCallback, 1000);
+      equal(m.getToast(id).remaining, 1000);
+      equal(m.getToast(id).animationPhase, null);
+      c.tick(999); ok(m.getToast(id));
+      c.tick(1); equal(m.getToast(id), undefined);
+    });
+  }
+
+  for (const [suffix, terminal] of [['h', 'dismiss'], ['i', 'destroy']]) {
+    await test(`81${suffix} ${terminal} during display setup cannot start entrance or retain a timer`, () => {
+      const c = fakeClock(); let enterCalls = 0;
+      const m = create({ priority: 'off', animation: {
+        name: 'terminal-display', enter() { enterCalls++; },
+      } });
+      m.registerAddon({ name: 'terminal-display', afterShow({ toast }) {
+        m.update(toast.id, { duration: 1000 });
+        m.pause(toast.id);
+        m.resume(toast.id);
+        if (terminal === 'dismiss') m.dismiss(toast.id);
+        else m.destroy();
+      } });
+      const id = m.show({ message: 'Removed during display', duration: 2000 });
+      equal(m.getToast(id), undefined);
+      equal(enterCalls, 0);
+      equal(c.size, 0);
+      c.tick(5000);
+      equal(m.getToasts(), []);
+    });
+  }
 
   await test('82 animated exit dismisses logically at once but reserves its visual slot', async () => {
     let resolveExit;
@@ -729,6 +841,58 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(handle.stop(), false);
   });
 
+  for (const [number, terminal] of [['105a', 'dismiss'], ['105b', 'destroy']]) {
+    await test(`${number} promise helper stays stopped when ${terminal} occurs inside show`, async () => {
+      let resolve, reject;
+      const operation = new Promise((r, fail) => { resolve = r; reject = fail; });
+      const m = create({ priority: 'off' });
+      let updateCalls = 0;
+      const originalUpdate = m.update;
+      m.update = (...args) => { updateCalls++; return originalUpdate.apply(m, args); };
+      m.root.addEventListener(api.TOAST_EVENTS.show, event => {
+        if (terminal === 'dismiss') m.dismiss(event.detail.toast.id);
+        else m.destroy();
+      }, { once: true });
+      const subscriptions = new Set();
+      const originalAdd = m.root.addEventListener, originalRemove = m.root.removeEventListener;
+      m.root.addEventListener = function(type, listener, options) {
+        if (type === api.TOAST_EVENTS.dismiss || type === api.TOAST_EVENTS.destroy) subscriptions.add(listener);
+        return originalAdd.call(this, type, listener, options);
+      };
+      m.root.removeEventListener = function(type, listener, options) {
+        if (type === api.TOAST_EVENTS.dismiss || type === api.TOAST_EVENTS.destroy) subscriptions.delete(listener);
+        return originalRemove.call(this, type, listener, options);
+      };
+      try {
+        const handle = api.trackToastPromise(m, operation, {
+          loading: 'Working', success: 'Done', error: 'Friendly failure',
+        });
+        ok(handle.id);
+        equal(m.getToast(handle.id), undefined);
+        equal(subscriptions.size, 0, 'Terminal show must not leave helper subscriptions');
+        equal(handle.stop(), false);
+        if (terminal === 'dismiss') {
+          resolve('late');
+          equal(await handle.promise, 'late');
+        } else {
+          const failure = new Error('Late private failure');
+          reject(failure);
+          equal(await handle.promise.catch(error => error === failure), true);
+        }
+        await waitMicrotasks();
+        equal(updateCalls, 0);
+        equal(subscriptions.size, 0);
+        equal(handle.stop(), false);
+        equal(m.getToasts(), []);
+      } finally {
+        m.root.addEventListener = originalAdd;
+        m.root.removeEventListener = originalRemove;
+        m.update = originalUpdate;
+        resolve();
+      }
+    });
+  }
+
   await test('106 promise can settle while queued and displays the latest outcome when promoted', async () => {
     let resolve;
     const operation = new Promise(r => { resolve = r; });
@@ -1066,6 +1230,153 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(updates.length, 1);
   });
 
+  await test('125a nested correlated shows retain one ID and the latest content', () => {
+    const source = new EventTarget(), m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source',
+      bindings: [{ event: 'status', map: event => ({ type: 'show', correlationKey: 'same',
+        input: { message: event.detail, persistent: true } }) }],
+    });
+    m.root.addEventListener(api.TOAST_EVENTS.show, () => {
+      source.dispatchEvent(new CustomEvent('status', { detail: 'Latest' }));
+    }, { once: true });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'First' }));
+    equal(m.getToasts().length, 1);
+    equal(m.getToast(adapter.getToastId('same')).message, 'Latest');
+    adapter.destroy();
+  });
+  await test('125b a correlated replacement from a dismiss observer remains tracked', () => {
+    const source = new EventTarget(), m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source',
+      bindings: [{ event: 'status', map: event => event.detail === 'dismiss'
+        ? { type: 'dismiss', correlationKey: 'same' }
+        : { type: 'show', correlationKey: 'same', input: { message: event.detail, persistent: true } } }],
+    });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'First' }));
+    const oldId = adapter.getToastId('same');
+    m.root.addEventListener(api.TOAST_EVENTS.dismiss, () => {
+      source.dispatchEvent(new CustomEvent('status', { detail: 'Replacement' }));
+    }, { once: true });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'dismiss' }));
+    const nextId = adapter.getToastId('same');
+    ok(nextId && nextId !== oldId);
+    source.dispatchEvent(new CustomEvent('status', { detail: 'Updated replacement' }));
+    equal(adapter.getToastId('same'), nextId); equal(m.getToasts().length, 1);
+    equal(m.getToast(nextId).message, 'Updated replacement');
+    adapter.destroy();
+  });
+  await test('125c adapter destroy during show cancels pending commands and optional tracked dismissal', () => {
+    for (const dismissTrackedOnDestroy of [false, true]) {
+      const source = new EventTarget(), m = create();
+      const adapter = api.createDomEventAdapter(m, {
+        target: source, announcementOwner: 'source', dismissTrackedOnDestroy,
+        bindings: [{ event: 'status', map: () => ({ type: 'show', correlationKey: 'same',
+          input: { message: 'First', persistent: true } }) }],
+      });
+      m.root.addEventListener(api.TOAST_EVENTS.show, () => {
+        source.dispatchEvent(new Event('status'));
+        adapter.destroy();
+      }, { once: true });
+      source.dispatchEvent(new Event('status'));
+      ok(adapter.isDestroyed); equal(adapter.getToastId('same'), undefined);
+      equal(m.getToasts().length, dismissTrackedOnDestroy ? 0 : 1);
+      source.dispatchEvent(new Event('status'));
+      equal(m.getToasts().length, dismissTrackedOnDestroy ? 0 : 1);
+    }
+  });
+  await test('125d a busy core update cannot duplicate or untrack a correlated toast', () => {
+    const source = new EventTarget(), m = create();
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source',
+      bindings: [{ event: 'status', map: event => event.detail === 'update'
+        ? { type: 'update', correlationKey: 'same', patch: { message: 'Nested update' } }
+        : { type: 'show', correlationKey: 'same', input: { message: event.detail, persistent: true } } }],
+    });
+    source.dispatchEvent(new CustomEvent('status', { detail: 'First' }));
+    const id = adapter.getToastId('same');
+    m.registerAddon({ name: 'nested-source', beforeUpdate() {
+      source.dispatchEvent(new CustomEvent('status', { detail: 'Nested show' }));
+      source.dispatchEvent(new CustomEvent('status', { detail: 'update' }));
+    } });
+    m.update(id, { message: 'Outer update' });
+    equal(adapter.getToastId('same'), id); equal(m.getToasts().length, 1);
+    equal(m.getToast(id).message, 'Outer update');
+    adapter.destroy();
+  });
+  await test('125e nested command failures retain their event context and other keys stay synchronous', () => {
+    const source = new EventTarget(), m = create(), failures = [];
+    const badEvent = new CustomEvent('status', { detail: { key: 'same', message: '' } });
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source',
+      onError: (_error, context) => failures.push(context.event),
+      bindings: [{ event: 'status', map: event => ({ type: 'show', correlationKey: event.detail.key,
+        input: { message: event.detail.message, persistent: true } }) }],
+    });
+    let otherId;
+    m.root.addEventListener(api.TOAST_EVENTS.show, () => {
+      source.dispatchEvent(badEvent);
+      source.dispatchEvent(new CustomEvent('status', { detail: { key: 'other', message: 'Independent' } }));
+      otherId = adapter.getToastId('other');
+    }, { once: true });
+    source.dispatchEvent(new CustomEvent('status', { detail: { key: 'same', message: 'First' } }));
+    ok(otherId); equal(failures.length, 1); ok(failures[0] === badEvent);
+    equal(m.getToast(adapter.getToastId('same')).message, 'First');
+    source.dispatchEvent(new CustomEvent('status', { detail: { key: 'same', message: 'Recovery' } }));
+    equal(m.getToast(adapter.getToastId('same')).message, 'Recovery'); equal(m.getToasts().length, 2);
+    adapter.destroy();
+  });
+  await test('125f same-key feedback is bounded, reports once and allows later recovery', () => {
+    const source = new EventTarget(), m = create(), failures = [];
+    let feedback = true, updates = 0, lastNested;
+    const binding = event => ({ type: 'show', correlationKey: 'same',
+      input: { message: event.type, persistent: true } });
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source',
+      bindings: [{ event: 'refresh', map: binding }, { event: 'status', map: binding }],
+      onError(error, context) {
+        failures.push([error.name, context.event, context.eventType]);
+        source.dispatchEvent(new Event('status')); // Reporting cannot restart this feedback loop.
+        throw new Error('Reporter failure is isolated');
+      },
+    });
+    source.dispatchEvent(new Event('refresh'));
+    const id = adapter.getToastId('same');
+    m.registerAddon({ name: 'feedback-source', beforeUpdate() {
+      updates++;
+      if (feedback && updates < 150) { // Keep the unfixed baseline finite.
+        lastNested = new Event('status');
+        source.dispatchEvent(lastNested);
+      }
+    } });
+    source.dispatchEvent(new Event('refresh'));
+    equal(failures.length, 1); equal(failures[0][0], 'RangeError');
+    ok(failures[0][1] === lastNested); equal(failures[0][2], 'status');
+    equal(updates, 100); equal(adapter.getToastId('same'), id); equal(m.visibleCount, 1);
+    feedback = false;
+    source.dispatchEvent(new Event('refresh'));
+    equal(updates, 101); equal(failures.length, 1); equal(adapter.getToastId('same'), id);
+    equal(m.getToast(id).message, 'refresh');
+    adapter.destroy();
+  });
+  await test('125g overflow reporting may destroy an adapter without stale queued work', () => {
+    const source = new EventTarget(), m = create();
+    let failures = 0;
+    const adapter = api.createDomEventAdapter(m, {
+      target: source, announcementOwner: 'source', dismissTrackedOnDestroy: true,
+      bindings: [{ event: 'status', map: () => ({ type: 'show', correlationKey: 'same',
+        input: { message: 'Queued feedback', persistent: true } }) }],
+      onError() { failures++; adapter.destroy(); },
+    });
+    m.root.addEventListener(api.TOAST_EVENTS.show, () => {
+      for (let i = 0; i < 150; i++) source.dispatchEvent(new Event('status'));
+    }, { once: true });
+    source.dispatchEvent(new Event('status'));
+    equal(failures, 1); ok(adapter.isDestroyed); equal(adapter.getToastId('same'), undefined);
+    equal(m.getToasts().length, 0);
+    source.dispatchEvent(new Event('status'));
+    equal(failures, 1); equal(m.getToasts().length, 0);
+  });
   await test('126 unknown correlation update and dismiss commands are safe no-ops', () => {
     const source = new EventTarget();
     const m = create();
@@ -1277,6 +1588,44 @@ export async function runSuite(api, capabilities = { layout: true }) {
     equal(messages, ['Third']);
   });
 
+  await test('136a re-entrant transport requests preserve the commit gap and timer ownership', () => {
+    const c = fakeClock(), commits = [];
+    const m = create({ announcementTransport: { name: 'nested', announce({ message }) {
+      commits.push([message, performance.now()]);
+      if (message === 'A') m.show({ message: 'B', persistent: true });
+    } } });
+    m.show({ message: 'A', persistent: true });
+    c.tick(100); equal(commits, [['A', 100]]); equal(c.size, 1);
+    c.tick(1099); equal(commits.length, 1);
+    c.tick(1); equal(commits, [['A', 100], ['B', 1200]]);
+    m.destroy(); equal(c.size, 0);
+  });
+  await test('136b transport destruction cannot register timers after teardown', () => {
+    const c = fakeClock();
+    for (const fail of [false, true]) {
+      const m = create({ announcementTransport: { name: 'destroying', announce() {
+        m.destroy();
+        if (fail) throw new Error('Destroyed transport');
+      } } });
+      const announced = events(m, api.TOAST_EVENTS.announce);
+      const errors = events(m, api.TOAST_EVENTS.announcementError);
+      m.show({ message: 'A', persistent: true });
+      c.tick(100); ok(m.isDestroyed); equal(c.size, 0);
+      equal(announced.length, 0); equal(errors.length, 0);
+    }
+  });
+  await test('136c transport visibility changes stop scheduling until the document resumes', () => {
+    const c = fakeClock(), commits = [];
+    const m = create({ announcementTransport: { name: 'hiding', announce({ message }) {
+      commits.push(message);
+      if (message === 'A') { m.show({ message: 'B', persistent: true }); hidden(true); }
+    } } });
+    m.show({ message: 'A', persistent: true });
+    c.tick(100); equal(commits, ['A']); equal(c.size, 0);
+    c.tick(5000); equal(commits, ['A']);
+    hidden(false); c.tick(100); equal(commits, ['A', 'B']);
+    m.destroy(); equal(c.size, 0);
+  });
   await test('137 priority off bypasses an injected announcement transport', () => {
     const c = fakeClock(); let calls = 0;
     const m = create({
@@ -1913,7 +2262,7 @@ export async function runSuite(api, capabilities = { layout: true }) {
 
   await test('166 demo directional effects keep motion inside an expanded scrollport', async () => {
     const style = document.createElement('link');
-    style.rel = 'stylesheet'; style.href = '/examples/basic/demo.css';
+    style.rel = 'stylesheet'; style.href = '/examples/advanced/demo.css';
     const loaded = new Promise((resolve, reject) => { style.onload = resolve; style.onerror = reject; });
     fixture.append(style); await loaded;
     for (const engine of ['css', 'custom']) {
@@ -2082,7 +2431,7 @@ export async function runSuite(api, capabilities = { layout: true }) {
   }, true);
   await test('175 entrance overflow does not flash a scrollbar or resize the stack', async () => {
     const style = document.createElement('link');
-    style.rel = 'stylesheet'; style.href = '/examples/basic/demo.css';
+    style.rel = 'stylesheet'; style.href = '/examples/advanced/demo.css';
     const loaded = new Promise((resolve, reject) => { style.onload = resolve; style.onerror = reject; });
     fixture.append(style); await loaded;
     const root = host(); root.dataset.demoEffect = 'slide-bottom';

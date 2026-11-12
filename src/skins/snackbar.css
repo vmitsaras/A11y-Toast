@@ -1,0 +1,106 @@
+/* Dark low-radius action bar. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-snackbar {
+  --a11y-toast-color: #f5f6f5;
+  --a11y-toast-muted: #c4cbc8;
+  --a11y-toast-border: #727d78;
+  --a11y-toast-hover-background: #3b4540;
+  --a11y-toast-focus: #a6deff;
+  --a11y-toast-neutral-accent: #d0d6d3;
+  --a11y-toast-info-accent: #8acbff;
+  --a11y-toast-success-accent: #86dbaf;
+  --a11y-toast-warning-accent: #f5ca78;
+  --a11y-toast-error-accent: #ffa69f;
+  --a11y-toast-loading-accent: #cbb4ff;
+  --a11y-toast-background: #24272b;
+  --a11y-toast-radius: 0.25rem;
+  --a11y-toast-shadow: 0 0.25rem 0.75rem #0003;
+  --a11y-toast-icon-size: 1.5rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast {
+  padding: 0.625rem;
+  border-inline-start-width: 1px;
+  align-items: center;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__icon {
+  margin-inline-start: 0.25rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__title {
+  margin-block-start: 0;
+  font-size: 0.9375rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__tone {
+  font-size: 0.75rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__message {
+  font-size: 0.9375rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__action {
+  border-color: transparent;
+  border-radius: 0.125rem;
+  color: var(--_accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__dismiss {
+  align-self: center;
+  border-radius: 0.125rem;
+}
+
+.a11y-toast-region--skin-snackbar .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-snackbar .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-snackbar .a11y-toast__title,
+  .a11y-toast-region--skin-snackbar .a11y-toast__message,
+  .a11y-toast-region--skin-snackbar .a11y-toast__tone,
+  .a11y-toast-region--skin-snackbar .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-snackbar .a11y-toast__content,
+  .a11y-toast-region--skin-snackbar .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-snackbar .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-snackbar .a11y-toast__action,
+  .a11y-toast-region--skin-snackbar .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-snackbar .a11y-toast__action:hover,
+  .a11y-toast-region--skin-snackbar .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-snackbar :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

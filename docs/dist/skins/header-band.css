@@ -1,0 +1,146 @@
+/* Optional title band above a restrained body. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-header-band {
+  --a11y-toast-background: #fff;
+  --a11y-toast-color: #20272c;
+  --a11y-toast-border: #89949c;
+  --a11y-toast-focus: #155ca5;
+  --a11y-toast-radius: 0.5rem;
+  --a11y-toast-shadow: 0 0.25rem 0.75rem #17252d12;
+  --a11y-toast-icon-size: 2rem;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast {
+  border-inline-start-width: 1px;
+  padding: 0.75rem;
+  gap: 0.5rem;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__icon {
+  margin-block-start: 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__title {
+  order: -1;
+  background: var(--_skin-tint);
+  border-block-end: 1px solid var(--_accent);
+  color: var(--_accent);
+  margin: 0 0 0.625rem;
+  padding: 0.5rem 0.625rem;
+  font-weight: 750;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__message {
+  line-height: 1.6;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__action {
+  border-color: var(--_accent);
+  color: var(--_accent);
+  border-radius: 0.25rem;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--neutral {
+  --_skin-tint: #edf0f2;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--info {
+  --_skin-tint: #e8f2fc;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--success {
+  --_skin-tint: #e7f4ec;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--warning {
+  --_skin-tint: #fff3da;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--error {
+  --_skin-tint: #ffedeb;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast--loading {
+  --_skin-tint: #f2edfc;
+}
+
+.a11y-toast-region--skin-header-band .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@container (min-width: 32rem) {
+  .a11y-toast-region--skin-header-band .a11y-toast--inline-action .a11y-toast__content {
+    display: grid;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast--inline-action .a11y-toast__title {
+    grid-row: 1;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast--inline-action .a11y-toast__tone {
+    grid-row: 2;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast--inline-action .a11y-toast__message {
+    grid-row: 3;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast--inline-action .a11y-toast__actions {
+    grid-row: 1 / 4;
+  }
+
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-header-band .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast__title,
+  .a11y-toast-region--skin-header-band .a11y-toast__message,
+  .a11y-toast-region--skin-header-band .a11y-toast__tone,
+  .a11y-toast-region--skin-header-band .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast__content,
+  .a11y-toast-region--skin-header-band .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast__action,
+  .a11y-toast-region--skin-header-band .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-header-band .a11y-toast__action:hover,
+  .a11y-toast-region--skin-header-band .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-header-band :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

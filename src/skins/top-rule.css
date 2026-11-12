@@ -1,0 +1,93 @@
+/* Upper accent rule with an open editorial body. Load after the base toast stylesheet. */
+.a11y-toast-region--skin-top-rule {
+  --a11y-toast-background: #fff;
+  --a11y-toast-color: #20272c;
+  --a11y-toast-border: #89949c;
+  --a11y-toast-focus: #155ca5;
+  --a11y-toast-radius: 0.375rem;
+  --a11y-toast-shadow: 0 0.375rem 1rem #182c3612;
+  --a11y-toast-icon-size: 1.75rem;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast {
+  border-inline-start-width: 1px;
+  border-block-start: 0.3125rem solid var(--_accent);
+  padding: 0.875rem;
+  row-gap: 0.625rem;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__icon {
+  border-radius: 0;
+  margin-block-start: 0.125rem;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__tone {
+  letter-spacing: 0.05em;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__title {
+  font-size: 1.125rem;
+  margin-block-start: 0.25rem;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__message {
+  line-height: 1.6;
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__action {
+  border-radius: 0;
+  border-color: var(--_accent);
+  color: var(--_accent);
+}
+
+.a11y-toast-region--skin-top-rule .a11y-toast__action {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .a11y-toast-region--skin-top-rule .a11y-toast {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .a11y-toast-region--skin-top-rule .a11y-toast__title,
+  .a11y-toast-region--skin-top-rule .a11y-toast__message,
+  .a11y-toast-region--skin-top-rule .a11y-toast__tone,
+  .a11y-toast-region--skin-top-rule .a11y-toast__action-error {
+    background: Canvas;
+    color: CanvasText;
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-top-rule .a11y-toast__content,
+  .a11y-toast-region--skin-top-rule .a11y-toast__actions {
+    border-color: CanvasText;
+  }
+
+  .a11y-toast-region--skin-top-rule .a11y-toast__icon {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .a11y-toast-region--skin-top-rule .a11y-toast__action,
+  .a11y-toast-region--skin-top-rule .a11y-toast__dismiss {
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonText;
+  }
+
+  .a11y-toast-region--skin-top-rule .a11y-toast__action:hover,
+  .a11y-toast-region--skin-top-rule .a11y-toast__dismiss:hover {
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .a11y-toast-region--skin-top-rule :focus-visible {
+    outline-color: Highlight;
+  }
+
+}

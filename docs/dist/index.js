@@ -142,6 +142,12 @@ var LiveAnnouncer = class {
 				}
 			}
 			if (!entry) return;
+			channel.stage = "gap";
+			channel.timer = this.win.setTimeout(() => {
+				channel.timer = null;
+				channel.stage = "idle";
+				this.pump(channel);
+			}, 1e3);
 			let result;
 			try {
 				result = this.transport.announce({
@@ -153,22 +159,10 @@ var LiveAnnouncer = class {
 					fallback: false
 				});
 			} catch (error) {
-				channel.stage = "gap";
-				channel.timer = this.win.setTimeout(() => {
-					channel.timer = null;
-					channel.stage = "idle";
-					this.pump(channel);
-				}, 1e3);
-				entry.failed(error, this.transport.name);
+				if (!this.destroyed) entry.failed(error, this.transport.name);
 				return;
 			}
-			channel.stage = "gap";
-			channel.timer = this.win.setTimeout(() => {
-				channel.timer = null;
-				channel.stage = "idle";
-				this.pump(channel);
-			}, 1e3);
-			entry.committed(result);
+			if (!this.destroyed) entry.committed(result);
 		}, 100);
 	}
 };
@@ -495,6 +489,7 @@ var A11yToast = class A11yToast {
 	show(input) {
 		this.assertActive();
 		this.drain();
+		this.assertActive();
 		const copied = this.copyInput(input);
 		const data = normalizeToast(copied, this.options, this.doc);
 		const record = {
@@ -505,6 +500,7 @@ var A11yToast = class A11yToast {
 			remaining: data.duration,
 			startedAt: null,
 			timer: null,
+			timerEligible: false,
 			pauses: /* @__PURE__ */ new Set(),
 			view: null,
 			capturedFocus: isHTMLElement(this.doc.activeElement, this.doc) ? this.doc.activeElement : null,
@@ -592,7 +588,7 @@ var A11yToast = class A11yToast {
 			if (timingChanged) record.remaining = next.duration;
 			if (record.view) this.render(record);
 			if (!this.owns(record)) return false;
-			if (record.animationPhase !== "enter") this.startTimer(record);
+			this.startTimer(record);
 			this.emit(TOAST_EVENTS.update, { toast: this.snapshot(record) });
 			this.runHooks("afterUpdate", record);
 			if (this.owns(record) && record.state === "visible") this.requestAnnouncement(record);
@@ -859,9 +855,12 @@ var A11yToast = class A11yToast {
 		this.runHooks("afterShow", record);
 		if (!this.owns(record)) return;
 		this.requestAnnouncement(record);
-		if (!this.beginAnimation(record, "enter", record.view.item, () => {
-			if (this.owns(record) && !record.dismissing) this.startTimer(record);
-		})) this.startTimer(record);
+		const finishEntrance = () => {
+			if (!this.owns(record) || record.dismissing) return;
+			record.timerEligible = true;
+			this.startTimer(record);
+		};
+		if (!this.beginAnimation(record, "enter", record.view.item, finishEntrance)) finishEntrance();
 	}
 	drain() {
 		if (this.destroyed || this.clearing || this.draining) return;
@@ -948,7 +947,7 @@ var A11yToast = class A11yToast {
 		else this.recoverFocus(record);
 	}
 	startTimer(record) {
-		if (!this.owns(record) || record.state !== "visible" || record.animationPhase === "enter" || record.data.persistent || record.pauses.size || record.timer !== null) return;
+		if (!this.owns(record) || !record.timerEligible || record.state !== "visible" || record.animationPhase === "enter" || record.data.persistent || record.pauses.size || record.timer !== null) return;
 		record.startedAt = this.now();
 		record.timer = this.win.setTimeout(() => {
 			record.timer = null;

@@ -2,6 +2,14 @@ import assert from 'node:assert/strict';
 import { readFile, access, readdir } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'));
+const skins = ['minimal', 'compact', 'rounded', 'classic-light', 'classic-dark', 'snackbar', 'soft', 'outline', 'solid', 'accent-rail', 'top-rule', 'split-panel', 'header-band', 'action-footer', 'monochrome'];
+for (const skin of skins) {
+  assert.equal(pkg.exports[`./skins/${skin}.css`], `./dist/skins/${skin}.css`, `Missing optional skin export: ${skin}`);
+  const location = import.meta.resolve(`a11y-toast/skins/${skin}.css`);
+  const source = await readFile(new URL(location), 'utf8');
+  assert(source.includes(`.a11y-toast-region--skin-${skin}`), `Missing scope for ${skin}`);
+  assert(!/@import|url\s*\(/i.test(source), `${skin} has an external CSS/asset prerequisite`);
+}
 assert.equal(pkg.type, 'module');
 assert.equal(Object.keys(pkg.dependencies ?? {}).length, 0);
 assert.equal(typeof globalThis.document, 'undefined');

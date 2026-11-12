@@ -36,7 +36,7 @@ function trackToastPromise(instance, operation, states) {
 	messageOf(states.error, "error");
 	const promise = Promise.resolve(operation);
 	const id = instance.show(loadingInput(states.loading));
-	let active = id !== null;
+	let active = id !== null && !instance.isDestroyed && Boolean(instance.getToast(id));
 	let removeDismiss = null;
 	let removeDestroy = null;
 	const stop = () => {
@@ -48,7 +48,7 @@ function trackToastPromise(instance, operation, states) {
 		removeDestroy = null;
 		return true;
 	};
-	if (id !== null) {
+	if (active) {
 		removeDismiss = addToastEventListener(instance.root, TOAST_EVENTS.dismiss, (event) => {
 			if (event.detail.instance === instance && event.detail.toast.id === id) stop();
 		});

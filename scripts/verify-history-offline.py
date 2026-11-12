@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright
 
 root = Path(__file__).resolve().parents[1]
 modules = {p.relative_to(root).as_posix(): p.read_text() for p in (root / 'dist').rglob('*.js')}
-for name in ('test/browser/history.js', 'examples/basic/history-demo.js'):
+for name in ('test/browser/history.js', 'examples/advanced/history-demo.js'):
     modules[name] = (root / name).read_text()
 launch = {'headless': True}
 executable = os.environ.get('CHROMIUM_EXECUTABLE') or shutil.which('chromium') or shutil.which('chromium-browser')
@@ -27,7 +27,7 @@ with sync_playwright() as playwright:
     errors = []
     page.on('pageerror', lambda error: errors.append(str(error)))
     page.set_content('<!doctype html><html lang="en"><head><meta charset="utf-8"><title>TOAST-270 checks</title></head><body></body></html>')
-    page.add_style_tag(content=(root / 'examples/basic/history-demo.css').read_text())
+    page.add_style_tag(content=(root / 'examples/advanced/history-demo.css').read_text())
     report = page.evaluate(r'''async modules => {
       const urls = new Map();
       const loading = new Set();
@@ -50,7 +50,7 @@ with sync_playwright() as playwright:
         const history = await import(resolve('dist/addons/history.js'));
         const {runHistorySuite} = await import(resolve('test/browser/history.js'));
         const results = await runHistorySuite({...core, ...history});
-        const {createHistoryDemo} = await import(resolve('examples/basic/history-demo.js'));
+        const {createHistoryDemo} = await import(resolve('examples/advanced/history-demo.js'));
         const fixture = document.createElement('main');
         const host = document.createElement('div');
         fixture.append(host);
