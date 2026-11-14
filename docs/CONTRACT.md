@@ -1,6 +1,6 @@
 # A11y Toast core contract
 
-Status: 1.0.0 unpublished release candidate; showcase/lab, reusable skins/gallery and lifecycle hardening verified locally; final-revision CI and manual acceptance pending
+Status: 1.0.0; showcase/lab, reusable skins/gallery and lifecycle hardening verified locally; final-revision CI and manual acceptance pending
 Updated: 2026-11-12
 
 ## Goal

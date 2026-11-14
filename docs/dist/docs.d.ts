@@ -5,7 +5,7 @@ declare const docs: {
   readonly name: "A11y Toast";
   readonly packageName: "a11y-toast";
   readonly description: "Framework-free toast notifications with explicit announcement priority, bounded queues, safe timers and lifecycle events.";
-  readonly status: "1.0.0 — unpublished release candidate; showcase/lab/design gallery, reusable skins and lifecycle regressions verified locally; final-revision CI and manual assistive-technology acceptance pending";
+  readonly status: "1.0.0 — showcase, advanced lab, design gallery and reusable skins; manual assistive-technology acceptance pending";
   readonly install: {
     readonly npm: "npm install a11y-toast";
     readonly pnpm: "pnpm add a11y-toast";

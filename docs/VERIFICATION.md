@@ -1,4 +1,16 @@
-# Verification — a11y-toast 1.0.0 unpublished release candidate
+# Verification — a11y-toast 1.0.0
+
+## npm publication — 2026-11-12
+
+Published [a11y-toast 1.0.0](https://www.npmjs.com/package/a11y-toast/v/1.0.0) to `https://registry.npmjs.org/` with public access and dist-tag `latest`, using the authenticated `vmitsaras` account and npm 12.2.0. npm accepted the upload, processed its initial staging version, and the final registry query confirmed both version and `latest` resolve to 1.0.0.
+
+The verified artifact contains 86 files, 120,711 bytes packed and 486,937 bytes unpacked. Its registry SHA-1 is `379982d69457a653d377207a05e037ab0e668463`; registry SHA-512 integrity also exactly matches the locally inspected tarball. All archive bytes matched the built workspace files, all export targets and MIT license were present, version/lockfile/changelog metadata agreed, and the bounded credential-pattern scan found no matches.
+
+Fresh checks passed before publishing: standard build, source and both public declaration consumers, 6 Vitest files / 23 tests, 335/335 Chromium checks with zero page errors, package exports, pack dry run and a zero-vulnerability moderate audit. The tarball installed into an isolated ESM consumer; a second consumer installed 1.0.0 from the public registry after publication and verified core/docs imports, DOM-free initialization and all exported CSS paths. The archive helper was adjusted for npm 12's name-keyed pack JSON and the consumer helper for this package's import-only ESM exports; the corrected checks passed without package/runtime changes.
+
+Independent metadata review found no further package blocker. [GitHub Verify run 43223347188](https://github.com/vmitsaras/A11y-Toast/actions/runs/43223347188) passed for the preparation commit `0ba3cb7ea1edb9792ed0b8d55786b6f546236c81`; the final publication wording/metadata changes were checked locally. Release documentation and generated docs metadata were updated locally; no new Git commit, push, tag, GitHub release or custom release archive was created by this publication task.
+
+Manual VoiceOver, current-layout browser zoom and native-touch/pinch-zoom acceptance remain pending. Publication does not convert those checks into passes. Earlier records below retain their historical versions and no-publication status.
 
 
 ## Local release-preparation review — 2026-11-12

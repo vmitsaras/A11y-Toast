@@ -4,7 +4,7 @@ import { TOAST_EVENTS } from './events.js';
 export const docs = {
   slug: 'a11y-toast', name: 'A11y Toast', packageName: 'a11y-toast',
   description: 'Framework-free toast notifications with explicit announcement priority, bounded queues, safe timers and lifecycle events.',
-  status: '1.0.0 — unpublished release candidate; showcase/lab/design gallery, reusable skins and lifecycle regressions verified locally; final-revision CI and manual assistive-technology acceptance pending',
+  status: '1.0.0 — showcase, advanced lab, design gallery and reusable skins; manual assistive-technology acceptance pending',
   install: { npm: 'npm install a11y-toast', pnpm: 'pnpm add a11y-toast', yarn: 'yarn add a11y-toast' },
   usage: `import { createToast } from 'a11y-toast';\nimport 'a11y-toast/styles.css';\nconst root = document.querySelector('[data-a11y-toast]');\nif (root instanceof HTMLElement) {\n  const toast = createToast(root);\n  toast.success('Your changes were saved.');\n}`,
   selectors: ['[data-a11y-toast]', '[data-a11y-toast-id]', '[data-a11y-toast-action]', '[data-a11y-toast-dismiss]'],

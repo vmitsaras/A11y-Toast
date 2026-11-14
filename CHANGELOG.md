@@ -1,8 +1,8 @@
 # Changelog
 
-## 1.0.0 — Unreleased
+## 1.0.0 — 2026-11-12
 
-Prepared as 1.0.0 on 2026-11-12, superseding the unpublished 0.2.0 candidate. This candidate consolidates the unpublished 0.1.0 implementation preview and the history (minor) and skin/progress (patch) changesets consumed during version preparation. It has not been published.
+Initial 1.0.0 release. Includes the work from the unpublished 0.1.0 preview and 0.2.0 candidate, with the history and skin/progress changesets consolidated into this release.
 
 2026-11-12 reusable skins/gallery, showcase/lab cleanup and lifecycle fixes are locally verified:
 

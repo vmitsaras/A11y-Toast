@@ -19,7 +19,7 @@ A11y Toast uses native buttons and live regions for screen readers. It works wit
 
 ## Installation
 
-**Version 1.0.0 is prepared but has not been published to npm.** For now, [run the examples from this repository](#run-the-examples-locally). Once published, install it with your preferred package manager:
+Install with your preferred package manager:
 
 ```sh
 npm install a11y-toast
